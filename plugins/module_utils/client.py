@@ -10,7 +10,6 @@ __metaclass__ = type
 from .auth import get_oauth_header
 
 import json
-import requests
 
 from ansible.module_utils.urls import Request
 
@@ -74,7 +73,7 @@ class Client:
         return self._auth_header
 
     def _login(self):
-        return self._oauth1()
+        return self._login_oauth1()
 
     def _login_oauth1(self):
         result = get_oauth_header(self.consumer_key, self.token_key, self.token_secret)
@@ -120,7 +119,7 @@ class Client:
             raise AssertionError(
                 "Cannot have JSON and binary payload in a single request."
             )
-        escaped_path = quote(path.strip("/"))
+        escaped_path = quote(path.lstrip("/"))
         if escaped_path:
             escaped_path = "/" + escaped_path
         url = "{0}{1}".format(self.host, escaped_path)

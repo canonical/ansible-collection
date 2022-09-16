@@ -16,7 +16,7 @@ readme: README.md
 # A list of the collection's content authors. Can be just the name or in the format 'Full Name <email> (url)
 # @nicks:irc/im.site#channel'
 authors:
-- your name <example@domain.com>
+- Jure Medvesek <jure.medvesek@xlab.si>
 
 
 ### OPTIONAL but strongly recommended
