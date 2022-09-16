@@ -38,20 +38,12 @@ class Response:
             try:
                 self._json = json.loads(self.data)
             except ValueError:
-                raise MaasError(
-                    "Received invalid JSON response: {0}".format(self.data)
-                )
+                raise MaasError("Received invalid JSON response: {0}".format(self.data))
         return self._json
 
 
 class Client:
-    def __init__(
-        self,
-        host,
-        token_key=None,
-        token_secret=None,
-        consumer_key=None
-    ):
+    def __init__(self, host, token_key=None, token_secret=None, consumer_key=None):
         if not (host or "").startswith(("https://", "http://")):
             raise MaasError(
                 "Invalid instance host value: '{0}'. "
@@ -170,4 +162,3 @@ class Client:
         if resp.status == 204 or resp.status == 200:
             return resp
         raise UnexpectedAPIResponse(response=resp)
-

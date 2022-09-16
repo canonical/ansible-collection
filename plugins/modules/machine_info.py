@@ -43,24 +43,25 @@ from ..module_utils.client import Client
 
 
 def run(module, client: Client):
-  response = client.request("GET", "/api/2.0/machines/")
-  return response.json
+    response = client.request("GET", "/api/2.0/machines/")
+    return response.json
+
 
 def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("instance"),
-        )
+        ),
     )
 
     try:
-        instance = module.params["instance"] 
+        instance = module.params["instance"]
         host = instance["host"]
         client_key = instance["client_key"]
         token_key = instance["token_key"]
         token_secret = instance["token_secret"]
-        
+
         client = Client(host, token_key, token_secret, client_key)
         records = run(module, client)
         module.exit_json(changed=False, records=records)

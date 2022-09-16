@@ -44,7 +44,6 @@ class MissingValueAnsible(MaasError):
         super(MissingValueAnsible, self).__init__(self.message)
 
 
-
 class DeviceNotUnique(MaasError):
     def __init__(self, data):
         self.message = "Device is not unique - {0} - already exists".format(data)

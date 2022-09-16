@@ -33,8 +33,8 @@ SHARED_SPECS = dict(
                 type="str",
                 required=True,
                 fallback=(env_fallback, ["MASS_CLIENT_KEY"]),
-            )            
-        )
+            ),
+        ),
     )
 )
 
