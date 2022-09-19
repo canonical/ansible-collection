@@ -9,28 +9,20 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: machines
+module: vm_hosts
 
 author:
   - Jure Medvesek (@juremedvesek)
-short_description: Return info about virtual machines
+short_description: Return info about vm hosts
 description:
-  - Plugin return information about all or specific virtual machines in a cluster.
+  - Plugin return information about all or specific vm hosts.
 version_added: 1.0.0
 extends_documentation_fragment:
 seealso: []
 options:
 """
 
-# TODO (domen): Update EXAMPLES
 EXAMPLES = r"""
-- name: List machines
-  cannonical.maas.vm_host_info:
-    instance:
-      host: ...
-      token_key: ...
-      token_secret: ... 
-      client_key: ...
 """
 
 RETURN = r"""
@@ -44,7 +36,7 @@ from ..module_utils.client import Client
 
 
 def run(module, client: Client):
-    response = client.request("GET", "/api/2.0/machines/")
+    response = client.request("GET", "/api/2.0/vm-hosts/")
     return response.json
 
 
