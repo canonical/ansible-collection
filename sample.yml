@@ -2,7 +2,7 @@
   hosts: localhost
   tasks:
   - name: List machines
-    cannonical.maas.machine_info:
+    canonical.maas.machine_info:
       instance:
         host: ...
         token_key: ...
