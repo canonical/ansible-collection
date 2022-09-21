@@ -1,0 +1,24 @@
+---
+- environment:
+    MASS_HOST: "{{ host }}"
+    MASS_TOKEN_KEY: "{{ token_key }}"
+    MASS_TOKEN_SECRET: "{{ token_secret }}"
+    MASS_CLIENT_KEY: "{{ client_key }}"
+
+
+  block:
+  - name: deploy machine
+    canonical.maas.instance:
+      name: polona.maas
+      state: deploy
+      osystem: test
+    register: machines
+
+    # - debug:
+    #     var: machines
+
+  # - name: release machine
+  #   canonical.maas.instance:
+  #     name: polona.maas
+  #     state: release
+  #   register: machines

@@ -1,0 +1,15 @@
+---
+- environment:
+    MASS_HOST: "{{ host }}"
+    MASS_TOKEN_KEY: "{{ token_key }}"
+    MASS_TOKEN_SECRET: "{{ token_secret }}"
+    MASS_CLIENT_KEY: "{{ client_key }}"
+
+
+  block:
+  - name: List machines
+    canonical.maas.machine_info:
+    register: machines
+
+  # - debug:
+  #     var: machines
