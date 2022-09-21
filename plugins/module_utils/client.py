@@ -10,41 +10,16 @@ __metaclass__ = type
 from .auth import get_oauth_header
 
 import json
-import random
 
 from ansible.module_utils.urls import Request
 
 from .errors import AuthError, MaasError, UnexpectedAPIResponse
+from .form import Multipart
 
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.six.moves.urllib.parse import urlencode, quote
 
 DEFAULT_HEADERS = dict(Accept="application/json")
-
-class Multipart():
-    SAFE_CHARS = "0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ"
-
-    @staticmethod
-    def generate_boundary():
-        boundary = ""
-        for i in range(0, 32):
-            boundary += random.choice(Multipart.SAFE_CHARS)
-        return boundary
-
-    @staticmethod
-    def get_mulipart(data):
-        boundary = Multipart.generate_boundary()
-        if not isinstance(data, dict):
-            raise MaasError("Data should be dict!")
-        
-        content = ""
-        for k, v in data.items():
-            content += f"--{boundary}\n"
-            content += f"Content-Disposition: form-data; name={k}\n\n"
-            content += v
-            content += "\n"
-        content += f"--{ boundary }--\n"
-        return boundary, content
 
 
 class Response:
@@ -147,7 +122,7 @@ class Client:
         headers = dict(headers or DEFAULT_HEADERS, **self.auth_header)
         if data is not None:
             boundary, data = Multipart.get_mulipart(data)
-            headers["Content-type"] = "multipart/form-data; boundary=\"{boundary}\""
+            headers["Content-type"] = f"multipart/form-data; boundary=\"{boundary}\""
         elif binary_data is not None:
             data = binary_data
 
