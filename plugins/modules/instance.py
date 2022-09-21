@@ -35,23 +35,42 @@ options:
     choices: [ deploy, release ]
     type: str
     required: True
+  osystem:
+    description:
+      - If present, this parameter specifies the OS the machine will use.
+      - Relevant only if I(state) value is C(deploy)
+    type: str
 """
 
 EXAMPLES = r"""
 """
 
 RETURN = r"""
-machines:
+record:
+  description:
+    - The deployed/released machine instance
+  returned: success
+  type: dict
+  sample:
+   # ADD SAMPLE
 """
 
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
+from ..module_utils.rest_client import RestClient
+
+
+def get_instance_id(module, client: Client):
+    rest_client = RestClient(client)
+    query = {"fqdn": module.params["name"]}
+    instance = rest_client.get_record("/api/2.0/machines/", query, must_exist=True)
+    return instance["boot_interface"]["system_id"]
 
 
 def release(module, client: Client):  # "client: Client" is type annotation
-    system_id = "w7d7ef"
+    system_id = get_instance_id(module, client)  # "w7d7ef"
     response = client.post(
         f"/api/2.0/machines/{system_id}/", query={"op": "release"}, data={}
     )
@@ -59,9 +78,12 @@ def release(module, client: Client):  # "client: Client" is type annotation
 
 
 def deploy(module, client: Client):
-    system_id = "w7d7ef"
+    system_id = get_instance_id(module, client)  # "w7d7ef"
+    data = {}
+    if module.params["osystem"]:
+        data = {"osystem": module.params["osystem"]}
     response = client.post(
-        f"/api/2.0/machines/{system_id}/", query={"op": "deploy"}, data={}
+        f"/api/2.0/machines/{system_id}/", query={"op": "deploy"}, data=data
     )
     return response.json
 
@@ -78,7 +100,8 @@ def main():
         argument_spec=dict(
             arguments.get_spec("instance"),
             name=dict(type="str", required=True),
-            state=dict(type="str", required=True, choices=["deployed", "released"]),
+            state=dict(type="str", required=True, choices=["deploy", "release"]),
+            osystem=dict(type="str"),
         ),
     )
 
@@ -90,8 +113,8 @@ def main():
         token_secret = instance["token_secret"]
 
         client = Client(host, token_key, token_secret, client_key)
-        records = run(module, client)
-        module.exit_json(changed=False, records=records)
+        record = run(module, client)
+        module.exit_json(changed=False, record=record)
     except errors.MaasError as e:
         module.fail_json(msg=str(e))
 
