@@ -61,9 +61,7 @@ class Client:
 
     @property
     def auth_header(self):
-        if not self._auth_header:
-            self._auth_header = self._login()
-        return self._auth_header
+        return self._login()
 
     def _login(self):
         return self._login_oauth1()
@@ -86,8 +84,8 @@ class Client:
             # Wrong username/password, or expired access token
             if e.code == 401:
                 raise AuthError(
-                    "Failed to authenticate with the instance: {0} {1}".format(
-                        e.code, e.reason
+                    "Failed to authenticate with the instance: {0} {1} {2}".format(
+                        e.code, e.reason, e.read()
                     ),
                 )
             # Other HTTP error codes do not necessarily mean errors.

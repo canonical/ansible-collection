@@ -44,7 +44,7 @@ from ..module_utils.client import Client
 
 
 def run(module, client: Client):
-    response = client.request("GET", "/api/2.0/machines/")
+    response = client.get(f"/api/2.0/machines/")
     return response.json
 
 
