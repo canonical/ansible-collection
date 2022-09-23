@@ -120,7 +120,7 @@ class Client:
         headers = dict(headers or DEFAULT_HEADERS, **self.auth_header)
         if data is not None:
             boundary, data = Multipart.get_mulipart(data)
-            headers["Content-type"] = 'multipart/form-data; boundary="{boundary}"'
+            headers["Content-type"] = f'multipart/form-data; boundary="{boundary}"'
         elif binary_data is not None:
             data = binary_data
 
