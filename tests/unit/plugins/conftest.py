@@ -17,11 +17,19 @@ from ansible.module_utils._text import to_bytes
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Client,
 )
+from ansible_collections.canonical.maas.plugins.module_utils.rest_client import (
+    RestClient,
+)
 
 
 @pytest.fixture
 def client(mocker):
     return mocker.Mock(spec=Client)
+
+
+@pytest.fixture
+def rest_client(mocker):
+    return mocker.Mock(spec=RestClient(client=client))
 
 
 @pytest.fixture
