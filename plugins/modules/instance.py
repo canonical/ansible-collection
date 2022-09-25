@@ -176,7 +176,8 @@ def allocate(module, client: Client):
         # here an error can occur:
         # HTTP Status Code : 409
         # Content : No machine matching the given constraints could be found.
-        # instance can't be allocated if commissioning, the only action allowed is abort
+        # NOW WE GET THIS ERROR IN ANY CASE - THIS NEEDS TO BE RESOLVED
+        # instance can't be allocated if commissioning, the only action allowed is abort - CHECK IF THIS IS A PROBLEM FOR US
     instance = client.post(
         "/api/2.0/machines/", query={"op": "allocate"}, data=data
     ).json
