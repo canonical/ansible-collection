@@ -15,11 +15,15 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Deploy, release or delete machines.
 description:
-  - If I(state) value is C(deployed) the selected machine will be deployed. If machine name is not provided, new machine with I(allocate_params) and I(deploy_params) will be created and deployed.
+  - If I(state) value is C(deployed) the selected machine will be deployed.
+    If I(hostname) is not provided, a random machine with I(allocate_params) and I(deploy_params) will be allocated and deployed.
     If no parameters are given, a random machine will be allocated and deployed using the defaults.
-  - If I(state) value is C(ready) the selected machine will be released. If machine name is not provided, new machine with I(allocate_params) will be created.
+    In case if no machine matching the given constraints could be found, the task will FAIL.
+  - If I(state) value is C(ready) the selected machine will be released.
+    If I(hostname) is not provided, a random machine will be allocated using I(allocate_params).
     If no parameters are given, a random machine will be allocated using the defaults.
-  - If I(state) value is C(absent) the selected machine will be deleted. 
+    In case if no machine matching the given constraints could be found, the task will FAIL.
+  - If I(state) value is C(absent) the selected machine will be deleted.
 version_added: 1.0.0
 extends_documentation_fragment: # ADD DOC_FRAGMENT FOR VM_HOST
 seealso: []
@@ -38,7 +42,7 @@ options:
     required: True
   allocate_params:
     description:
-      - Constraints parameters that can be used to allocate a machine with certain characteristics. 
+      - Constraints parameters that can be used to allocate a machine with certain characteristics.
       - All the constraints are optional and when multiple constraints are provided, they are combined using 'AND' semantics.
       - If no parameters are given, a random machine will be allocated using the defaults.
     type: dict
@@ -50,7 +54,7 @@ options:
         type: int
       memory:
         description:
-          - If present, this parameter specifies the minimum amount of memory (expressed in MB) the returned machine must have. 
+          - If present, this parameter specifies the minimum amount of memory (expressed in MB) the returned machine must have.
           - A machine with additional memory may be allocated if there is no exact match, or the 'cpu' constraint is not also specified.
         type: int
   deploy_params:
@@ -129,7 +133,7 @@ record:
   sample:
    # ADD SAMPLE
 """
-
+from time import sleep
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
@@ -137,8 +141,20 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 
 
-def wait_state():
-    pass
+def wait_ready_or_allocated_state(system_id, client: Client, check_mode=False):
+    if check_mode:
+        return
+    while True:
+        rest_client = RestClient(client)
+        instance = rest_client.get_record(
+            f"/api/2.0/machines/{system_id}/", must_exist=True
+        )
+        if get_instance_status(instance) in (
+            "ready",
+            "allocated",
+        ):  # IMPLEMENT TIMEOUT?
+            return instance
+        sleep(1)
 
 
 def get_instance_from_hostname(module, client: Client, must_exist):
@@ -157,8 +173,29 @@ def allocate(module, client: Client):
             data["cpu_count"] = module.params["allocate_params"]["cpu"]
         if module.params["allocate_params"]["memory"]:
             data["mem"] = module.params["allocate_params"]["memory"]
+        # here an error can occur:
+        # HTTP Status Code : 409
+        # Content : No machine matching the given constraints could be found.
+        # instance can't be allocated if commissioning, the only action allowed is abort
     instance = client.post(
         "/api/2.0/machines/", query={"op": "allocate"}, data=data
+    ).json
+    return instance
+
+
+def commission(system_id, client: Client):
+    """
+    From MAAS documentation:
+    A machine in the 'ready', 'declared' or 'failed test' state may initiate a commissioning cycle
+    where it is checked out and tested in preparation for transitioning to the 'ready' state.
+    If it is already in the 'ready' state this is considered a re-commissioning process which is useful
+    if commissioning tests were changed after it previously commissioned.
+
+    Also it is possible to commission the machine when it is in 'new' state.
+    We get state 'new' in case if we abort commissioning of the machine (which was before already in ready or allocated state)
+    """
+    instance = client.post(
+        f"/api/2.0/machines/{system_id}", query={"op": "commission"}
     ).json
     return instance
 
@@ -184,39 +221,45 @@ def release(module, client: Client):
     if module.params["hostname"]:
         instance = get_instance_from_hostname(module, client, must_exist=True)
     else:
-        # Create new machine
+        # allocate random machine - IF THERE IS NO MACHINE TO ALLOCATE, NEW IS PRODUCED BUT IT CAN'T BE RELEASED!! - THIS NEEDS TO BE SOLVED!
         instance = allocate(module, client)
     system_id = get_instance_id(instance)
     status = get_instance_status(instance)
-    if status == "ready":
+    if status == "ready" or "commissioning":
+        # commissioning will bring machine to the ready state - SHOULD WE WAIT FO READY STATE?
+        # if state == commissioning: "Unexpected response - 409 b\"Machine cannot be released in its current state ('Commissioning').\""
         return False, instance  # or empty dict?
-    instance = client.post(
-        f"/api/2.0/machines/{system_id}/", query={"op": "release"}, data={}
-    ).json
-    return True, instance
+    if status == "new":
+        # commissioning will bring machine to the ready state - SHOULD WE WAIT FO READY STATE?
+        instance = commission(system_id, client)
+        return True, instance
+    else:
+        instance = client.post(
+            f"/api/2.0/machines/{system_id}/", query={"op": "release"}, data={}
+        ).json
+        return True, instance
 
 
-# Implement check of previous state
 def deploy(module, client: Client):
-    # preveri stanje, če je ready use ok, drugače počakaj da bo ready
-    # poglej terraform
     if module.params["hostname"]:
         instance = get_instance_from_hostname(module, client, must_exist=True)
     else:
-        # Create new machine
+        # allocate random machine # IF THERE IS NO MACHINE TO ALLOCATE, NEW IS PRODUCED BUT IT CAN'T BE RELEASED!! - THIS NEEDS TO BE SOLVED!
         instance = allocate(module, client)
 
     status = get_instance_status(instance)
+    system_id = get_instance_id(instance)
     if status == "deployed":
         return False, instance  # or empty dict?
-
+    if status == "new":
+        commission(system_id, client)
+    wait_ready_or_allocated_state(system_id, client)
     data = {}
     if module.params["deploy_params"]:
         if module.params["deploy_params"]["osystem"]:
             data["osystem"] = module.params["deploy_params"]["osystem"]
         if module.params["deploy_params"]["distro_series"]:
             data["distro_series"] = module.params["deploy_params"]["distro_series"]
-    system_id = get_instance_id(instance)
     instance = client.post(
         f"/api/2.0/machines/{system_id}/", query={"op": "deploy"}, data=data
     ).json
