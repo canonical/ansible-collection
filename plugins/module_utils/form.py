@@ -11,7 +11,8 @@ import random
 
 from .errors import MaasError
 
-class Multipart():
+
+class Multipart:
     SAFE_CHARS = "0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ"
     RN = "\r\n"
 
@@ -28,11 +29,11 @@ class Multipart():
         boundary = Multipart.generate_boundary()
         if not isinstance(data, dict):
             raise MaasError("Data should be dict!")
-        
+
         content = ""
         for k, v in data.items():
             content += f"--{boundary}{rn}"
-            content += f"Content-Disposition: form-data; name=\"{k}\"{rn}{rn}"
+            content += f'Content-Disposition: form-data; name="{k}"{rn}{rn}'
             content += str(v)
             content += rn
         content += f"--{ boundary }--"
