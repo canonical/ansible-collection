@@ -1,0 +1,59 @@
+---
+- environment:
+    MASS_HOST: "{{ host }}"
+    MASS_TOKEN_KEY: "{{ token_key }}"
+    MASS_TOKEN_SECRET: "{{ token_secret }}"
+    MASS_CLIENT_KEY: "{{ client_key }}"
+
+
+  block:
+  # - name: Remove/delete an instance
+  #   canonical.maas.instance:
+  #     hostname: polona
+  #     state: absent
+
+  # - name: Commision new machine with custom constraints
+  #   canonical.maas.instance:
+  #     state: ready
+  #     allocate_params:
+  #       cpu: 1
+  #       memory: 1
+
+  # - name: Commision new machine with default constraints
+  #   canonical.maas.instance:
+  #     state: ready
+
+  - name: Release machine
+    canonical.maas.instance:
+      hostname: polona
+      state: ready
+
+  # - name: Deploy already commisioned machine
+  #   canonical.maas.instance:
+  #     hostname: polona
+  #     state: deployed
+
+  # - name: Deploy already commisioned machine with custom OS and OS series
+  #   canonical.maas.instance:
+  #     hostname: polona
+  #     state: deployed
+  #     deploy_params:
+  #       osystem: ubuntu
+  #       distro_series: focal
+
+  # - name: Deploy new machine with default OS and allocation constraints
+  #   canonical.maas.instance:
+  #     state: deployed
+
+  # - name: Deploy new machine with custom OS and allocation constraints
+  #   canonical.maas.instance:
+  #     state: deployed
+  #     allocate_params:
+  #       cpu: 1
+  #       memory: 2
+  #     deploy_params:
+  #       osystem: ubuntu
+  #       distro_series: focal
+  #   register: machines
+    # - debug:
+    #     var: machines
