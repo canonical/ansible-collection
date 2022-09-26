@@ -4,10 +4,10 @@
   - name: List machines
     canonical.maas.machine_info:
       instance:
-        host: ...
-        token_key: ...
-        token_secret: ... 
-        client_key: ...
+        host: http://localhost:5240/MAAS
+        token_key: URCfn6EhdZSj9CSDf7
+        token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
+        client_key: nzW4EBWjyDe5B5szja
     register: machines
 
   - debug:
