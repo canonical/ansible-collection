@@ -1,14 +1,17 @@
 - name: test query machines
   hosts: localhost
   tasks:
-  - name: List machines
-    canonical.maas.machine_info:
+  - name: Create new machine on sunny-raptor host
+    canonical.maas.vm_host_machine:
       instance:
         host: http://localhost:5240/MAAS
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
         client_key: nzW4EBWjyDe5B5szja
-      vm_name: vocal-swift # Use this field to filter results by name.
+      vm_host: sunny-raptor
+      cores: 2
+      memory: 2048
+      state: ready
     register: machines
 
   - debug:

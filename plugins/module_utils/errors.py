@@ -43,6 +43,12 @@ class MissingValueAnsible(MaasError):
         self.message = "Missing value - {0}".format(data)
         super(MissingValueAnsible, self).__init__(self.message)
 
+# In-case MAAS API value is missing
+class MissingValueMAAS(MaasError):
+    def __init__(self, data):
+        self.message = "Missing value from MAAS API - {0}".format(data)
+        super(MissingValueMAAS, self).__init__(self.message)
+
 
 class DeviceNotUnique(MaasError):
     def __init__(self, data):

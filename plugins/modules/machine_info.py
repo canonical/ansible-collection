@@ -18,6 +18,7 @@ description:
   - Plugin return information about all or specific virtual machines in a cluster.
 version_added: 1.0.0
 extends_documentation_fragment:
+  - canonical.maas.instance
 seealso: []
 options:
 """
@@ -41,10 +42,15 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
+from ..module_utils.machine import Machine
 
 
 def run(module, client: Client):
-    response = client.get(f"/api/2.0/machines/")
+    if module.params["vm_name"]:
+      machine = Machine.get_by_name(module, client, must_exist=True, name_field_ansible="vm_name")
+      response = client.get(f"/api/2.0/machines/{machine.id}/")
+    else:
+      response = client.get(f"/api/2.0/machines/")
     return response.json
 
 
@@ -53,6 +59,9 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("instance"),
+            vm_name=dict(
+                type="str",
+            ),
         ),
     )
 
