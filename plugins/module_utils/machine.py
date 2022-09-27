@@ -17,12 +17,12 @@ class Machine(Mapper):
     def __init__(
         # Add more values as needed.
         self,
-        hostname=None, # Machine name.
+        machine_name=None, # Machine name.
         id=None,
         memory=None,
         cores=None,
     ):
-        self.hostname = hostname
+        self.machine_name = machine_name
         self.id = id
         self.memory = memory
         self.cores = cores
@@ -52,7 +52,7 @@ class Machine(Mapper):
     @classmethod
     def from_ansible(cls, ansible_dict):
         obj = Machine()
-        obj.hostname = ansible_dict.get("name") # Maybe change to vm_name or machine_name
+        obj.machine_name = ansible_dict.get("machine_name")
         obj.cores = ansible_dict.get("cores")
         obj.memory = ansible_dict.get("memory")
         return obj
@@ -61,7 +61,7 @@ class Machine(Mapper):
     def from_maas(cls, maas_dict):
         obj = Machine()
         try:
-            obj.hostname = maas_dict["hostname"]
+            obj.machine_name = maas_dict["hostname"]
             obj.id = maas_dict["system_id"]
             obj.memory = maas_dict["memory"]
             obj.cores = maas_dict["cpu_count"]
@@ -71,8 +71,8 @@ class Machine(Mapper):
 
     def to_mass(self):
         to_mass_dict = {}
-        if self.hostname:
-            to_mass_dict["hostname"] = self.hostname
+        if self.machine_name:
+            to_mass_dict["hostname"] = self.machine_name
         if self.id:
             to_mass_dict["id"] = self.id
         if self.memory:
@@ -83,8 +83,8 @@ class Machine(Mapper):
 
     def to_ansible(self):
         to_ansible_dict = {}
-        if self.hostname:
-            to_ansible_dict["name"] = self.hostname
+        if self.machine_name:
+            to_ansible_dict["machine_name"] = self.machine_name
         if self.id:
             to_ansible_dict["id"] = self.id
         if self.memory:
