@@ -7,16 +7,17 @@
 from __future__ import absolute_import, division, print_function
 from ..module_utils.utils import (
     get_query,
-    Mapper,
+    MaasValueMapper,
 )
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
 
-class VMHost(Mapper):
+
+class VMHost(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
-        name=None, # Host name.
+        name=None,  # Host name.
         id=None,
     ):
         self.name = name
@@ -26,7 +27,9 @@ class VMHost(Mapper):
     def get_by_name(cls, module, client, must_exist=False, name_field_ansible="name"):
         rest_client = RestClient(client=client)
         query = get_query(
-            module.params, name_field_ansible, ansible_maas_map={name_field_ansible: "name"}
+            module.params,
+            name_field_ansible,
+            ansible_maas_map={name_field_ansible: "name"},
         )
         maas_dict = rest_client.get_record(
             "/api/2.0/vm-hosts/", query, must_exist=must_exist

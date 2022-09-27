@@ -23,7 +23,9 @@ class Task:
             task_status = Task.get_task_status(client, device, id)
             if not task_status:  # No such task_status is found
                 break
-            if task_status.get("status_name", "") == TaskState.ready:  # Task has finished
+            if (
+                task_status.get("status_name", "") == TaskState.ready
+            ):  # Task has finished
                 break
             # TODO: Add other states like Error or not complete etc...
             sleep(1)

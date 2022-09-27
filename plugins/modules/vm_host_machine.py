@@ -39,11 +39,13 @@ from ..module_utils.vmhost import VMHost
 from ..module_utils.machine import Machine
 from ..module_utils.utils import is_changed
 
+
 def prepare_network_data(module):
     # This is a workaround since compose only supports one network interface.
     tmp = module.params["network_interfaces"]
     module.params["network_interfaces"] = []
     module.params["network_interfaces"].append(tmp)
+
 
 def ensure_ready(module, client, vm_host_obj):
     before = []
@@ -51,11 +53,16 @@ def ensure_ready(module, client, vm_host_obj):
     machine_obj = Machine.from_ansible(module)
     payload = machine_obj.payload_for_compose(module)
     task = vm_host_obj.send_compose_request(module, client, payload)
-    after.append((Machine.get_by_id(task["system_id"], client, must_exist=True)).to_ansible())
-    return is_changed(before, after), after, dict(before=before, after= after)
+    after.append(
+        (Machine.get_by_id(task["system_id"], client, must_exist=True)).to_ansible()
+    )
+    return is_changed(before, after), after, dict(before=before, after=after)
+
 
 def run(module, client):
-    vm_host_obj = VMHost.get_by_name(module, client, must_exist=True, name_field_ansible="vm_host")
+    vm_host_obj = VMHost.get_by_name(
+        module, client, must_exist=True, name_field_ansible="vm_host"
+    )
     if module.params["state"] == HostState.ready:
         if module.params["network_interfaces"]:
             prepare_network_data(module)
@@ -71,7 +78,9 @@ def main():
             state=dict(
                 type="str",
                 required=True,
-                choices=["ready"] # Maybe add "deployed", "absent" in the future if needed.
+                choices=[
+                    "ready"
+                ],  # Maybe add "deployed", "absent" in the future if needed.
             ),
             vm_host=dict(
                 type="str",

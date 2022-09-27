@@ -5,14 +5,15 @@
 
 
 from __future__ import absolute_import, division, print_function
-from ..module_utils.utils import Mapper
+from ..module_utils.utils import MaasValueMapper
 from ..module_utils import errors
 
-class NetworkInterface(Mapper):
+
+class NetworkInterface(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
-        name=None, # Interface name.
+        name=None,  # Interface name.
         id=None,
         subnet_cidr=None,
         machine_id=None,

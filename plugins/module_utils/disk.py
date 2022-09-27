@@ -5,14 +5,15 @@
 
 
 from __future__ import absolute_import, division, print_function
-from .utils import Mapper
+from .utils import MaasValueMapper
 from . import errors
 
-class Disk(Mapper):
+
+class Disk(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
-        name=None, # Disk name.
+        name=None,  # Disk name.
         id=None,
         size=None,
     ):
@@ -32,7 +33,7 @@ class Disk(Mapper):
         try:
             obj.name = maas_dict["name"]
             obj.id = maas_dict["id"]
-            obj.size = int(int(maas_dict["size"])/1000000000)
+            obj.size = int(int(maas_dict["size"]) / 1000000000)
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj

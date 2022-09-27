@@ -47,10 +47,12 @@ from ..module_utils.machine import Machine
 
 def run(module, client: Client):
     if module.params["machine_name"]:
-      machine = Machine.get_by_name(module, client, must_exist=True, name_field_ansible="machine_name")
-      response = client.get(f"/api/2.0/machines/{machine.id}/")
+        machine = Machine.get_by_name(
+            module, client, must_exist=True, name_field_ansible="machine_name"
+        )
+        response = client.get(f"/api/2.0/machines/{machine.id}/")
     else:
-      response = client.get(f"/api/2.0/machines/")
+        response = client.get(f"/api/2.0/machines/")
     return response.json
 
 

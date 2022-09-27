@@ -16,6 +16,7 @@ class HostState(str, enum.Enum):
     absent = "absent"
     deploy = "deploy"
 
+
 class TaskState(str, enum.Enum):
     ready = "Ready"
     comissioning = "Commissioning"

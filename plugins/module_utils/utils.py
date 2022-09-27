@@ -10,8 +10,7 @@ from abc import abstractmethod
 __metaclass__ = type
 
 
-
-class Mapper:
+class MaasValueMapper:
 
     """
     Represent abstract class.
@@ -54,6 +53,7 @@ class Mapper:
         """
         pass
 
+
 def filter_dict(input, *field_names):
     output = {}
     for field_name in field_names:
@@ -78,6 +78,7 @@ def is_superset(superset, candidate):
 def filter_results(results, filter_data):
     return [element for element in results if is_superset(element, filter_data)]
 
+
 def get_query(input, *field_names, ansible_maas_map):
     """
     Wrapps filter_dict and transform_ansible_to_maas_query. Prefer to use 'get_query' over filter_dict
@@ -87,9 +88,11 @@ def get_query(input, *field_names, ansible_maas_map):
     maas_query = transform_query(ansible_query, ansible_maas_map)
     return maas_query
 
+
 def transform_query(raw_query, query_map):
     # Transforms query by renaming raw_query's keys by specifying those keys and the new values in query_map
     return {query_map[key]: raw_query[key] for key, value in raw_query.items()}
+
 
 def is_changed(before, after):
     return not before == after
