@@ -13,7 +13,7 @@ module: vm_host_machine
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Return info about vm hosts
+short_description: Return info about vm hosts.
 description:
   - Plugin return information about all or specific vm hosts.
 version_added: 1.0.0
@@ -39,10 +39,16 @@ from ..module_utils.vmhost import VMHost
 from ..module_utils.machine import Machine
 from ..module_utils.utils import is_changed
 
+def prepare_network_data(module):
+    # This is a workaround since compose only supports one network interface.
+    tmp = module.params["network_interfaces"]
+    module.params["network_interfaces"] = []
+    module.params["network_interfaces"].append(tmp)
+
 def ensure_ready(module, client, vm_host_obj):
     before = []
     after = []
-    machine_obj = Machine.from_ansible(module.params)
+    machine_obj = Machine.from_ansible(module)
     payload = machine_obj.payload_for_compose(module)
     task = vm_host_obj.send_compose_request(module, client, payload)
     after.append((Machine.get_by_id(task["system_id"], client, must_exist=True)).to_ansible())
@@ -51,6 +57,8 @@ def ensure_ready(module, client, vm_host_obj):
 def run(module, client):
     vm_host_obj = VMHost.get_by_name(module, client, must_exist=True, name_field_ansible="vm_host")
     if module.params["state"] == HostState.ready:
+        if module.params["network_interfaces"]:
+            prepare_network_data(module)
         changed, records, diff = ensure_ready(module, client, vm_host_obj)
     return changed, records, diff
 
@@ -76,9 +84,7 @@ def main():
                 type="int",
             ),
             network_interfaces=dict(
-                type="list",
-                elements="dict",
-                default=[],
+                type="dict",
                 options=dict(
                     name=dict(
                         type="str",

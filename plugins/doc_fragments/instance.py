@@ -20,7 +20,7 @@ options:
       host:
         description:
           - The MAAS instance url.
-          - If not set, the value of the C(MASS_HOST) environment
+          - If not set, the value of the C(MAAS_HOST) environment
             variable will be used.
           - For example "http://localhost:5240/MAAS".
         required: true
@@ -28,21 +28,21 @@ options:
       token_key:
         description:
           - Token key used for authentication.
-          - If not set, the value of the C(MASS_TOKEN_KEY) environment
+          - If not set, the value of the C(MAAS_TOKEN_KEY) environment
             variable will be used.
         required: true
         type: str
       token_secret:
         description:
           - Token secret used for authentication.
-          - If not set, the value of the C(MASS_TOKEN_SECRET) environment
+          - If not set, the value of the C(MAAS_TOKEN_SECRET) environment
             variable will be used.
         required: true
         type: str
       client_key:
         description:
           - Client secret used for authentication.
-          - If not set, the value of the C(MASS_CLIENT_KEY) environment
+          - If not set, the value of the C(MAAS_CLIENT_KEY) environment
             variable will be used.
         required: true
         type: str

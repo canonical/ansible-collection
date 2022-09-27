@@ -17,22 +17,22 @@ SHARED_SPECS = dict(
             host=dict(
                 type="str",
                 required=True,
-                fallback=(env_fallback, ["MASS_HOST"]),
+                fallback=(env_fallback, ["MAAS_HOST"]),
             ),
             token_key=dict(
                 type="str",
                 required=True,
-                fallback=(env_fallback, ["MASS_TOKEN_KEY"]),
+                fallback=(env_fallback, ["MAAS_TOKEN_KEY"]),
             ),
             token_secret=dict(
                 type="str",
                 required=True,
-                fallback=(env_fallback, ["MASS_TOKEN_SECRET"]),
+                fallback=(env_fallback, ["MAAS_TOKEN_SECRET"]),
             ),
             client_key=dict(
                 type="str",
                 required=True,
-                fallback=(env_fallback, ["MASS_CLIENT_KEY"]),
+                fallback=(env_fallback, ["MAAS_CLIENT_KEY"]),
             ),
         ),
     )

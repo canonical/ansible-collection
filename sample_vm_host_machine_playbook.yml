@@ -11,6 +11,12 @@
       vm_host: sunny-raptor
       cores: 2
       memory: 2048
+      network_interfaces: # Compose allows for one network interface only.
+        name: my_new
+        subnet_cidr: "10.10.10.0/24"
+      storage_disks:
+        - size_gigabytes: 3
+        - size_gigabytes: 5
       state: ready
     register: machines
 

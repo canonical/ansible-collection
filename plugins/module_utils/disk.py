@@ -1,0 +1,54 @@
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2022, XLAB Steampunk <steampunk@xlab.si>
+#
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+from __future__ import absolute_import, division, print_function
+from .utils import Mapper
+from . import errors
+
+class Disk(Mapper):
+    def __init__(
+        # Add more values as needed.
+        self,
+        name=None, # Disk name.
+        id=None,
+        size=None,
+    ):
+        self.name = name
+        self.id = id
+        self.size = size
+
+    @classmethod
+    def from_ansible(cls, disk_dict):
+        obj = Disk()
+        obj.size = disk_dict["size_gigabytes"]
+        return obj
+
+    @classmethod
+    def from_maas(cls, maas_dict):
+        obj = Disk()
+        try:
+            obj.name = maas_dict["name"]
+            obj.id = maas_dict["id"]
+            obj.size = int(int(maas_dict["size"])/1000000000)
+        except KeyError as e:
+            raise errors.MissingValueMAAS(e)
+        return obj
+
+    def to_maas(self):
+        to_maas_dict = {}
+        if self.id:
+            to_maas_dict["id"] = self.id
+        if self.name:
+            to_maas_dict["name"] = self.name
+        if self.size:
+            to_maas_dict["size"] = self.size
+        return to_maas_dict
+
+    def to_ansible(self):
+        to_ansible_dict = {}
+        if self.size:
+            to_ansible_dict["size_gigabytes"] = self.size
+        return to_ansible_dict

@@ -35,7 +35,7 @@ class VMHost(Mapper):
         return vmhost_from_maas
 
     @classmethod
-    def from_ansible(cls, ansible_dict):
+    def from_ansible(cls, module):
         return
 
     @classmethod
@@ -48,7 +48,7 @@ class VMHost(Mapper):
             raise errors.MissingValueMAAS(e)
         return obj
 
-    def to_mass(self):
+    def to_maas(self):
         return
 
     def to_ansible(self):

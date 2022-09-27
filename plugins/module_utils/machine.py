@@ -5,13 +5,14 @@
 
 
 from __future__ import absolute_import, division, print_function
-from distutils.log import error
 from ..module_utils.utils import (
     get_query,
     Mapper,
 )
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
+from ..module_utils.network_interface import NetworkInterface
+from ..module_utils.disk import Disk
 
 class Machine(Mapper):
     def __init__(
@@ -21,15 +22,15 @@ class Machine(Mapper):
         id=None,
         memory=None,
         cores=None,
+        network_interfaces=[],
+        disks=[],
     ):
         self.machine_name = machine_name
         self.id = id
         self.memory = memory
         self.cores = cores
-
-    def payload_for_compose(self, module):
-        payload = self.to_mass()
-        return payload
+        self.network_interfaces = network_interfaces
+        self.disks = disks
 
     @classmethod
     def get_by_name(cls, module, client, must_exist=False, name_field_ansible="name"):
@@ -50,11 +51,13 @@ class Machine(Mapper):
         return vmhost_from_maas
 
     @classmethod
-    def from_ansible(cls, ansible_dict):
+    def from_ansible(cls, module):
         obj = Machine()
-        obj.machine_name = ansible_dict.get("machine_name")
-        obj.cores = ansible_dict.get("cores")
-        obj.memory = ansible_dict.get("memory")
+        obj.machine_name = module.params.get("machine_name")
+        obj.cores = module.params.get("cores")
+        obj.memory = module.params.get("memory")
+        obj.network_interfaces = [NetworkInterface.from_ansible(net_interface) for net_interface in module.params.get("network_interfaces") or []]
+        obj.disks = [Disk.from_ansible(disk) for disk in module.params.get("storage_disks") or []]
         return obj
 
     @classmethod
@@ -65,21 +68,27 @@ class Machine(Mapper):
             obj.id = maas_dict["system_id"]
             obj.memory = maas_dict["memory"]
             obj.cores = maas_dict["cpu_count"]
+            obj.network_interfaces = [NetworkInterface.from_maas(net_interface) for net_interface in maas_dict["interface_set"] or []]
+            obj.disks = [Disk.from_maas(disk) for disk in maas_dict["blockdevice_set"] or []]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
 
-    def to_mass(self):
-        to_mass_dict = {}
+    def to_maas(self):
+        to_maas_dict = {}
         if self.machine_name:
-            to_mass_dict["hostname"] = self.machine_name
+            to_maas_dict["hostname"] = self.machine_name
         if self.id:
-            to_mass_dict["id"] = self.id
+            to_maas_dict["id"] = self.id
         if self.memory:
-            to_mass_dict["memory"] = self.memory
+            to_maas_dict["memory"] = self.memory
         if self.cores:
-            to_mass_dict["cores"] = self.cores
-        return to_mass_dict
+            to_maas_dict["cores"] = self.cores
+        if self.network_interfaces:
+            to_maas_dict["interfaces"] = [net_interface.to_maas() for net_interface in self.network_interfaces]
+        if self.disks:
+            to_maas_dict["storage"] = [disk.to_maas() for disk in self.disks]
+        return to_maas_dict
 
     def to_ansible(self):
         to_ansible_dict = {}
@@ -91,4 +100,20 @@ class Machine(Mapper):
             to_ansible_dict["memory"] = self.memory
         if self.cores:
             to_ansible_dict["cores"] = self.cores
+        if self.network_interfaces:
+            to_ansible_dict["network_interfaces"] = [net_interface.to_ansible() for net_interface in self.network_interfaces]
+        if self.disks:
+            to_ansible_dict["storage_disks"] = [disk.to_ansible() for disk in self.disks]
         return to_ansible_dict
+
+    def payload_for_compose(self, module):
+        payload = self.to_maas()
+        if "interfaces" in payload:
+            tmp = payload.pop("interfaces")
+            for net_interface in tmp:
+                payload["interfaces"] = f"{net_interface['name']}:subnet_cidr={net_interface['subnet_cidr']}"
+                break # Right now, compose only allows for one network interface.
+        if "storage" in payload:
+            tmp = payload.pop("storage")
+            payload["storage"] = ','.join([f"label:{disk['size']}" for disk in tmp])
+        return payload
