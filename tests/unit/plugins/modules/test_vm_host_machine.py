@@ -302,5 +302,4 @@ class TestEnsureReady:
             "ansible_collections.canonical.maas.plugins.module_utils.utils.is_changed"
         ).return_value = True
         results = vm_host_machine.ensure_ready(module, client, host_obj)
-        print(results, "----------------------------", (True, after, dict(before=before, after=after)))
         assert results == (True, after, dict(before=before, after=after))
