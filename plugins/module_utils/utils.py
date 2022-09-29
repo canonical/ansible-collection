@@ -79,12 +79,12 @@ def filter_results(results, filter_data):
     return [element for element in results if is_superset(element, filter_data)]
 
 
-def get_query(input, *field_names, ansible_maas_map):
+def get_query(module, *field_names, ansible_maas_map):
     """
     Wrapps filter_dict and transform_ansible_to_maas_query. Prefer to use 'get_query' over filter_dict
     even if there's no mapping between maas and ansible columns for the sake of verbosity and consistency
     """
-    ansible_query = filter_dict(input, *field_names)
+    ansible_query = filter_dict(module.params, *field_names)
     maas_query = transform_query(ansible_query, ansible_maas_map)
     return maas_query
 

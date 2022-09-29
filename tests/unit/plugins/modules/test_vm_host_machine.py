@@ -68,6 +68,7 @@ class TestMain:
             "diff": {"before": {}, "after": {}},
         }
 
+
 class TestRun:
     @staticmethod
     def _get_empty_host_dict():
@@ -173,6 +174,7 @@ class TestRun:
         print(results)
         assert results == (True, after, dict(before=before, after=after))
 
+
 class TestPrepareNetworkData:
     def test_prepare_network_data(self, create_module):
         network_interfaces = {"name": "this_name", "subnet_cidr": "some_ip"}
@@ -196,6 +198,7 @@ class TestPrepareNetworkData:
         print(module.params["network_interfaces"])
         assert module.params["network_interfaces"] == [network_interfaces]
 
+
 class TestEnsureReady:
     @staticmethod
     def _get_empty_host_dict():
@@ -203,16 +206,54 @@ class TestEnsureReady:
 
     @staticmethod
     def _get_empty_machine_dict():
-        return dict(hostname="machine_1", cpu_count=2, memory=5000, system_id="123", interface_set=None, blockdevice_set=None)
+        return dict(
+            hostname="machine_1",
+            cpu_count=2,
+            memory=5000,
+            system_id="123",
+            interface_set=None,
+            blockdevice_set=None,
+        )
 
     @staticmethod
     def _get_machine_dict():
-        return dict(hostname="machine_2", cpu_count=2, memory=5000, system_id="123", interface_set=[{"id": "123", "name": "this_name", "links": [{"subnet": {"cidr": "some_ip"}}], "system_id": 1}], blockdevice_set=[{"size":5, "name": "1", "id":"1"}, {"size":5, "name":"2", "id":"2"}])
+        return dict(
+            hostname="machine_2",
+            cpu_count=2,
+            memory=5000,
+            system_id="123",
+            interface_set=[
+                {
+                    "id": "123",
+                    "name": "this_name",
+                    "links": [{"subnet": {"cidr": "some_ip"}}],
+                    "system_id": 1,
+                }
+            ],
+            blockdevice_set=[
+                {"size": 5, "name": "1", "id": "1"},
+                {"size": 5, "name": "2", "id": "2"},
+            ],
+        )
 
-    def test_ensure_ready_without_storaga_and_net_interfaces(self, create_module, client, mocker):
+    def test_ensure_ready_without_storaga_and_net_interfaces(
+        self, create_module, client, mocker
+    ):
         before = []
-        after = [{'hostname': 'machine_1', 'cpu_count': 2, 'memory': 5000, 'system_id': '123', 'interface_set': None, 'blockdevice_set': None}]
-        task = {"system_id": "1234", "resource_uri": "https://www.something-somewhere.com"}
+        after = [
+            {
+                "hostname": "machine_1",
+                "cpu_count": 2,
+                "memory": 5000,
+                "system_id": "123",
+                "interface_set": None,
+                "blockdevice_set": None,
+            }
+        ]
+        task = {
+            "system_id": "1234",
+            "resource_uri": "https://www.something-somewhere.com",
+        }
         payload = {"payload": ""}
         host_dict = self._get_empty_host_dict()
         host_obj = VMHost.from_maas(host_dict)
@@ -256,13 +297,37 @@ class TestEnsureReady:
         print(results)
         assert results == (True, after, dict(before=before, after=after))
 
-    def test_ensure_ready_with_storage_and_net_interfaces(self, create_module, client, mocker):
+    def test_ensure_ready_with_storage_and_net_interfaces(
+        self, create_module, client, mocker
+    ):
         before = []
-        after = [{'hostname': 'machine_2', 'cpu_count': 2, 'memory': 5000, 'system_id': '123', 'interface_set': [{'id': '123', 'name': 'this_name', 'links': [{'subnet': {'cidr': 'some_ip'}}], 'system_id': 1}], 'blockdevice_set': [{'size': 5, 'name': '1', 'id': '1'}, {'size': 5, 'name': '2', 'id': '2'}]}]
-        task = {"system_id": "1234", "resource_uri": "https://www.something-somewhere.com"}
+        after = [
+            {
+                "hostname": "machine_2",
+                "cpu_count": 2,
+                "memory": 5000,
+                "system_id": "123",
+                "interface_set": [
+                    {
+                        "id": "123",
+                        "name": "this_name",
+                        "links": [{"subnet": {"cidr": "some_ip"}}],
+                        "system_id": 1,
+                    }
+                ],
+                "blockdevice_set": [
+                    {"size": 5, "name": "1", "id": "1"},
+                    {"size": 5, "name": "2", "id": "2"},
+                ],
+            }
+        ]
+        task = {
+            "system_id": "1234",
+            "resource_uri": "https://www.something-somewhere.com",
+        }
         payload = {"payload": ""}
         network_interfaces = {"name": "this_name", "subnet_cidr": "some_ip"}
-        storage_disks = [{"size_gigabytes": 5},{"size_gigabytes": 5}]
+        storage_disks = [{"size_gigabytes": 5}, {"size_gigabytes": 5}]
         host_dict = self._get_empty_host_dict()
         host_obj = VMHost.from_maas(host_dict)
         machine_dict = self._get_machine_dict()

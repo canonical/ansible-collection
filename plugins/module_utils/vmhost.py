@@ -27,7 +27,7 @@ class VMHost(MaasValueMapper):
     def get_by_name(cls, module, client, must_exist=False, name_field_ansible="name"):
         rest_client = RestClient(client=client)
         query = get_query(
-            module.params,
+            module,
             name_field_ansible,
             ansible_maas_map={name_field_ansible: "name"},
         )

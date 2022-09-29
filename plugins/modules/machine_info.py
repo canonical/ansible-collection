@@ -50,10 +50,10 @@ def run(module, client: Client):
         machine = Machine.get_by_name(
             module, client, must_exist=True, name_field_ansible="machine_name"
         )
-        response = client.get(f"/api/2.0/machines/{machine.id}/")
+        response = [client.get(f"/api/2.0/machines/{machine.id}/").json]
     else:
-        response = client.get(f"/api/2.0/machines/")
-    return response.json
+        response = client.get(f"/api/2.0/machines/").json
+    return response
 
 
 def main():

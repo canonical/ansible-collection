@@ -20,6 +20,7 @@ pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
 )
 
+
 class TestSendComposeRequest:
     @staticmethod
     def _get_empty_host_dict():
@@ -30,7 +31,21 @@ class TestSendComposeRequest:
         payload = ""
         vmhost_dict = self._get_empty_host_dict()
         vmhost_obj = VMHost.from_maas(vmhost_dict)
-        client.post.return_value = Response(200, '{"system_id":"123", "resource_uri":""}')
+        client.post.return_value = Response(
+            200, '{"system_id":"123", "resource_uri":""}'
+        )
         results = vmhost_obj.send_compose_request(module, client, payload)
         print(results)
-        assert results == {"system_id":"123", "resource_uri":""}
+        assert results == {"system_id": "123", "resource_uri": ""}
+
+
+class TestMapper:
+    @staticmethod
+    def _get_host():
+        return dict(name="test_host", id=123)
+
+    def test_from_maas(self):
+        maas_host_dict = self._get_host()
+        host = VMHost(maas_host_dict["name"], maas_host_dict["id"])
+        results = VMHost.from_maas(maas_host_dict)
+        assert results.name == host.name and results.id == host.id
