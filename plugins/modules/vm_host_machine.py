@@ -80,7 +80,6 @@ EXAMPLES = r"""
       storage_disks:
         - size_gigabytes: 3
         - size_gigabytes: 5
-      state: ready
     register: machines
 
   - debug:
@@ -152,13 +151,6 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("instance"),
-            state=dict(
-                type="str",
-                required=True,
-                choices=[
-                    "ready"
-                ],  # Maybe add "deployed", "absent" in the future if needed.
-            ),
             vm_host=dict(
                 type="str",
                 required=True,
