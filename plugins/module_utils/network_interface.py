@@ -17,17 +17,29 @@ class NetworkInterface(MaasValueMapper):
         id=None,
         subnet_cidr=None,
         machine_id=None,
+        mac_address=None,
+        vlan=None,
+        mtu=None,
+        tags=None,
     ):
         self.name = name
         self.id = id
         self.subnet_cidr = subnet_cidr
         self.machine_id = machine_id
+        self.mac_address = mac_address
+        self.vlan = vlan
+        self.mtu = mtu
+        self.tags = tags
 
     @classmethod
     def from_ansible(cls, network_interface_dict):
         obj = NetworkInterface()
-        obj.name = network_interface_dict["name"]
-        obj.subnet_cidr = network_interface_dict["subnet_cidr"]
+        obj.name = network_interface_dict.get("name", None)
+        obj.subnet_cidr = network_interface_dict.get("subnet_cidr", None)
+        obj.mac_address = network_interface_dict.get("mac_address", None)
+        obj.vlan = network_interface_dict.get("vlan", None)
+        obj.mtu = network_interface_dict.get("mtu", None)
+        obj.tags = network_interface_dict.get("tags", [])
         return obj
 
     @classmethod
@@ -59,3 +71,18 @@ class NetworkInterface(MaasValueMapper):
         if self.subnet_cidr:
             to_ansible_dict["subnet_cidr"] = self.subnet_cidr
         return to_ansible_dict
+
+    def needs_update(self, other_nic):
+        return False
+
+    def payload_for_update(self):
+        return
+
+    def send_update_request(self, payload):
+        return
+
+    def payload_for_create(self):
+        return
+
+    def send_create_request(self, payload):
+        return

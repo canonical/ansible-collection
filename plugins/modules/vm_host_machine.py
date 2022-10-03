@@ -13,7 +13,7 @@ module: vm_host_machine
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Return info about vm hosts.
+short_description: Creates a virtual machine on a specified host.
 description:
   - Create VM on a specified host.
 version_added: 1.0.0

@@ -138,3 +138,9 @@ class Machine(MaasValueMapper):
             tmp = payload.pop("storage")
             payload["storage"] = ",".join([f"label:{disk['size']}" for disk in tmp])
         return payload
+
+    def find_nic_by_name(self, nic_name):
+        # returns nic object or None
+        for nic in self.network_interfaces:
+            if nic_name == nic.name:
+                return nic
