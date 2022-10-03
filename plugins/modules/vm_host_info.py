@@ -23,6 +23,19 @@ options:
 """
 
 EXAMPLES = r"""
+- name: Get list of all hosts.
+  hosts: localhost
+  tasks:
+  - name: Get host info.
+    canonical.maas.vm_host_info:
+      instance:
+        host: 'host address'
+        token_key: 'token key'
+        token_secret: 'token secret'
+        client_key: 'client key'
+    register: hosts
+  - debug:
+      var: hosts
 """
 
 RETURN = r"""
