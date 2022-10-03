@@ -15,19 +15,96 @@ author:
   - Domen Dobnikar (@domen_dobnikar)
 short_description: Return info about vm hosts.
 description:
-  - Plugin return information about all or specific vm hosts.
+  - Create VM on a specified host.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
 options:
+  vm_host:
+    description:
+      - Name of the host.
+    type: str
+    required: True
+  cores:
+    description:
+      - Number of CPUs.
+    type: int
+  memory:
+    description:
+      - Physical memory.
+    type: int
+  storage_disks:
+    description:
+      - Storage disks.
+    type: list
+    elements: dict
+    suboptions:
+      size_gigabytes:
+        type: int
+        description:
+          - Disk size in gigabytes.
+  network_interfaces:
+    description:
+      - Network interface.
+    type: dict
+    elements: dict
+    suboptions:
+      name:
+        type: str
+        description:
+          - Used to identify.
+      subnet_cidr:
+        type: str
+        description:
+          - Subnet mask.
 """
 
 EXAMPLES = r"""
+- name: Create new machine
+  hosts: localhost
+  tasks:
+  - name: Create new machine on sunny-raptor host
+    canonical.maas.vm_host_machine:
+      instance:
+        host: 'some host address'
+        token_key: 'token key'
+        token_secret: 'token secret'
+        client_key: 'client key'
+      vm_host: sunny-raptor
+      cores: 2
+      memory: 2048
+      network_interfaces:
+        name: my_new
+        subnet_cidr: "10.10.10.0/24"
+      storage_disks:
+        - size_gigabytes: 3
+        - size_gigabytes: 5
+      state: ready
+    register: machines
+
+  - debug:
+      var: machines
 """
 
 RETURN = r"""
-machines:
+records:
+  description:
+    - The created record of a machine.
+  returned: success
+  type: list
+  sample:
+    - id: machine-id
+      name: 'this-machine'
+      memory: 2046
+      cores: 2
+      network_interfaces:
+        name: 'this-interface'
+        subnet_cidr: 10.0.0.0/24
+      storage:
+        - size_gigabytes: 5
+        - size_gigabytes: 10
+      
 """
 
 from ansible.module_utils.basic import AnsibleModule
