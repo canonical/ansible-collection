@@ -98,8 +98,8 @@ records:
       memory: 2046
       cores: 2
       network_interfaces:
-        name: 'this-interface'
-        subnet_cidr: 10.0.0.0/24
+        - name: 'this-interface'
+          subnet_cidr: 10.0.0.0/24
       storage:
         - size_gigabytes: 5
         - size_gigabytes: 10
@@ -139,10 +139,9 @@ def run(module, client):
     vm_host_obj = VMHost.get_by_name(
         module, client, must_exist=True, name_field_ansible="vm_host"
     )
-    if module.params["state"] == HostState.ready:
-        if module.params["network_interfaces"]:
-            prepare_network_data(module)
-        changed, records, diff = ensure_ready(module, client, vm_host_obj)
+    if module.params["network_interfaces"]:
+        prepare_network_data(module)
+    changed, records, diff = ensure_ready(module, client, vm_host_obj)
     return changed, records, diff
 
 

@@ -17,7 +17,6 @@
       storage_disks:
         - size_gigabytes: 3
         - size_gigabytes: 5
-      state: ready
     register: machines
 
   - debug:
