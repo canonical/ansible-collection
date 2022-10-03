@@ -25,6 +25,8 @@ class NetworkInterface(MaasValueMapper):
         vlan=None,
         label_name=None,
         mac_address=None,
+        mtu=None,
+        tags=None,
     ):
         self.name = name
         self.id = id
@@ -35,6 +37,8 @@ class NetworkInterface(MaasValueMapper):
         self.vlan = vlan
         self.label_name = label_name
         self.mac_address = mac_address
+        self.mtu = mtu
+        self.tags = tags
 
     @classmethod
     def from_ansible(cls, network_interface_dict):
@@ -45,6 +49,10 @@ class NetworkInterface(MaasValueMapper):
         obj.fabric = network_interface_dict.get("fabric")
         obj.vlan = network_interface_dict.get("vlan")
         obj.label_name = network_interface_dict.get("label_name")
+        obj.mac_address = network_interface_dict.get("mac_address", None)
+        obj.vlan = network_interface_dict.get("vlan", None)
+        obj.mtu = network_interface_dict.get("mtu", None)
+        obj.tags = network_interface_dict.get("tags", [])
         return obj
 
     @classmethod
@@ -107,3 +115,18 @@ class NetworkInterface(MaasValueMapper):
             vlan=self.vlan,
             mac_address=self.mac_address,
         )
+
+    def needs_update(self, other_nic):
+        return False
+
+    def payload_for_update(self):
+        return
+
+    def send_update_request(self, payload):
+        return
+
+    def payload_for_create(self):
+        return
+
+    def send_create_request(self, payload):
+        return
