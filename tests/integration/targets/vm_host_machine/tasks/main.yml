@@ -1,0 +1,48 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CLIENT_KEY: "{{ client_key }}"
+
+
+  block:
+# TODO: Add machine cleanup when module is implemented.
+  - name: Create virtual machine with two disks and a network interface.
+    canonical.maas.vm_host_machine:
+      vm_host: sunny-raptor # TODO: find a better way, maybe create host first?
+      cores: 2
+      memory: 2000
+      network_interfaces:
+        name: my_first
+        subnet_cidr: "10.10.10.0/24"
+      storage_disks:
+        - size_gigabytes: 3
+        - size_gigabytes: 5
+      state: ready
+    register: machine
+  - ansible.builtin.assert:
+      that:
+        - machine is succeeded
+        - machine is changed
+        - machine.records | length == 1
+        - machine.records.0.cores == 2
+        - machine.records.0.machine_name
+
+  - name: Get info from created machine.
+    canonical.maas.machine_info:
+      machine_name: "{{ machine.records.0.machine_name }}"
+    register: machine_info
+  - ansible.builtin.assert:
+      that:
+        - machine_info is succeeded
+        - machine_info is not changed
+        - machine_info.records | length == 1
+        - machine_info.records.0.blockdevice_set | length == 2
+        - machine_info.records.0.cpu_count == 2
+        - machine_info.records.0.interface_set | length == 1
+        - machine_info.records.0.interface_set.0.name == "my_first"
+        - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+        - machine_info.records.0.memory == 2000
+
+# TODO: Add machine cleanup when module is implemented.

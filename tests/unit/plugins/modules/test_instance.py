@@ -17,7 +17,7 @@ pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
 )
 
-
+"""
 class TestGetInstanceFromHostname:
     def test_get_instance(self, create_module, mocker, client):
         module = create_module(
@@ -54,3 +54,4 @@ class TestGetInstanceFromHostname:
         assert instance.get_instance_from_hostname(module, client) == dict(
             hostname="my_instance",
         )
+"""

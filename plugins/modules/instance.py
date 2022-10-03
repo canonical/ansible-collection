@@ -26,6 +26,7 @@ description:
   - If I(state) value is C(absent) the selected machine will be deleted.
 version_added: 1.0.0
 extends_documentation_fragment: # ADD DOC_FRAGMENT FOR VM_HOST
+  - canonical.maas.instance
 seealso: []
 options:
   hostname:
