@@ -39,7 +39,63 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-machines:
+records:
+  description:
+    - List records of vm hosts.
+  returned: success
+  type: list
+  sample:
+    - architectures:
+      - amd64/generic
+      available:
+        cores: 1
+        local_storage: 6884062720
+        memory: 4144
+      capabilities:
+      - composable
+      - dynamic_local_storage
+      - over_commit
+      - storage_pools
+      cpu_over_commit_ratio: 1.0
+      default_macvlan_mode: null
+      host:
+        __incomplete__: true
+        system_id: d6car8
+      id: 1
+      memory_over_commit_ratio: 1.0
+      name: sunny-raptor
+      pool:
+        description: Default pool
+        id: 0
+        name: default
+        resource_uri: /MAAS/api/2.0/resourcepool/0/
+      resource_uri: /MAAS/api/2.0/vm-hosts/1/
+      storage_pools:
+      - available: 6884062720
+        default: true
+        id: default
+        name: default
+        path: /var/snap/lxd/common/lxd/disks/default.img
+        total: 22884062720
+        type: zfs
+        used: 16000000000
+      tags:
+      - pod-console-logging
+      total:
+        cores: 4
+        local_storage: 22884062720
+        memory: 8192
+      type: lxd
+      used:
+        cores: 3
+        local_storage: 16000000000
+        memory: 4048
+      version: '5.5'
+      zone:
+        description: ''
+        id: 1
+        name: default
+        resource_uri: /MAAS/api/2.0/zones/default/
 """
 
 from ansible.module_utils.basic import AnsibleModule
