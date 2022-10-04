@@ -25,7 +25,7 @@ description:
     In case if no machine matching the given constraints could be found, the task will FAIL.
   - If I(state) value is C(absent) the selected machine will be deleted.
 version_added: 1.0.0
-extends_documentation_fragment: # ADD DOC_FRAGMENT FOR VM_HOST
+extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
 options:
@@ -73,36 +73,40 @@ options:
         description:
           - If present, this parameter specifies the OS release the machine will use.
         type: str
+      timeout:
+        description:
+          - Time in seconds to wait for server response in case of deploying.
+        type: int
 """
 
 EXAMPLES = r"""
-name: Remove/delete an instance
+name: Remove/delete machine
 canonical.maas.instance:
   hostname: my_instance
   state: absent
-
-name: Commision new machine with custom constraints
-canonical.maas.instance:
-  state: ready
-  allocate_params:
-    cpu: 1
-    memory: 2
-
-name: Commision new machine with default constraints
-canonical.maas.instance:
-  state: ready
 
 name: Release machine
 canonical.maas.instance:
   hostname: my_instance
   state: ready
 
-name: Deploy already commisioned machine
+name: Release random/new machine with custom constraints
+canonical.maas.instance:
+  state: ready
+  allocate_params:
+    cpu: 1
+    memory: 2
+
+name: Release random/new machine with default constraints
+canonical.maas.instance:
+  state: ready
+
+name: Deploy already commissioned machine
 canonical.maas.instance:
   hostname: my_instance
   state: deployed
 
-name: Deploy already commisioned machine with custom OS and OS series
+name: Deploy already commissioned machine with custom OS and OS series
 canonical.maas.instance:
   hostname: my_instance
   state: deployed
@@ -110,11 +114,11 @@ canonical.maas.instance:
     osystem: ubuntu
     distro_series: focal
 
-name: Deploy new machine with default OS and allocation constraints
+name: Deploy random/new machine with default OS and allocation constraints
 canonical.maas.instance:
   state: deployed
 
-name: Deploy new machine with custom OS and allocation constraints
+name: Deploy random/new machine with custom OS and allocation constraints
 canonical.maas.instance:
   state: deployed
   allocate_params:
@@ -134,6 +138,8 @@ record:
   sample:
    # ADD SAMPLE
 """
+
+
 from time import sleep
 from ansible.module_utils.basic import AnsibleModule
 
@@ -146,14 +152,25 @@ def wait_ready_or_allocated_state(system_id, client: Client, check_mode=False):
     if check_mode:
         return
     while True:
-        rest_client = RestClient(client)
-        instance = rest_client.get_record(
-            f"/api/2.0/machines/{system_id}/", must_exist=True
-        )
+        instance = client.get(
+            f"/api/2.0/machines/{system_id}/",
+        ).json
         if get_instance_status(instance) in (
-            "ready",
-            "allocated",
+            "Ready",
+            "Allocated",
         ):  # IMPLEMENT TIMEOUT?
+            return instance
+        sleep(1)
+
+
+def wait_deployed_state(system_id, client: Client, check_mode=False):
+    if check_mode:
+        return
+    while True:
+        instance = client.get(
+            f"/api/2.0/machines/{system_id}/",
+        ).json
+        if get_instance_status(instance) == "Deployed":  # IMPLEMENT TIMEOUT?
             return instance
         sleep(1)
 
@@ -175,9 +192,8 @@ def allocate(module, client: Client):
         if module.params["allocate_params"]["memory"]:
             data["mem"] = module.params["allocate_params"]["memory"]
         # here an error can occur:
-        # HTTP Status Code : 409
-        # Content : No machine matching the given constraints could be found.
-        # NOW WE GET THIS ERROR IN ANY CASE - THIS NEEDS TO BE RESOLVED
+        # HTTP Status Code : 409 No machine matching the given constraints could be found.
+        # This happens only when all machines are allocated and we want to release random machine using allocate_params
         # instance can't be allocated if commissioning, the only action allowed is abort - CHECK IF THIS IS A PROBLEM FOR US
     instance = client.post(
         "/api/2.0/machines/", query={"op": "allocate"}, data=data
@@ -214,8 +230,8 @@ def delete(module, client: Client):
     instance = get_instance_from_hostname(module, client, must_exist=False)
     if instance:
         system_id = get_instance_id(instance)
-        response = client.delete(f"/api/2.0/machines/{system_id}/").json
-        return True, response  # CHECK WHAT IS RESPPONSE
+        client.delete(f"/api/2.0/machines/{system_id}/").json
+        return True, dict()
     return False, dict()
 
 
@@ -223,48 +239,56 @@ def release(module, client: Client):
     if module.params["hostname"]:
         instance = get_instance_from_hostname(module, client, must_exist=True)
     else:
-        # allocate random machine - IF THERE IS NO MACHINE TO ALLOCATE, NEW IS PRODUCED BUT IT CAN'T BE RELEASED!! - THIS NEEDS TO BE SOLVED!
+        # If there is no existing machine to allocate, new is composed, but after releasing it, it is automatically deleted (ephemeral)
+        # ack replied that parameter that tells which machine is ephemeral isn't exposed in the api
+        # Here we can have an example that we have random machine already in ready state, but it will get allocated and released in any case
         instance = allocate(module, client)
     system_id = get_instance_id(instance)
     status = get_instance_status(instance)
-    if status == "ready" or "commissioning":
-        # commissioning will bring machine to the ready state - SHOULD WE WAIT FO READY STATE?
+    if status == "Ready" or status == "Commissioning":
+        # commissioning will bring machine to the ready state - SHOULD WE WAIT FOR READY STATE?
         # if state == commissioning: "Unexpected response - 409 b\"Machine cannot be released in its current state ('Commissioning').\""
-        return False, instance  # or empty dict?
-    if status == "new":
-        # commissioning will bring machine to the ready state - SHOULD WE WAIT FO READY STATE?
+        return False, instance
+    if status == "New":
+        # commissioning will bring machine to the ready state - SHOULD WE WAIT FOR READY STATE?
         instance = commission(system_id, client)
         return True, instance
-    else:
-        instance = client.post(
-            f"/api/2.0/machines/{system_id}/", query={"op": "release"}, data={}
-        ).json
-        return True, instance
+    # instance = client.post(
+    #     f"/api/2.0/machines/{system_id}/", query={"op": "release"}, data={}
+    # ).json
+    return True, instance
 
 
 def deploy(module, client: Client):
     if module.params["hostname"]:
         instance = get_instance_from_hostname(module, client, must_exist=True)
     else:
-        # allocate random machine # IF THERE IS NO MACHINE TO ALLOCATE, NEW IS PRODUCED BUT IT CAN'T BE RELEASED!! - THIS NEEDS TO BE SOLVED!
+        # allocate random machine
+        # If there is no machine to allocate, new is created and can be deployed. If we release it, it is automatically deleted (ephemeral)
         instance = allocate(module, client)
-
     status = get_instance_status(instance)
     system_id = get_instance_id(instance)
-    if status == "deployed":
-        return False, instance  # or empty dict?
-    if status == "new":
+    if status == "Deployed":
+        return False, instance
+    if status == "New":
         commission(system_id, client)
     wait_ready_or_allocated_state(system_id, client)
     data = {}
+    timeout = 20  # seconds
     if module.params["deploy_params"]:
         if module.params["deploy_params"]["osystem"]:
             data["osystem"] = module.params["deploy_params"]["osystem"]
         if module.params["deploy_params"]["distro_series"]:
             data["distro_series"] = module.params["deploy_params"]["distro_series"]
+        if module.params["deploy_params"]["timeout"]:
+            timeout = module.params["deploy_params"]["timeout"]
     instance = client.post(
-        f"/api/2.0/machines/{system_id}/", query={"op": "deploy"}, data=data
-    ).json
+        f"/api/2.0/machines/{system_id}/",
+        query={"op": "deploy"},
+        data=data,
+        timeout=timeout,
+    ).json  # here we can get TimeoutError: timed out
+    # wait_deployed_state(system_id, client)
     return True, instance
 
 
@@ -291,6 +315,7 @@ def main():
                 options=dict(
                     osystem=dict(type="str"),
                     distro_series=dict(type="str"),
+                    timeout=dict(type="int"),
                 ),
             ),
             allocate_params=dict(
@@ -302,7 +327,7 @@ def main():
             ),
         ),
         required_if=[
-            ("state", "absent", ("hostname"), False),
+            ("state", "absent", ("hostname",), False),
         ],
     )
 
