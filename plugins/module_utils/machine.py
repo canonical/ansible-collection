@@ -25,6 +25,9 @@ class Machine(MaasValueMapper):
         cores=None,
         network_interfaces=[],
         disks=[],
+        status=None,
+        osystem=None,
+        distro_series=None,
     ):
         self.hostname = hostname
         self.id = id
@@ -32,6 +35,9 @@ class Machine(MaasValueMapper):
         self.cores = cores
         self.network_interfaces = network_interfaces
         self.disks = disks
+        self.status = status
+        self.osystem = osystem
+        self.distro_series = distro_series
 
     @classmethod
     def get_by_name(
@@ -52,8 +58,10 @@ class Machine(MaasValueMapper):
             return machine_from_maas
 
     @classmethod
-    def get_by_id(cls, id, client, must_exist=False):
+    def get_by_id(cls, id, client):
         maas_dict = client.get(f"/api/2.0/machines/{id}/").json
+        if not maas_dict:
+            raise errors.VMNotFound(id)
         vmhost_from_maas = cls.from_maas(maas_dict)
         return vmhost_from_maas
 
@@ -87,6 +95,9 @@ class Machine(MaasValueMapper):
             obj.disks = [
                 Disk.from_maas(disk) for disk in maas_dict["blockdevice_set"] or []
             ]
+            obj.status = maas_dict["status_name"]
+            obj.osystem = maas_dict["osystem"]
+            obj.distro_series = maas_dict["distro_series"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -142,3 +153,19 @@ class Machine(MaasValueMapper):
             tmp = payload.pop("storage")
             payload["storage"] = ",".join([f"label:{disk['size']}" for disk in tmp])
         return payload
+
+    def __eq__(self, other):
+        """One Machine is equal to another if it has ALL attributes exactly the same"""
+        return all(
+            (
+                self.machine_name == other.machine_name,
+                self.id == other.id,
+                self.memory == other.memory,
+                self.cores == other.cores,
+                self.network_interfaces == other.network_interfaces,
+                self.disks == other.disks,
+                self.status == other.status,
+                self.osystem == other.osystem,
+                self.distro_series == other.distro_series,
+            )
+        )
