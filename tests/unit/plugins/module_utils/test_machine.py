@@ -12,7 +12,7 @@ import sys
 import pytest
 
 from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
+from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
 )
 
@@ -32,7 +32,7 @@ class TestGet:
         ).return_value = None
         client.get.return_value = Response(200, "{}")
         results = Machine.get_by_id(id, client, must_exist=True)
-        assert results == None
+        assert results is None
 
 
 class TestPayloadForCompose:

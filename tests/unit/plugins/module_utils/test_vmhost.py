@@ -12,7 +12,7 @@ import sys
 import pytest
 
 from ansible_collections.canonical.maas.plugins.module_utils.vmhost import VMHost
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
+from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
 )
 
