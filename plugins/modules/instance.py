@@ -150,9 +150,9 @@ from ..module_utils.machine import Machine
 
 def wait_for_state(system_id, client: Client, check_mode=False, *states):
     if check_mode:
-        return
+        return  # add mocked machine when needed
     while True:
-        machine = Machine.get_by_id(system_id, client)
+        machine = Machine.get_by_id(system_id, client, must_exist=True)
         if machine.status in states:  # IMPLEMENT TIMEOUT?
             return machine
         sleep(1)
@@ -306,8 +306,8 @@ def main():
         token_secret = instance["token_secret"]
 
         client = Client(host, token_key, token_secret, client_key)
-        changed, record = run(module, client)
-        module.exit_json(changed=changed, record=record)
+        changed, record, diff = run(module, client)
+        module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as e:
         module.fail_json(msg=str(e))
 
