@@ -29,7 +29,7 @@ extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
 options:
-  hostname:
+  name:
     description:
       - Name of the machine to be deleted, deployed or released.
       - Serves as unique identifier of the machine.
@@ -145,43 +145,17 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
+from ..module_utils.machine import Machine
 
 
-def wait_ready_or_allocated_state(system_id, client: Client, check_mode=False):
+def wait_for_state(system_id, client: Client, check_mode=False, *states):
     if check_mode:
         return
     while True:
-        instance = client.get(
-            f"/api/2.0/machines/{system_id}/",
-        ).json
-        if get_instance_status(instance) in (
-            "Ready",
-            "Allocated",
-        ):  # IMPLEMENT TIMEOUT?
-            return instance
+        machine = Machine.get_by_id(system_id, client)
+        if machine.status in states:  # IMPLEMENT TIMEOUT?
+            return machine
         sleep(1)
-
-
-def wait_deployed_state(system_id, client: Client, check_mode=False):
-    if check_mode:
-        return
-    while True:
-        instance = client.get(
-            f"/api/2.0/machines/{system_id}/",
-        ).json
-        if get_instance_status(instance) == "Deployed":  # IMPLEMENT TIMEOUT?
-            return instance
-        sleep(1)
-
-
-def get_instance_from_hostname(module, client: Client, must_exist):
-    rest_client = RestClient(client)
-    query = {"hostname": module.params["hostname"]}
-    instance = rest_client.get_record(
-        "/api/2.0/machines/", query, must_exist=must_exist
-    )
-    return instance
 
 
 def allocate(module, client: Client):
@@ -194,11 +168,11 @@ def allocate(module, client: Client):
         # here an error can occur:
         # HTTP Status Code : 409 No machine matching the given constraints could be found.
         # This happens only when all machines are allocated and we want to release random machine using allocate_params
-        # instance can't be allocated if commissioning, the only action allowed is abort - CHECK IF THIS IS A PROBLEM FOR US
-    instance = client.post(
+    # instance can't be allocated if commissioning, the only action allowed is abort
+    maas_dict = client.post(
         "/api/2.0/machines/", query={"op": "allocate"}, data=data
     ).json
-    return instance
+    return Machine.from_maas(maas_dict)
 
 
 def commission(system_id, client: Client):
@@ -212,67 +186,60 @@ def commission(system_id, client: Client):
     Also it is possible to commission the machine when it is in 'new' state.
     We get state 'new' in case if we abort commissioning of the machine (which was before already in ready or allocated state)
     """
-    instance = client.post(
+    maas_dict = client.post(
         f"/api/2.0/machines/{system_id}", query={"op": "commission"}
     ).json
-    return instance
-
-
-def get_instance_id(instance):
-    return instance["boot_interface"]["system_id"]
-
-
-def get_instance_status(instance):
-    return instance["status_name"]
+    return Machine.from_maas(maas_dict)
 
 
 def delete(module, client: Client):
-    instance = get_instance_from_hostname(module, client, must_exist=False)
-    if instance:
-        system_id = get_instance_id(instance)
-        client.delete(f"/api/2.0/machines/{system_id}/").json
+    machine = Machine.get_by_name(module, client, must_exist=False)
+    if machine:
+        client.delete(f"/api/2.0/machines/{machine.id}/").json
         return True, dict()
     return False, dict()
 
 
 def release(module, client: Client):
-    if module.params["hostname"]:
-        instance = get_instance_from_hostname(module, client, must_exist=True)
+    if module.params["name"]:
+        machine = Machine.get_by_name(module, client, must_exist=True)
     else:
         # If there is no existing machine to allocate, new is composed, but after releasing it, it is automatically deleted (ephemeral)
         # ack replied that parameter that tells which machine is ephemeral isn't exposed in the api
         # Here we can have an example that we have random machine already in ready state, but it will get allocated and released in any case
-        instance = allocate(module, client)
-    system_id = get_instance_id(instance)
-    status = get_instance_status(instance)
-    if status == "Ready" or status == "Commissioning":
-        # commissioning will bring machine to the ready state - SHOULD WE WAIT FOR READY STATE?
+        machine = allocate(module, client)
+    if machine.status == "Ready":
+        return False, machine, dict(before=machine, after=machine)
+    if machine.status == "Commissioning":
+        # commissioning will bring machine to the ready state
         # if state == commissioning: "Unexpected response - 409 b\"Machine cannot be released in its current state ('Commissioning').\""
-        return False, instance
-    if status == "New":
-        # commissioning will bring machine to the ready state - SHOULD WE WAIT FOR READY STATE?
-        instance = commission(system_id, client)
-        return True, instance
-    # instance = client.post(
-    #     f"/api/2.0/machines/{system_id}/", query={"op": "release"}, data={}
-    # ).json
-    return True, instance
+        wait_for_state(machine.id, client, False, "Ready")
+        return False, machine, dict(before=machine, after=machine)
+    if machine.status == "New":
+        # commissioning will bring machine to the ready state
+        commission(machine.id, client)
+        updated_machine = wait_for_state(machine.id, client, False, "Ready")
+        return True, updated_machine, dict(before=machine, after=updated_machine)
+    client.post(
+        f"/api/2.0/machines/{machine.id}/", query={"op": "release"}, data={}
+    ).json
+    updated_machine = wait_for_state(machine.id, client, False, "Ready")
+    return True, updated_machine, dict(before=machine, after=updated_machine)
 
 
 def deploy(module, client: Client):
-    if module.params["hostname"]:
-        instance = get_instance_from_hostname(module, client, must_exist=True)
+    if module.params["name"]:
+        machine = Machine.get_by_name(module, client, must_exist=True)
     else:
         # allocate random machine
         # If there is no machine to allocate, new is created and can be deployed. If we release it, it is automatically deleted (ephemeral)
-        instance = allocate(module, client)
-    status = get_instance_status(instance)
-    system_id = get_instance_id(instance)
-    if status == "Deployed":
-        return False, instance
-    if status == "New":
-        commission(system_id, client)
-    wait_ready_or_allocated_state(system_id, client)
+        machine = allocate(module, client)
+        wait_for_state(machine.id, client, False, "Allocated")
+    if machine.status == "Deployed":
+        return False, machine, dict(before=machine, after=machine)
+    if machine.status == "New":
+        commission(machine.id, client)
+        wait_for_state(machine.id, client, False, "Ready")
     data = {}
     timeout = 20  # seconds
     if module.params["deploy_params"]:
@@ -282,14 +249,14 @@ def deploy(module, client: Client):
             data["distro_series"] = module.params["deploy_params"]["distro_series"]
         if module.params["deploy_params"]["timeout"]:
             timeout = module.params["deploy_params"]["timeout"]
-    instance = client.post(
-        f"/api/2.0/machines/{system_id}/",
+    client.post(
+        f"/api/2.0/machines/{machine.id}/",
         query={"op": "deploy"},
         data=data,
         timeout=timeout,
     ).json  # here we can get TimeoutError: timed out
-    # wait_deployed_state(system_id, client)
-    return True, instance
+    updated_machine = wait_for_state(machine.id, client, False, "Deployed")
+    return True, updated_machine, dict(before=machine, after=updated_machine)
 
 
 def run(module, client: Client):
@@ -306,7 +273,7 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("instance"),
-            hostname=dict(type="str"),
+            name=dict(type="str"),
             state=dict(
                 type="str", required=True, choices=["ready", "deployed", "absent"]
             ),
