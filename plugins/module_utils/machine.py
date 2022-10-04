@@ -58,10 +58,11 @@ class Machine(MaasValueMapper):
             return machine_from_maas
 
     @classmethod
-    def get_by_id(cls, id, client):
-        maas_dict = client.get(f"/api/2.0/machines/{id}/").json
-        if not maas_dict:
-            raise errors.VMNotFound(id)
+    def get_by_id(cls, id, client, must_exist=False):
+        rest_client = RestClient(client=client)
+        maas_dict = rest_client.get_record(
+            f"/api/2.0/machines/{id}/", query={}, must_exist=must_exist
+        )
         vmhost_from_maas = cls.from_maas(maas_dict)
         return vmhost_from_maas
 
