@@ -13,7 +13,7 @@ module: vm_host_machine
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Return info about vm hosts.
+short_description: Creates a virtual machine on a specified host.
 description:
   - Create VM on a specified host.
 version_added: 1.0.0
@@ -87,22 +87,22 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-records:
+record:
   description:
     - The created record of a machine.
   returned: success
-  type: list
+  type: dict
   sample:
-    - id: machine-id
-      name: 'this-machine'
-      memory: 2046
-      cores: 2
-      network_interfaces:
-        - name: 'this-interface'
-          subnet_cidr: 10.0.0.0/24
-      storage:
-        - size_gigabytes: 5
-        - size_gigabytes: 10
+    id: machine-id
+    name: 'this-machine'
+    memory: 2046
+    cores: 2
+    network_interfaces:
+      - name: 'this-interface'
+        subnet_cidr: 10.0.0.0/24
+    storage:
+      - size_gigabytes: 5
+      - size_gigabytes: 10
       
 """
 
@@ -124,14 +124,12 @@ def prepare_network_data(module):
 
 
 def ensure_ready(module, client, vm_host_obj):
-    before = []
-    after = []
+    before = None
+    after = None
     machine_obj = Machine.from_ansible(module)
     payload = machine_obj.payload_for_compose(module)
     task = vm_host_obj.send_compose_request(module, client, payload)
-    after.append(
-        (Machine.get_by_id(task["system_id"], client, must_exist=True)).to_ansible()
-    )
+    after = (Machine.get_by_id(task["system_id"], client, must_exist=True)).to_ansible()
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
@@ -141,8 +139,8 @@ def run(module, client):
     )
     if module.params["network_interfaces"]:
         prepare_network_data(module)
-    changed, records, diff = ensure_ready(module, client, vm_host_obj)
-    return changed, records, diff
+    changed, record, diff = ensure_ready(module, client, vm_host_obj)
+    return changed, record, diff
 
 
 def main():
@@ -193,8 +191,8 @@ def main():
         token_secret = module.params["instance"]["token_secret"]
 
         client = Client(host, token_key, token_secret, client_key)
-        changed, records, diff = run(module, client)
-        module.exit_json(changed=changed, records=records, diff=diff)
+        changed, record, diff = run(module, client)
+        module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as e:
         module.fail_json(msg=str(e))
 
