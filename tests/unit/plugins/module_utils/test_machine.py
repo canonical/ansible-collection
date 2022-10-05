@@ -26,30 +26,11 @@ class TestGet:
     def test_get_by_id(self, client, mocker):
         id = 123
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
-        ).return_value = dict(
-            hostname="my_instance",
-            system_id=123,
-            memory=2000,
-            cpu_count=2,
-            interface_set=None,
-            blockdevice_set=None,
-            status_name="Ready",
-            osystem="ubuntu",
-            distro_series="jammy",
-        )
-
-        assert Machine.get_by_id(id, client) == Machine(
-            machine_name="my_instance",
-            id=123,
-            memory=2000,
-            cores=2,
-            network_interfaces=[],
-            disks=[],
-            status="Ready",
-            osystem="ubuntu",
-            distro_series="jammy",
-        )
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+        ).return_value = None
+        client.get.return_value = Response(200, "{}")
+        results = Machine.get_by_id(id, client)
+        assert results is None
 
     def test_get_by_name(self, create_module, mocker, client):
         module = create_module(
@@ -60,7 +41,7 @@ class TestGet:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                name="my_instance",
+                hostname="my_instance",
                 state="absent",
                 allocate_params={
                     "memory": 2000,
@@ -88,7 +69,7 @@ class TestGet:
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(
-            machine_name="my_instance",
+            hostname="my_instance",
             id="sytem_id",
             memory=2000,
             cores=2,

@@ -51,20 +51,24 @@ class Machine(MaasValueMapper):
             ansible_maas_map={name_field_ansible: "hostname"},
         )
         maas_dict = rest_client.get_record(
-            "/api/2.0/machines/", query, must_exist=must_exist
+            "/api/2.0/machines/",
+            query,
+            must_exist=must_exist,
         )
         if maas_dict:
             machine_from_maas = cls.from_maas(maas_dict)
             return machine_from_maas
 
     @classmethod
-    def get_by_id(cls, id, client, must_exist=False):
-        rest_client = RestClient(client=client)
-        maas_dict = rest_client.get_record(
-            f"/api/2.0/machines/{id}/", query={}, must_exist=must_exist
-        )
-        vmhost_from_maas = cls.from_maas(maas_dict)
-        return vmhost_from_maas
+    def get_by_id(cls, id, client):
+        # rest_client.get_record doesn't work here
+        # in case if machine doesn't exist .json throws error: MaasError("Received invalid JSON response: {0}".format(self.data))
+        try:
+            maas_dict = client.get(f"/api/2.0/machines/{id}/").json
+            vmhost_from_maas = cls.from_maas(maas_dict)
+            return vmhost_from_maas
+        except errors.MaasError:
+            raise errors.MachineNotFound(id)
 
     @classmethod
     def from_ansible(cls, module):
@@ -123,28 +127,17 @@ class Machine(MaasValueMapper):
 
     def to_ansible(self):
         to_ansible_dict = {}
-        if self.hostname:
-            to_ansible_dict["hostname"] = self.hostname
-        if self.id:
-            to_ansible_dict["id"] = self.id
-        if self.memory:
-            to_ansible_dict["memory"] = self.memory
-        if self.cores:
-            to_ansible_dict["cores"] = self.cores
-        if self.network_interfaces:
-            to_ansible_dict["network_interfaces"] = [
-                net_interface.to_ansible() for net_interface in self.network_interfaces
-            ]
-        if self.disks:
-            to_ansible_dict["storage_disks"] = [
-                disk.to_ansible() for disk in self.disks
-            ]
-        if self.status:
-            to_ansible_dict["status"] = self.status
-        if self.osystem:
-            to_ansible_dict["osystem"] = self.osystem
-        if self.distro_series:
-            to_ansible_dict["distro_series"] = self.distro_series
+        to_ansible_dict["hostname"] = self.hostname
+        to_ansible_dict["id"] = self.id
+        to_ansible_dict["memory"] = self.memory
+        to_ansible_dict["cores"] = self.cores
+        to_ansible_dict["network_interfaces"] = [
+            net_interface.to_ansible() for net_interface in self.network_interfaces
+        ]
+        to_ansible_dict["storage_disks"] = [disk.to_ansible() for disk in self.disks]
+        to_ansible_dict["status"] = self.status
+        to_ansible_dict["osystem"] = self.osystem
+        to_ansible_dict["distro_series"] = self.distro_series
         return to_ansible_dict
 
     def payload_for_compose(self, module):
