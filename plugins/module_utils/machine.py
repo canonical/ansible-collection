@@ -318,6 +318,6 @@ class Machine(MaasValueMapper):
         return client.put(f"/api/2.0/machines/{self.id}/", data=payload).json
     def find_nic_by_name(self, nic_name):
         # returns nic object or None
-        for nic in self.network_interfaces:
-            if nic_name == nic.name:
-                return nic
+        for nic_obj in self.network_interfaces:
+            if nic_name == nic_obj.name:
+                return nic_obj

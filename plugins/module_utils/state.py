@@ -21,6 +21,7 @@ class TaskState(str, enum.Enum):
     ready = "Ready"
     comissioning = "Commissioning"
 
+
 class NicState(str, enum.Enum):
     present = "present"
     absent = "absent"

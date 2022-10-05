@@ -7,7 +7,9 @@
 from __future__ import absolute_import, division, print_function
 from socket import AF_ECONET
 
-from ansible_collections.canonical.maas.plugins.module_utils.network_interface import NetworkInterface
+from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
+    NetworkInterface,
+)
 
 __metaclass__ = type
 
