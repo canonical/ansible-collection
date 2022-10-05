@@ -26,6 +26,11 @@ options:
       - Name of the host.
     type: str
     required: True
+  hostname:
+    description:
+      - Name of the virtual machine.
+      - Underscores are not supported.
+    type: str
   cores:
     description:
       - Number of CPUs.
@@ -64,14 +69,15 @@ EXAMPLES = r"""
 - name: Create new machine
   hosts: localhost
   tasks:
-  - name: Create new machine on sunny-raptor host
+  - name: Create new machine on some-host with hostname new-machine, network interface and two disks.
     canonical.maas.vm_host_machine:
       instance:
         host: 'some host address'
         token_key: 'token key'
         token_secret: 'token secret'
         client_key: 'client key'
-      vm_host: sunny-raptor
+      vm_host: some-host
+      hostname: new-machine
       cores: 2
       memory: 2048
       network_interfaces:
@@ -80,10 +86,10 @@ EXAMPLES = r"""
       storage_disks:
         - size_gigabytes: 3
         - size_gigabytes: 5
-    register: machines
+    register: machine
 
   - debug:
-      var: machines
+      var: machine
 """
 
 RETURN = r"""
@@ -93,12 +99,12 @@ record:
   returned: success
   type: dict
   sample:
-    id: machine-id
-    name: 'this-machine'
+    id: new-machine-id
+    hostname: 'new-machine'
     memory: 2046
     cores: 2
     network_interfaces:
-      - name: 'this-interface'
+      - name: 'my_new'
         subnet_cidr: 10.0.0.0/24
     storage:
       - size_gigabytes: 5
@@ -109,7 +115,6 @@ record:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
-from ..module_utils.state import HostState
 from ..module_utils.client import Client
 from ..module_utils.vmhost import VMHost
 from ..module_utils.machine import Machine
@@ -126,6 +131,14 @@ def prepare_network_data(module):
 def ensure_ready(module, client, vm_host_obj):
     before = None
     after = None
+    if module.params["hostname"]:
+        vm_obj = Machine.get_by_name(module, client)
+        if vm_obj:
+            return (
+                is_changed(before, after),
+                vm_obj.to_ansible(),
+                dict(before=before, after=after),
+            )
     machine_obj = Machine.from_ansible(module)
     payload = machine_obj.payload_for_compose(module)
     task = vm_host_obj.send_compose_request(module, client, payload)
@@ -151,6 +164,9 @@ def main():
             vm_host=dict(
                 type="str",
                 required=True,
+            ),
+            hostname=dict(
+                type="str",
             ),
             cores=dict(
                 type="int",

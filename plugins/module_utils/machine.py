@@ -19,14 +19,14 @@ class Machine(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
-        machine_name=None,  # Machine name.
+        hostname=None,  # Machine name.
         id=None,
         memory=None,
         cores=None,
         network_interfaces=[],
         disks=[],
     ):
-        self.machine_name = machine_name
+        self.hostname = hostname
         self.id = id
         self.memory = memory
         self.cores = cores
@@ -34,7 +34,10 @@ class Machine(MaasValueMapper):
         self.disks = disks
 
     @classmethod
-    def get_by_name(cls, module, client, must_exist=False, name_field_ansible="name"):
+    def get_by_name(
+        cls, module, client, must_exist=False, name_field_ansible="hostname"
+    ):
+        # Returns machine object or None
         rest_client = RestClient(client=client)
         query = get_query(
             module,
@@ -44,8 +47,9 @@ class Machine(MaasValueMapper):
         maas_dict = rest_client.get_record(
             "/api/2.0/machines/", query, must_exist=must_exist
         )
-        vmhost_from_maas = cls.from_maas(maas_dict)
-        return vmhost_from_maas
+        if maas_dict:
+            machine_from_maas = cls.from_maas(maas_dict)
+            return machine_from_maas
 
     @classmethod
     def get_by_id(cls, id, client, must_exist=False):
@@ -56,7 +60,7 @@ class Machine(MaasValueMapper):
     @classmethod
     def from_ansible(cls, module):
         obj = Machine()
-        obj.machine_name = module.params.get("machine_name")
+        obj.hostname = module.params.get("hostname")
         obj.cores = module.params.get("cores")
         obj.memory = module.params.get("memory")
         obj.network_interfaces = [
@@ -72,7 +76,7 @@ class Machine(MaasValueMapper):
     def from_maas(cls, maas_dict):
         obj = Machine()
         try:
-            obj.machine_name = maas_dict["hostname"]
+            obj.hostname = maas_dict["hostname"]
             obj.id = maas_dict["system_id"]
             obj.memory = maas_dict["memory"]
             obj.cores = maas_dict["cpu_count"]
@@ -89,8 +93,8 @@ class Machine(MaasValueMapper):
 
     def to_maas(self):
         to_maas_dict = {}
-        if self.machine_name:
-            to_maas_dict["hostname"] = self.machine_name
+        if self.hostname:
+            to_maas_dict["hostname"] = self.hostname
         if self.id:
             to_maas_dict["id"] = self.id
         if self.memory:
@@ -107,8 +111,8 @@ class Machine(MaasValueMapper):
 
     def to_ansible(self):
         to_ansible_dict = {}
-        if self.machine_name:
-            to_ansible_dict["machine_name"] = self.machine_name
+        if self.hostname:
+            to_ansible_dict["hostname"] = self.hostname
         if self.id:
             to_ansible_dict["id"] = self.id
         if self.memory:
