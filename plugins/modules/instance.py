@@ -29,7 +29,7 @@ extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
 options:
-  name:
+  hostname:
     description:
       - Name of the machine to be deleted, deployed or released.
       - Serves as unique identifier of the machine.
@@ -48,7 +48,7 @@ options:
       - If no parameters are given, a random machine will be allocated using the defaults.
     type: dict
     options:
-      cpu:
+      cores:
         description:
           - If present, this parameter specifies the minimum number of CPUs a returned machine must have.
           - A machine with additional CPUs may be allocated if there is no exact match, or if the 'mem' constraint is not also specified.
@@ -94,7 +94,7 @@ name: Release random/new machine with custom constraints
 canonical.maas.instance:
   state: ready
   allocate_params:
-    cpu: 1
+    cores: 1
     memory: 2
 
 name: Release random/new machine with default constraints
@@ -122,7 +122,7 @@ name: Deploy random/new machine with custom OS and allocation constraints
 canonical.maas.instance:
   state: deployed
   allocate_params:
-    cpu: 1
+    cores: 1
     memory: 2
   deploy_params:
     osystem: ubuntu
@@ -137,7 +137,7 @@ record:
   type: dict
   sample:
     id: machine-id
-    name: this-machine
+    hostname: this-machine
     status: ready
     memory: 2000
     cores: 2
@@ -173,8 +173,8 @@ def wait_for_state(system_id, client: Client, check_mode=False, *states):
 def allocate(module, client: Client):
     data = {}
     if module.params["allocate_params"]:
-        if module.params["allocate_params"]["cpu"]:
-            data["cpu_count"] = module.params["allocate_params"]["cpu"]
+        if module.params["allocate_params"]["cores"]:
+            data["cpu_count"] = module.params["allocate_params"]["cores"]
         if module.params["allocate_params"]["memory"]:
             data["mem"] = module.params["allocate_params"]["memory"]
         # here an error can occur:
@@ -208,12 +208,12 @@ def delete(module, client: Client):
     machine = Machine.get_by_name(module, client, must_exist=False)
     if machine:
         client.delete(f"/api/2.0/machines/{machine.id}/").json
-        return True, dict()
-    return False, dict()
+        return True, dict(), dict(before=machine.to_ansible(), after={})
+    return False, dict(), dict(before={}, after={})
 
 
 def release(module, client: Client):
-    if module.params["name"]:
+    if module.params["hostname"]:
         machine = Machine.get_by_name(module, client, must_exist=True)
     else:
         # If there is no existing machine to allocate, new is composed, but after releasing it, it is automatically deleted (ephemeral)
@@ -221,26 +221,44 @@ def release(module, client: Client):
         # Here we can have an example that we have random machine already in ready state, but it will get allocated and released in any case
         machine = allocate(module, client)
     if machine.status == "Ready":
-        return False, machine, dict(before=machine, after=machine)
+        return (
+            False,
+            machine.to_ansible(),
+            dict(before=machine.to_ansible(), after=machine.to_ansible()),
+        )
     if machine.status == "Commissioning":
         # commissioning will bring machine to the ready state
         # if state == commissioning: "Unexpected response - 409 b\"Machine cannot be released in its current state ('Commissioning').\""
-        wait_for_state(machine.id, client, False, "Ready")
-        return False, machine, dict(before=machine, after=machine)
+        updated_machine = wait_for_state(machine.id, client, False, "Ready")
+        return (
+            False,  # No change because we actually don't do anything, just wait for Ready
+            updated_machine.to_ansible(),
+            dict(
+                before=updated_machine.to_ansible(), after=updated_machine.to_ansible()
+            ),
+        )
     if machine.status == "New":
         # commissioning will bring machine to the ready state
         commission(machine.id, client)
         updated_machine = wait_for_state(machine.id, client, False, "Ready")
-        return True, updated_machine, dict(before=machine, after=updated_machine)
+        return (
+            True,
+            updated_machine.to_ansible(),
+            dict(before=machine.to_ansible(), after=updated_machine.to_ansible()),
+        )
     client.post(
         f"/api/2.0/machines/{machine.id}/", query={"op": "release"}, data={}
     ).json
     updated_machine = wait_for_state(machine.id, client, False, "Ready")
-    return True, updated_machine, dict(before=machine, after=updated_machine)
+    return (
+        True,
+        updated_machine.to_ansible(),
+        dict(before=machine.to_ansible(), after=updated_machine.to_ansible()),
+    )
 
 
 def deploy(module, client: Client):
-    if module.params["name"]:
+    if module.params["hostname"]:
         machine = Machine.get_by_name(module, client, must_exist=True)
     else:
         # allocate random machine
@@ -248,9 +266,16 @@ def deploy(module, client: Client):
         machine = allocate(module, client)
         wait_for_state(machine.id, client, False, "Allocated")
     if machine.status == "Deployed":
-        return False, machine, dict(before=machine, after=machine)
+        return (
+            False,
+            machine.to_ansible(),
+            dict(before=machine.to_ansible(), after=machine.to_ansible()),
+        )
     if machine.status == "New":
         commission(machine.id, client)
+        wait_for_state(machine.id, client, False, "Ready")
+    if machine.status == "Commissioning":
+        # commissioning will bring machine to the ready state
         wait_for_state(machine.id, client, False, "Ready")
     data = {}
     timeout = 20  # seconds
@@ -268,7 +293,11 @@ def deploy(module, client: Client):
         timeout=timeout,
     ).json  # here we can get TimeoutError: timed out
     updated_machine = wait_for_state(machine.id, client, False, "Deployed")
-    return True, updated_machine, dict(before=machine, after=updated_machine)
+    return (
+        True,
+        updated_machine.to_ansible(),
+        dict(before=machine.to_ansible(), after=updated_machine.to_ansible()),
+    )
 
 
 def run(module, client: Client):
@@ -285,7 +314,7 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("instance"),
-            name=dict(type="str"),
+            hostname=dict(type="str"),
             state=dict(
                 type="str", required=True, choices=["ready", "deployed", "absent"]
             ),
@@ -300,7 +329,7 @@ def main():
             allocate_params=dict(
                 type="dict",
                 options=dict(
-                    cpu=dict(type="int"),
+                    cores=dict(type="int"),
                     memory=dict(type="int"),
                 ),
             ),

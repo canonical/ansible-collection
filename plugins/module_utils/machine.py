@@ -165,7 +165,7 @@ class Machine(MaasValueMapper):
         """One Machine is equal to another if it has ALL attributes exactly the same"""
         return all(
             (
-                self.machine_name == other.machine_name,
+                self.hostname == other.hostname,
                 self.id == other.id,
                 self.memory == other.memory,
                 self.cores == other.cores,

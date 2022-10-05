@@ -24,7 +24,7 @@ class TestWaitForState:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_id"
         ).return_value = Machine(
-            machine_name="my_instance",
+            hostname="my_instance",
             id=123,
             memory=2000,
             cores=2,
@@ -56,7 +56,7 @@ class TestAllocate:
                 state="ready",
                 allocate_params={
                     "memory": 2000,
-                    "cpu": 1,
+                    "cores": 1,
                 },
                 deploy_params={
                     "osystem": "ubuntu",
@@ -106,7 +106,7 @@ class TestDelete:
                 state="absent",
                 allocate_params={
                     "memory": 2000,
-                    "cpu": 1,
+                    "cores": 1,
                 },
                 deploy_params={
                     "osystem": "ubuntu",
@@ -117,7 +117,7 @@ class TestDelete:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
         ).return_value = Machine(
-            machine_name="my_instance",
+            hostname="my_instance",
             id=123456,
             memory=2000,
             cores=2,
@@ -175,11 +175,11 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                name="my_instance",
+                hostname="my_instance",
                 state="ready",
                 allocate_params={
                     "memory": 2000,
-                    "cpu": 1,
+                    "cores": 1,
                 },
                 deploy_params={
                     "osystem": "ubuntu",
@@ -208,11 +208,11 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                name="my_instance",
+                hostname="my_instance",
                 state="ready",
                 allocate_params={
                     "memory": 2000,
-                    "cpu": 1,
+                    "cores": 1,
                 },
                 deploy_params={
                     "osystem": "ubuntu",
@@ -244,11 +244,11 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                name="my_instance",
+                hostname="my_instance",
                 state="ready",
                 allocate_params={
                     "memory": 2000,
-                    "cpu": 1,
+                    "cores": 1,
                 },
                 deploy_params={
                     "osystem": "ubuntu",
@@ -282,11 +282,11 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                name="my_instance",
+                hostname="my_instance",
                 state="ready",
                 allocate_params={
                     "memory": 2000,
-                    "cpu": 1,
+                    "cores": 1,
                 },
                 deploy_params={
                     "osystem": "ubuntu",
@@ -320,11 +320,11 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                name=None,
+                hostname=None,
                 state="ready",
                 allocate_params={
                     "memory": 2000,
-                    "cpu": 1,
+                    "cores": 1,
                 },
                 deploy_params={
                     "osystem": "ubuntu",
@@ -360,11 +360,11 @@ class TestMain:
                 token_secret="PhXz3ncACvkcK",
                 client_key="nzW4EBWjyDe",
             ),
-            name=None,
+            hostname=None,
             state="ready",
             allocate_params={
                 "memory": 2000,
-                "cpu": 1,
+                "cores": 1,
             },
             deploy_params={
                 "osystem": "ubuntu",
