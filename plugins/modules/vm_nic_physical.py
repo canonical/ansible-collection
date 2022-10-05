@@ -31,20 +31,16 @@ options:
     type: str
     required: True
   mac_address:
-    description:
-      - Mac address of the network interface.
-      - Required when creating network interface.
+    description: Mac address of the network interface.
     type: str
+    required: true
   vlan:
     description: Virtual LAN.
     type: str
     default: untagged
   name:
-    description:
-      - Network interface name.
-      - Used for identification.
+    description: Network interface name.
     type: str
-    required: true
   state:
     description: State of the network interface.
     type: str
@@ -80,7 +76,7 @@ def ensure_present(module, client, machine_obj):
     before = []
     after = []
     new_nic_obj = NetworkInterface.from_ansible(module.params)
-    existing_nic = machine_obj.find_nic_by_name(new_nic_obj.name)
+    existing_nic = machine_obj.find_nic_by_mac(new_nic_obj.mac_address)
     if existing_nic:
         if existing_nic.needs_update(new_nic_obj):
             before.append(existing_nic)
@@ -118,17 +114,18 @@ def main():
             ),
             mac_address=dict(
                 type="str",
+                required=True,
             ),
             state=dict(
                 type="str",
                 choices=["present", "absent"],
+                required=True,
             ),
             vlan=dict(
                 type="str",
             ),
             name=dict(
                 type="str",
-                required=True,
             ),
             mtu=dict(
                 type="int",
@@ -138,9 +135,6 @@ def main():
                 elements="str",
             ),
         ),
-        required_if=[
-            ("state", "present", ("mac_address",)),
-        ],
     )
 
     try:
