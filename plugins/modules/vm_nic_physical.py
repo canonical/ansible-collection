@@ -26,7 +26,7 @@ extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
 options:
-  machine_name:
+  hostname:
     description: Name of the virtual machine.
     type: str
     required: True
@@ -83,7 +83,7 @@ def ensure_present(module, client, machine_obj):
             new_nic_obj.send_update_request(new_nic_obj.payload_for_update())
             after.append()
     else:
-        new_nic_obj.send_create_request(new_nic_obj.payload_for_create())
+        new_nic_obj.send_create_request(client, machine_obj, new_nic_obj.payload_for_create())
         after.append()
     return is_changed(before, after), after, dict(before=before, after=after)
 
@@ -108,7 +108,7 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("instance"),
-            machine_name=dict(
+            hostname=dict(
                 type="str",
                 required=True,
             ),

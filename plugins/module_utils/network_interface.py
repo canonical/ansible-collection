@@ -7,6 +7,7 @@
 from __future__ import absolute_import, division, print_function
 from ..module_utils.utils import MaasValueMapper
 from ..module_utils import errors
+from ..module_utils.utils import is_superset, filter_dict
 
 
 class NetworkInterface(MaasValueMapper):
@@ -65,6 +66,14 @@ class NetworkInterface(MaasValueMapper):
             to_maas_dict["name"] = self.name
         if self.subnet_cidr:
             to_maas_dict["subnet_cidr"] = self.subnet_cidr
+        if self.mac_address:
+            to_maas_dict["mac_address"] = self.mac_address
+        if self.vlan:
+            to_maas_dict["vlan"] = self.vlan
+        if self.mtu:
+            to_maas_dict["mtu"] = self.mtu
+        if self.tags:
+            to_maas_dict["tags"] = self.tags
         return to_maas_dict
 
     def to_ansible(self):
@@ -83,8 +92,11 @@ class NetworkInterface(MaasValueMapper):
             to_ansible_dict["tags"] = self.tags
         return to_ansible_dict
 
-    def needs_update(self, other_nic):
-        return not self == other_nic
+    def needs_update(self, new_nic):
+        new_nic_dict = new_nic.to_maas()
+        if is_superset(self.to_maas(), filter_dict(new_nic_dict, new_nic_dict.keys())):
+            return False
+        return True
 
     def payload_for_update(self):
         return
@@ -93,7 +105,11 @@ class NetworkInterface(MaasValueMapper):
         return
 
     def payload_for_create(self):
-        return
+        payload = self.to_maas()
+        return payload
 
-    def send_create_request(self, payload):
-        return
+    def send_create_request(self, client, machine_obj ,payload):
+        results = client.post(
+            f"/api/2.0/nodes/{machine_obj.id}/interfaces/", query={"op": "create_physical"}, data=payload
+        ).json
+        return results
