@@ -34,7 +34,6 @@ class TestMain:
         )
 
         success, results = run_main(vm_host_machine, params)
-        print(success, results)
         assert success is True
         assert results == {
             "changed": False,
@@ -59,7 +58,6 @@ class TestMain:
         )
 
         success, results = run_main(vm_host_machine, params)
-        print(success, results)
         assert success is True
         assert results == {
             "changed": False,
@@ -114,7 +112,6 @@ class TestRun:
             },
         )
         results = vm_host_machine.run(module, client)
-        print(results)
         assert results == (
             True,
             [{"hostname": "some_name", "id": "new_id", "memory": 5000, "cores": 2}],
@@ -170,7 +167,6 @@ class TestRun:
             "ansible_collections.canonical.maas.plugins.modules.vm_host_machine.ensure_ready"
         ).return_value = (True, after, dict(before=before, after=after))
         results = vm_host_machine.run(module, client)
-        print(results)
         assert results == (True, after, dict(before=before, after=after))
 
 
@@ -193,7 +189,6 @@ class TestPrepareNetworkData:
             )
         )
         vm_host_machine.prepare_network_data(module)
-        print(module.params["network_interfaces"])
         assert module.params["network_interfaces"] == [network_interfaces]
 
 
@@ -211,6 +206,9 @@ class TestEnsureReady:
             system_id="123",
             interface_set=None,
             blockdevice_set=None,
+            status_name="Ready",
+            osystem="ubuntu",
+            distro_series="jammy",
         )
 
     @staticmethod
@@ -232,20 +230,28 @@ class TestEnsureReady:
                 {"size": 5, "name": "1", "id": "1"},
                 {"size": 5, "name": "2", "id": "2"},
             ],
+            status_name="Ready",
+            osystem="ubuntu",
+            distro_series="jammy",
         )
 
     def test_ensure_ready_without_storaga_and_net_interfaces(
         self, create_module, client, mocker
     ):
-        before = None
-        after = {
-            "hostname": "machine_1",
-            "cpu_count": 2,
-            "memory": 5000,
-            "system_id": "123",
-            "interface_set": None,
-            "blockdevice_set": None,
-        }
+        before = []
+        after = [
+            {
+                "hostname": "machine_1",
+                "cpu_count": 2,
+                "memory": 5000,
+                "system_id": "123",
+                "interface_set": None,
+                "blockdevice_set": None,
+                "status_name": "Ready",
+                "osystem": "ubuntu",
+                "distro_series": "jammy",
+            }
+        ]
         task = {
             "system_id": "1234",
             "resource_uri": "https://www.something-somewhere.com",
@@ -290,31 +296,35 @@ class TestEnsureReady:
             "ansible_collections.canonical.maas.plugins.module_utils.utils.is_changed"
         ).return_value = True
         results = vm_host_machine.ensure_ready(module, client, host_obj)
-        print(results)
         assert results == (True, after, dict(before=before, after=after))
 
     def test_ensure_ready_with_storage_and_net_interfaces(
         self, create_module, client, mocker
     ):
-        before = None
-        after = {
-            "hostname": "machine_2",
-            "cpu_count": 2,
-            "memory": 5000,
-            "system_id": "123",
-            "interface_set": [
-                {
-                    "id": "123",
-                    "name": "this_name",
-                    "links": [{"subnet": {"cidr": "some_ip"}}],
-                    "system_id": 1,
-                }
-            ],
-            "blockdevice_set": [
-                {"size": 5, "name": "1", "id": "1"},
-                {"size": 5, "name": "2", "id": "2"},
-            ],
-        }
+        before = []
+        after = [
+            {
+                "hostname": "machine_2",
+                "cpu_count": 2,
+                "memory": 5000,
+                "system_id": "123",
+                "interface_set": [
+                    {
+                        "id": "123",
+                        "name": "this_name",
+                        "links": [{"subnet": {"cidr": "some_ip"}}],
+                        "system_id": 1,
+                    }
+                ],
+                "blockdevice_set": [
+                    {"size": 5, "name": "1", "id": "1"},
+                    {"size": 5, "name": "2", "id": "2"},
+                ],
+                "status_name": "Ready",
+                "osystem": "ubuntu",
+                "distro_series": "jammy",
+            }
+        ]
         task = {
             "system_id": "1234",
             "resource_uri": "https://www.something-somewhere.com",
