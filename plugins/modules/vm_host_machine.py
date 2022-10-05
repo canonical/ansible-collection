@@ -100,7 +100,7 @@ record:
   type: dict
   sample:
     id: new-machine-id
-    name: 'new-machine'
+    hostname: 'new-machine'
     memory: 2046
     cores: 2
     network_interfaces:
