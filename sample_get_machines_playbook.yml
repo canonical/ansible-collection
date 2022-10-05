@@ -8,7 +8,7 @@
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
         client_key: nzW4EBWjyDe5B5szja
-      #machine_name: solid-fish # Use this field to filter results by name.
+      #hostname: solid-fish # Use this field to filter results by name.
     register: machines
 
   - debug:

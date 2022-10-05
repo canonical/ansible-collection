@@ -57,29 +57,13 @@ class DeviceNotUnique(MaasError):
         super(DeviceNotUnique, self).__init__(self.message)
 
 
-class VMNotFound(MaasError):
+class MachineNotFound(MaasError):
     def __init__(self, data):
         self.message = "Virtual machine - {0} - not found".format(data)
-        super(VMNotFound, self).__init__(self.message)
-
-
-class ReplicationNotUnique(MaasError):
-    def __init__(self, data):
-        self.message = (
-            "There is already a replication on - {0} - virtual machine".format(data)
-        )
-        super(ReplicationNotUnique, self).__init__(self.message)
+        super(MachineNotFound, self).__init__(self.message)
 
 
 class ClusterConnectionNotFound(MaasError):
     def __init__(self, data):
         self.message = "No cluster connection found - {0}".format(data)
         super(ClusterConnectionNotFound, self).__init__(self.message)
-
-
-class SMBServerNotFound(MaasError):
-    def __init__(self, data):
-        self.message = "SMB server is either not connected or not in the same network - {0}".format(
-            data
-        )
-        super(SMBServerNotFound, self).__init__(self.message)

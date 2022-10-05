@@ -9,6 +9,7 @@
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
         client_key: nzW4EBWjyDe5B5szja
       vm_host: sunny-raptor
+      hostname: new-machine
       cores: 2
       memory: 2048
       network_interfaces: # Compose allows for one network interface only.
@@ -17,7 +18,7 @@
       storage_disks:
         - size_gigabytes: 3
         - size_gigabytes: 5
-    register: machines
+    register: machine
 
   - debug:
-      var: machines
+      var: machine

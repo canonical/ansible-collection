@@ -21,7 +21,7 @@ extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
 options:
-  machine_name:
+  hostname:
     description:
       - Name of a specific machine.
       - In order to get info about a specific machine.
@@ -53,7 +53,7 @@ EXAMPLES = r"""
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
         client_key: nzW4EBWjyDe5B5szja
-      machine_name: solid-fish
+      hostname: solid-fish
     register: machines
   - debug:
       var: machines
@@ -521,10 +521,8 @@ from ..module_utils.machine import Machine
 
 
 def run(module, client: Client):
-    if module.params["machine_name"]:
-        machine = Machine.get_by_name(
-            module, client, must_exist=True, name_field_ansible="machine_name"
-        )
+    if module.params["hostname"]:
+        machine = Machine.get_by_name(module, client, must_exist=True)
         response = [client.get(f"/api/2.0/machines/{machine.id}/").json]
     else:
         response = client.get(f"/api/2.0/machines/").json
@@ -536,7 +534,7 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("instance"),
-            machine_name=dict(
+            hostname=dict(
                 type="str",
             ),
         ),
