@@ -30,7 +30,6 @@ class TestMain:
                 token_key="token key",
                 token_secret="token secret",
             ),
-            state="ready",
             vm_host="this_host",
         )
 
@@ -39,7 +38,7 @@ class TestMain:
         assert success is True
         assert results == {
             "changed": False,
-            "records": {},
+            "record": {},
             "diff": {"before": {}, "after": {}},
         }
 
@@ -51,8 +50,8 @@ class TestMain:
                 token_key="token key",
                 token_secret="token secret",
             ),
-            state="ready",
             vm_host="this_host",
+            hostname="this-machine",
             cores=3,
             memory=2048,
             network_interfaces={"name": "my_interface", "subnet_cidr": "10.10.10.0/24"},
@@ -64,7 +63,7 @@ class TestMain:
         assert success is True
         assert results == {
             "changed": False,
-            "records": {},
+            "record": {},
             "diff": {"before": {}, "after": {}},
         }
 
@@ -87,8 +86,8 @@ class TestRun:
                     token_key="token key",
                     token_secret="token secret",
                 ),
-                state="ready",
                 vm_host="test_name",
+                hostname=None,
                 cores=2,
                 memory=5000,
                 network_interfaces=None,
@@ -101,12 +100,12 @@ class TestRun:
             "ansible_collections.canonical.maas.plugins.modules.vm_host_machine.ensure_ready"
         ).return_value = (
             True,
-            [{"machine_name": "some_name", "id": "new_id", "memory": 5000, "cores": 2}],
+            [{"hostname": "some_name", "id": "new_id", "memory": 5000, "cores": 2}],
             {
                 "before": [],
                 "after": [
                     {
-                        "machine_name": "some_name",
+                        "hostname": "some_name",
                         "id": "new_id",
                         "memory": 5000,
                         "cores": 2,
@@ -118,12 +117,12 @@ class TestRun:
         print(results)
         assert results == (
             True,
-            [{"machine_name": "some_name", "id": "new_id", "memory": 5000, "cores": 2}],
+            [{"hostname": "some_name", "id": "new_id", "memory": 5000, "cores": 2}],
             {
                 "before": [],
                 "after": [
                     {
-                        "machine_name": "some_name",
+                        "hostname": "some_name",
                         "id": "new_id",
                         "memory": 5000,
                         "cores": 2,
@@ -139,7 +138,7 @@ class TestRun:
         host_obj = VMHost.from_ansible(host_dict)
         after = [
             {
-                "machine_name": "some_name",
+                "hostname": "some_name",
                 "id": "new_id",
                 "memory": 5000,
                 "cores": 2,
@@ -156,8 +155,8 @@ class TestRun:
                     token_key="token key",
                     token_secret="token secret",
                 ),
-                state="ready",
                 vm_host="test_name",
+                hostname=None,
                 cores=2,
                 memory=5000,
                 network_interfaces={"name": "this_name", "subnet_cidr": "some_ip"},
@@ -186,7 +185,6 @@ class TestPrepareNetworkData:
                     token_key="token key",
                     token_secret="token secret",
                 ),
-                state="ready",
                 vm_host="test_name",
                 cores=2,
                 memory=5000,
@@ -239,17 +237,15 @@ class TestEnsureReady:
     def test_ensure_ready_without_storaga_and_net_interfaces(
         self, create_module, client, mocker
     ):
-        before = []
-        after = [
-            {
-                "hostname": "machine_1",
-                "cpu_count": 2,
-                "memory": 5000,
-                "system_id": "123",
-                "interface_set": None,
-                "blockdevice_set": None,
-            }
-        ]
+        before = None
+        after = {
+            "hostname": "machine_1",
+            "cpu_count": 2,
+            "memory": 5000,
+            "system_id": "123",
+            "interface_set": None,
+            "blockdevice_set": None,
+        }
         task = {
             "system_id": "1234",
             "resource_uri": "https://www.something-somewhere.com",
@@ -267,7 +263,7 @@ class TestEnsureReady:
                     token_key="token key",
                     token_secret="token secret",
                 ),
-                state="ready",
+                hostname=None,
                 vm_host="test_name",
                 cores=2,
                 memory=5000,
@@ -300,27 +296,25 @@ class TestEnsureReady:
     def test_ensure_ready_with_storage_and_net_interfaces(
         self, create_module, client, mocker
     ):
-        before = []
-        after = [
-            {
-                "hostname": "machine_2",
-                "cpu_count": 2,
-                "memory": 5000,
-                "system_id": "123",
-                "interface_set": [
-                    {
-                        "id": "123",
-                        "name": "this_name",
-                        "links": [{"subnet": {"cidr": "some_ip"}}],
-                        "system_id": 1,
-                    }
-                ],
-                "blockdevice_set": [
-                    {"size": 5, "name": "1", "id": "1"},
-                    {"size": 5, "name": "2", "id": "2"},
-                ],
-            }
-        ]
+        before = None
+        after = {
+            "hostname": "machine_2",
+            "cpu_count": 2,
+            "memory": 5000,
+            "system_id": "123",
+            "interface_set": [
+                {
+                    "id": "123",
+                    "name": "this_name",
+                    "links": [{"subnet": {"cidr": "some_ip"}}],
+                    "system_id": 1,
+                }
+            ],
+            "blockdevice_set": [
+                {"size": 5, "name": "1", "id": "1"},
+                {"size": 5, "name": "2", "id": "2"},
+            ],
+        }
         task = {
             "system_id": "1234",
             "resource_uri": "https://www.something-somewhere.com",
@@ -340,7 +334,7 @@ class TestEnsureReady:
                     token_key="token key",
                     token_secret="token secret",
                 ),
-                state="ready",
+                hostname=None,
                 vm_host="test_name",
                 cores=2,
                 memory=5000,
