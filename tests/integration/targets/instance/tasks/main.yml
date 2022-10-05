@@ -9,15 +9,64 @@
   block:
   # - name: Remove/delete an instance
   #   canonical.maas.instance:
-  #     hostname: polona
+  #     name: polona
   #     state: absent
 
-  # - name: Commission new machine with custom constraints
-  #   canonical.maas.instance:
-  #     state: ready
-  #     allocate_params:
-  #       cpu: 4
-  #       memory: 20
+   - name: Create virtual machine with two disks and a network interface.
+     canonical.maas.vm_host_machine:
+      machine_name: polona # TODO: wait for option to be implemented
+      vm_host: sunny-raptor
+      cores: 2
+      memory: 2000
+      network_interfaces:
+        name: my_first
+        subnet_cidr: "10.10.10.0/24"
+      storage_disks:
+        - size_gigabytes: 3
+    register: initial_machine
+  - ansible.builtin.assert:
+      that:
+        - initial_machine is changed
+        - initial_machine.record.machine_name == polona
+        - initial_machine.record.memory == 2000
+        - initial_machine.record.cores == 2
+
+  - name: Deploy machine
+    canonical.maas.instance:
+      hostname: polona
+      state: deployed
+    register: machine
+  - ansible.builtin.assert:
+      that:
+        - machine is changed
+        - machine.record.machine_name == "polona" # change when 
+        - machine.record.machine_name == "polona"
+        - machine.record.memory == 2000
+        - machine.record.cores == 2
+        - machine.record.osystem == "ubuntu"
+        - machine.record.distro_series == "Focal Fossa"
+    
+  - name: Deploy machine - idempotence
+    canonical.maas.instance:
+      hostname: polona
+      state: deployed
+    register: machine
+  - ansible.builtin.assert:
+      that:
+        - machine is not changed
+
+  - name: Release random machine with custom constraints
+    canonical.maas.instance:
+      state: ready
+      allocate_params:
+        cpu: 1
+        memory: 2000
+    register: machine
+  - ansible.builtin.assert:
+      that:
+        - machine is changed
+        - machine.record.cores == 2 # 
+        - machine.record.machine_name == polona
 
   - name: Commission new machine with default constraints
     canonical.maas.instance:

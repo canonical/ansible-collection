@@ -139,6 +139,12 @@ class Machine(MaasValueMapper):
             to_ansible_dict["storage_disks"] = [
                 disk.to_ansible() for disk in self.disks
             ]
+        if self.status:
+            to_ansible_dict["status"] = self.status
+        if self.osystem:
+            to_ansible_dict["osystem"] = self.osystem
+        if self.distro_series:
+            to_ansible_dict["distro_series"] = self.distro_series
         return to_ansible_dict
 
     def payload_for_compose(self, module):

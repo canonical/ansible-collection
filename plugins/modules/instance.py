@@ -132,11 +132,23 @@ canonical.maas.instance:
 RETURN = r"""
 record:
   description:
-    - The deployed/released machine instance
+    - The deployed/released machine instance.
   returned: success
   type: dict
   sample:
-   # ADD SAMPLE
+    id: machine-id
+    name: this-machine
+    status: ready
+    memory: 2000
+    cores: 2
+    network_interfaces:
+      - name: this-interface
+        subnet_cidr: 10.0.0.0/24
+    storage_disks:
+      - size_gigabytes: 5
+      - size_gigabytes: 10
+    osystem: ubuntu
+    distro_series: jammy
 """
 
 

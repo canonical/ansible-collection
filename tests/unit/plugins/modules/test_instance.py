@@ -5,12 +5,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-from pyrsistent import b
-
 __metaclass__ = type
 
 import sys
-
 import pytest
 
 from ansible_collections.canonical.maas.plugins.modules import instance
