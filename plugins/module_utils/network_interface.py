@@ -31,6 +31,9 @@ class NetworkInterface(MaasValueMapper):
         self.mtu = mtu
         self.tags = tags
 
+    def __eq__(self, other):
+        return self.to_ansible() == other.to_ansible()
+
     @classmethod
     def from_ansible(cls, network_interface_dict):
         obj = NetworkInterface()
@@ -70,10 +73,18 @@ class NetworkInterface(MaasValueMapper):
             to_ansible_dict["name"] = self.name
         if self.subnet_cidr:
             to_ansible_dict["subnet_cidr"] = self.subnet_cidr
+        if self.mac_address:
+            to_ansible_dict["mac"] = self.mac_address
+        if self.vlan:
+            to_ansible_dict["vlan"] = self.vlan
+        if self.mtu:
+            to_ansible_dict["mtu"] = self.mtu
+        if self.tags:
+            to_ansible_dict["tags"] = self.tags
         return to_ansible_dict
 
     def needs_update(self, other_nic):
-        return False
+        return not self == other_nic
 
     def payload_for_update(self):
         return
