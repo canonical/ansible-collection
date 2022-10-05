@@ -12,28 +12,28 @@
   #     hostname: polona
   #     state: absent
 
-  # - name: Commision new machine with custom constraints
+  # - name: Commission new machine with custom constraints
   #   canonical.maas.instance:
   #     state: ready
   #     allocate_params:
-  #       cpu: 1
-  #       memory: 1
+  #       cpu: 4
+  #       memory: 20
 
-  # - name: Commision new machine with default constraints
-  #   canonical.maas.instance:
-  #     state: ready
-
-  - name: Release machine
+  - name: Commission new machine with default constraints
     canonical.maas.instance:
-      hostname: polona
       state: ready
 
-  # - name: Deploy already commisioned machine
+  # - name: Release machine
+  #   canonical.maas.instance:
+  #     hostname: polona
+  #     state: ready
+
+  # - name: Deploy already commissioned machine
   #   canonical.maas.instance:
   #     hostname: polona
   #     state: deployed
 
-  # - name: Deploy already commisioned machine with custom OS and OS series
+  # - name: Deploy already commissioned machine with custom OS and OS series
   #   canonical.maas.instance:
   #     hostname: polona
   #     state: deployed
@@ -57,3 +57,9 @@
   #   register: machines
     # - debug:
     #     var: machines
+
+  # - name: Remove/delete an instance
+  #   canonical.maas.instance:
+  #     hostname: polona
+  #     state: absent
+  #   register: 
