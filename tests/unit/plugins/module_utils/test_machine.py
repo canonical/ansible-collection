@@ -11,7 +11,6 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
@@ -92,7 +91,6 @@ class TestPayloadForCompose:
         )
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
-        print(results)
         assert results == {
             "interfaces": "test:subnet_cidr=ip",
             "storage": "label:5,label:10",
@@ -105,7 +103,6 @@ class TestPayloadForCompose:
         ).return_value = dict()
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
-        print(results)
         assert results == {}
 
     def test_payload_for_compose_with_storage_without_interface(self, mocker):
@@ -115,7 +112,6 @@ class TestPayloadForCompose:
         ).return_value = dict(storage=[dict(size=5), dict(size=10)])
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
-        print(results)
         assert results == {"storage": "label:5,label:10"}
 
     def test_payload_for_compose_with_interface_without_storage(self, mocker):
@@ -125,7 +121,6 @@ class TestPayloadForCompose:
         ).return_value = dict(interfaces=[dict(name="test", subnet_cidr="ip")])
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
-        print(results)
         assert results == {"interfaces": "test:subnet_cidr=ip"}
 
 
