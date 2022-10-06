@@ -166,7 +166,7 @@ class TestDelete:
 
 
 class TestRelease:
-    def test_release_name_provided_status_ready(self, create_module, client, mocker):
+    def test_release_status_ready(self, create_module, client, mocker):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -197,9 +197,7 @@ class TestRelease:
 
         assert result[0] is False
 
-    def test_release_name_provided_status_commissioning(
-        self, create_module, client, mocker
-    ):
+    def test_release_status_commissioning(self, create_module, client, mocker):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -235,7 +233,7 @@ class TestRelease:
 
         assert result[0] is False
 
-    def test_release_name_provided_status_new(self, create_module, client, mocker):
+    def test_release_status_new(self, create_module, client, mocker):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -273,7 +271,7 @@ class TestRelease:
 
         assert result[0] is True
 
-    def test_release_name_provided_status_deployed(self, create_module, client, mocker):
+    def test_release_status_deployed(self, create_module, client, mocker):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -299,44 +297,6 @@ class TestRelease:
         ).return_value = Machine(
             id=123456,
             status="Deployed",
-        )
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
-        )
-
-        changed = instance.release(module, client)[0]
-
-        client.post.assert_called_with(
-            "/api/2.0/machines/123456/", query={"op": "release"}, data={}
-        )
-        assert changed is True
-
-    def test_release_name_not_provided(self, create_module, client, mocker):
-        module = create_module(
-            params=dict(
-                instance=dict(
-                    host="https://0.0.0.0",
-                    token_key="URCfn6EhdZ",
-                    token_secret="PhXz3ncACvkcK",
-                    client_key="nzW4EBWjyDe",
-                ),
-                hostname=None,
-                state="ready",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
-                deploy_params={
-                    "osystem": "ubuntu",
-                    "distro_series": "jammy",
-                },
-            ),
-        )
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.allocate"
-        ).return_value = Machine(
-            id=123456,
-            status="Allocated",
         )
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
