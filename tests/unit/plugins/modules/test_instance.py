@@ -9,7 +9,7 @@ __metaclass__ = type
 
 import sys
 import pytest
-
+from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.modules import instance
 from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 
@@ -376,7 +376,6 @@ class TestMain:
 
         assert success is True
 
-    # in module diff needs to be added for this to work
     def test_minimal_set_of_params(self, run_main):
         params = dict(
             instance=dict(
@@ -385,12 +384,31 @@ class TestMain:
                 token_secret="PhXz3ncACvkcK",
                 client_key="nzW4EBWjyDe",
             ),
-            state="ready",
+            state="deployed",
         )
 
         success, result = run_main(instance, params)
 
         assert success is True
+
+    @pytest.mark.parametrize(
+        "state",
+        ["ready", "absent"],
+    )
+    def test_required_if(self, run_main, state):
+        params = dict(
+            instance=dict(
+                host="https://0.0.0.0",
+                token_key="URCfn6EhdZ",
+                token_secret="PhXz3ncACvkcK",
+                client_key="nzW4EBWjyDe",
+            ),
+            state=state,
+        )
+
+        success, result = run_main(instance, params)
+
+        assert success is False
 
     def test_fail(self, run_main):
         success, result = run_main(instance)

@@ -20,9 +20,6 @@ description:
     If no parameters are given, a random machine will be allocated and deployed using the defaults.
     In case if no machine matching the given constraints could be found, the task will FAIL.
   - If I(state) value is C(ready) the selected machine will be released.
-    If I(hostname) is not provided, a random machine will be allocated using I(allocate_params).
-    If no parameters are given, a random machine will be allocated using the defaults.
-    In case if no machine matching the given constraints could be found, the task will FAIL.
   - If I(state) value is C(absent) the selected machine will be deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
@@ -46,6 +43,7 @@ options:
       - Constraints parameters that can be used to allocate a machine with certain characteristics.
       - All the constraints are optional and when multiple constraints are provided, they are combined using 'AND' semantics.
       - If no parameters are given, a random machine will be allocated using the defaults.
+      - Relevant only if I(state) value is C(deployed)
     type: dict
     options:
       cores:
@@ -61,8 +59,9 @@ options:
   deploy_params:
     description:
       - Specify the OS and OS release the machine will use.
-      - If no parameters are given, a random machine will be allocated and deployed using the defaults.
+      - If no parameters are given, a random machine will be deployed using the defaults.
       - Relevant only if I(state) value is C(deployed)
+      - If machine is already in deployed state, I(deploy_params) will be ignored. Machine needs to be released first for I(deploy_params) to apply
     type: dict
     options:
       osystem:
@@ -88,17 +87,6 @@ canonical.maas.instance:
 name: Release machine
 canonical.maas.instance:
   hostname: my_instance
-  state: ready
-
-name: Release random/new machine with custom constraints
-canonical.maas.instance:
-  state: ready
-  allocate_params:
-    cores: 1
-    memory: 2
-
-name: Release random/new machine with default constraints
-canonical.maas.instance:
   state: ready
 
 name: Deploy already commissioned machine
@@ -138,8 +126,8 @@ record:
   sample:
     id: machine-id
     hostname: this-machine
-    status: ready
-    memory: 2000
+    status: Ready
+    memory: 2048
     cores: 2
     network_interfaces:
       - name: this-interface
@@ -164,7 +152,7 @@ def wait_for_state(system_id, client: Client, check_mode=False, *states):
     if check_mode:
         return  # add mocked machine when needed
     while True:
-        machine = Machine.get_by_id(system_id, client, must_exist=True)
+        machine = Machine.get_by_id(system_id, client)
         if machine.status in states:  # IMPLEMENT TIMEOUT?
             return machine
         sleep(1)
@@ -213,13 +201,7 @@ def delete(module, client: Client):
 
 
 def release(module, client: Client):
-    if module.params["hostname"]:
-        machine = Machine.get_by_name(module, client, must_exist=True)
-    else:
-        # If there is no existing machine to allocate, new is composed, but after releasing it, it is automatically deleted (ephemeral)
-        # ack replied that parameter that tells which machine is ephemeral isn't exposed in the api
-        # Here we can have an example that we have random machine already in ready state, but it will get allocated and released in any case
-        machine = allocate(module, client)
+    machine = Machine.get_by_name(module, client, must_exist=True)
     if machine.status == "Ready":
         return (
             False,
@@ -336,6 +318,7 @@ def main():
         ),
         required_if=[
             ("state", "absent", ("hostname",), False),
+            ("state", "ready", ("hostname",), False),
         ],
     )
 
