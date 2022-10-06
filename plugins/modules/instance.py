@@ -195,7 +195,7 @@ def commission(system_id, client: Client):
 def delete(module, client: Client):
     machine = Machine.get_by_name(module, client, must_exist=False)
     if machine:
-        client.delete(f"/api/2.0/machines/{machine.id}/").json
+        client.delete(f"/api/2.0/machines/{machine.id}/")
         return True, dict(), dict(before=machine.to_ansible(), after={})
     return False, dict(), dict(before={}, after={})
 
@@ -228,10 +228,12 @@ def release(module, client: Client):
             updated_machine.to_ansible(),
             dict(before=machine.to_ansible(), after=updated_machine.to_ansible()),
         )
-    client.post(
-        f"/api/2.0/machines/{machine.id}/", query={"op": "release"}, data={}
-    ).json
-    updated_machine = wait_for_state(machine.id, client, False, "Ready")
+    client.post(f"/api/2.0/machines/{machine.id}/", query={"op": "release"}, data={})
+    try:  # this is a problem for ephemeral machines
+        updated_machine = wait_for_state(machine.id, client, False, "Ready")
+    except errors.MachineNotFound:  # we get this for ephemeral machine
+        updated_machine = machine
+        pass
     return (
         True,
         updated_machine.to_ansible(),

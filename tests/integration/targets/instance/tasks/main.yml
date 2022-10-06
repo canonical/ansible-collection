@@ -7,7 +7,7 @@
 
 
   block:
-  - name: Remove/delete an instance
+  - name: Delete machine
     canonical.maas.instance:
       hostname: polona
       state: absent
@@ -22,13 +22,13 @@
         name: my_first
         subnet_cidr: "10.10.10.0/24"
       storage_disks:
-        - size_gigabytes: 3
+        - size_gigabytes: 8
     register: initial_machine
   - ansible.builtin.assert:
       that:
         - initial_machine is changed
-        - initial_machine.record.hostname == polona
-        - initial_machine.record.memory == 2048
+        - initial_machine.record.hostname == "polona"
+        - initial_machine.record.memory == 2000
         - initial_machine.record.cores == 2
 
   - name: Deploy machine
@@ -72,8 +72,6 @@
         - machine.record.hostname == "polona"
         - machine.record.memory == 2048
         - machine.record.cores == 2
-        - machine.record.osystem == "ubuntu"
-        - machine.record.distro_series == "focal"
         - machine.record.status == "Ready"
   
   - name: Release machine - idempotence
@@ -87,8 +85,6 @@
         - machine.record.hostname == "polona"
         - machine.record.memory == 2048
         - machine.record.cores == 2
-        - machine.record.osystem == "ubuntu"
-        - machine.record.distro_series == "focal"
         - machine.record.status == "Ready"
   
   - name: Deploy machine with another OS
@@ -120,11 +116,9 @@
         - machine.record.hostname == "polona"
         - machine.record.memory == 2048
         - machine.record.cores == 2
-        - machine.record.osystem == "ubuntu"
-        - machine.record.distro_series == "jammy"
         - machine.record.status == "Ready"
   
-  - name: Remove/delete machine
+  - name: Delete machine
     canonical.maas.instance:
       hostname: polona
       state: absent
@@ -133,7 +127,7 @@
       that:
         - machine is changed
   
-  - name: Remove/delete machine - idempotence
+  - name: Delete machine - idempotence
     canonical.maas.instance:
       hostname: polona
       state: absent
@@ -159,6 +153,7 @@
     canonical.maas.instance:
       hostname: "{{ machine.record.hostname }}"
       state: ready
+    register: machine
   - ansible.builtin.assert:
       that:
         - machine is changed
@@ -167,8 +162,8 @@
     canonical.maas.instance:
       state: deployed
       allocate_params:
-        cpu: 3
-        memory: 2
+        cores: 3
+        memory: 2000
       deploy_params:
         osystem: ubuntu
         distro_series: jammy
@@ -184,8 +179,10 @@
   
   - name: Release machine (ephemeral machine is deleted)
     canonical.maas.instance:
-      hostname: "{{ machine.record.hostname }}"
+      hostname: awake-raven
+      #hostname: "{{ machine.record.hostname }}"
       state: ready
+    register: machine
   - ansible.builtin.assert:
       that:
         - machine is changed
@@ -194,14 +191,15 @@
     canonical.maas.instance:
       state: deployed
       allocate_params:
-        cpu: 20
-        memory: 2
+        cores: 20
+        memory: 2000
       deploy_params:
         osystem: ubuntu
         distro_series: jammy
-    register: machines
+    register: machine
+    ignore_errors: true
   - ansible.builtin.assert:
       that:
         - machine is failed
         - machine is not changed
-        - "'No machine matching the given constraints could be found' in machine.msg"
+        - "'No available machine matches constraints' in machine.msg"
