@@ -7,7 +7,11 @@
 
 
   block:
-  # TODO: Add machine cleanup when module is implemented.
+  # ----------------------------------Cleanup----------------------------------------------------------------------------
+  - name: Delete machine
+    canonical.maas.instance:
+      hostname: integration-test
+      state: absent
   # ----------------------------------Job----------------------------------------------------------------------------
   - name: Create virtual machine with name integration-test two disks and a network interface.
     canonical.maas.vm_host_machine:
@@ -82,4 +86,8 @@
         - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
         - machine_info.records.0.memory == 2000
 
-# TODO: Add machine cleanup when module is implemented.
+  # ----------------------------------Cleanup----------------------------------------------------------------------------
+  - name: Delete machine
+    canonical.maas.instance:
+      hostname: integration-test
+      state: absent
