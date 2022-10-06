@@ -18,16 +18,14 @@
       domain: 0
       network_interfaces: # Compose allows for one network interface only.
         label_name: my-net
-        #name: lxdbr0
-        subnet_cidr: "10.10.10.0/24"
+        name: lxdbr0
+        #subnet_cidr: "10.10.10.0/24"
         #fabric: fabric-1
         #vlan: vlan-2
         #ip_address: "10.10.10.1"
       storage_disks:
         - size_gigabytes: 3
-          pool: pool-1
         - size_gigabytes: 5
-          pool: pool-2
     register: machine
 
   - debug:

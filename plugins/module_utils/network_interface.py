@@ -13,7 +13,7 @@ class NetworkInterface(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
-        name=None,
+        name=None, # Only used during create (search query), after name=label_name.
         id=None,
         subnet_cidr=None,
         machine_id=None,
@@ -47,15 +47,23 @@ class NetworkInterface(MaasValueMapper):
         obj = NetworkInterface()
         try:
             obj.name = maas_dict["name"]
+            obj.label_name = maas_dict["name"]
             obj.id = maas_dict["id"]
             if maas_dict["discovered"]: # Auto assigned IP
                 obj.ip_address = maas_dict["discovered"][0].get("ip_address")
                 obj.subnet_cidr = maas_dict["discovered"][0]["subnet"].get("cidr")
                 obj.vlan = maas_dict["discovered"][0]["subnet"]["vlan"].get("name")
-            else: # Static IP
+                obj.fabric = maas_dict["discovered"][0]["subnet"]["vlan"].get("fabric")
+            elif len(maas_dict["links"]) > 0: # Static IP
                 obj.ip_address = maas_dict["links"][0].get("ip_address")
                 obj.subnet_cidr = maas_dict["links"][0]["subnet"].get("cidr")
                 obj.vlan = maas_dict["links"][0]["subnet"]["vlan"].get("name")
+                obj.fabric = maas_dict["links"][0]["subnet"]["vlan"].get("fabric")
+            else: # interface auto generated
+                obj.ip_address = maas_dict.get("ip_address")
+                obj.subnet_cidr = maas_dict.get("cidr")
+                obj.vlan = maas_dict["vlan"].get("name")
+                obj.fabric = maas_dict["vlan"].get("fabric")
             obj.machine_id = maas_dict["system_id"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)

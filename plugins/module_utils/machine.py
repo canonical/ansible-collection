@@ -6,7 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-from black import err
 from ..module_utils.utils import (
     get_query,
     MaasValueMapper,
@@ -172,9 +171,9 @@ class Machine(MaasValueMapper):
                     payload_string_list.append(f"name={net_interface['name']}")
                 payload[
                     "interfaces"
-                ] = f"{net_interface['label_name']}:" + ','.join(payload_string_list)
+                ] = f"{net_interface['label_name']}:{','.join(payload_string_list)}"
                 break  # Right now, compose only allows for one network interface.
         if "storage" in payload:
             tmp = payload.pop("storage")
-            payload["storage"] = ",".join([f"label:{disk['size']}" for disk in tmp])
+            payload["storage"] = ",".join([f"label:{disk['size']}(tag1, tag2)" for disk in tmp])
         return payload

@@ -220,6 +220,9 @@ class TestEnsureReady:
             cpu_count=2,
             memory=5000,
             system_id="123",
+            domain=1,
+            zone=1,
+            pool=1,
             interface_set=[
                 {
                     "id": "123",

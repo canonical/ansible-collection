@@ -16,14 +16,14 @@ author:
 short_description: Creates a virtual machine on a specified host.
 description:
   - Create VM on a specified host.
+  - Does not support update or delete, only create.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
 options:
   vm_host:
-    description:
-      - Name of the host.
+    description: Name of the host.
     type: str
     required: True
   hostname:
@@ -74,7 +74,9 @@ options:
     suboptions:
       label_name:
         type: str
-        description: The network interface label name.
+        description: 
+          - The network interface label name.
+          - Network interface label name as shown in the web aplication.
         required: true
       name:
         type: str
@@ -259,9 +261,6 @@ def main():
                     size_gigabytes=dict(
                         type="int",
                         required=True,
-                    ),
-                    pool=dict(
-                        type="str",
                     ),
                 ),
             ),
