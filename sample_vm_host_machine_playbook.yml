@@ -9,15 +9,25 @@
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
         client_key: nzW4EBWjyDe5B5szja
       vm_host: sunny-raptor
-      hostname: new-machine
+      hostname: new-machine-3
       cores: 2
+      #pinned_cores: 3
       memory: 2048
+      zone: 1
+      pool: 0
+      domain: 0
       network_interfaces: # Compose allows for one network interface only.
-        name: my_new
+        label_name: my-net
+        #name: lxdbr0
         subnet_cidr: "10.10.10.0/24"
+        #fabric: fabric-1
+        #vlan: vlan-2
+        #ip_address: "10.10.10.1"
       storage_disks:
         - size_gigabytes: 3
+          pool: pool-1
         - size_gigabytes: 5
+          pool: pool-2
     register: machine
 
   - debug:

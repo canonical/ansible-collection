@@ -13,21 +13,33 @@ class NetworkInterface(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
-        name=None,  # Interface name.
+        name=None,
         id=None,
         subnet_cidr=None,
         machine_id=None,
+        ip_address=None,
+        fabric=None,
+        vlan=None,
+        label_name=None,
     ):
         self.name = name
         self.id = id
         self.subnet_cidr = subnet_cidr
         self.machine_id = machine_id
+        self.ip_address = ip_address
+        self.fabric = fabric
+        self.vlan = vlan
+        self.label_name = label_name
 
     @classmethod
     def from_ansible(cls, network_interface_dict):
         obj = NetworkInterface()
-        obj.name = network_interface_dict["name"]
-        obj.subnet_cidr = network_interface_dict["subnet_cidr"]
+        obj.name = network_interface_dict.get("name")
+        obj.subnet_cidr = network_interface_dict.get("subnet_cidr")
+        obj.ip_address = network_interface_dict.get("ip_address")
+        obj.fabric = network_interface_dict.get("fabric")
+        obj.vlan = network_interface_dict.get("vlan")
+        obj.label_name = network_interface_dict.get("label_name")
         return obj
 
     @classmethod
@@ -36,26 +48,36 @@ class NetworkInterface(MaasValueMapper):
         try:
             obj.name = maas_dict["name"]
             obj.id = maas_dict["id"]
-            obj.subnet_cidr = maas_dict["links"][0]["subnet"]["cidr"]
+            if maas_dict["discovered"]: # Auto assigned IP
+                obj.ip_address = maas_dict["discovered"][0].get("ip_address")
+                obj.subnet_cidr = maas_dict["discovered"][0]["subnet"].get("cidr")
+                obj.vlan = maas_dict["discovered"][0]["subnet"]["vlan"].get("name")
+            else: # Static IP
+                obj.ip_address = maas_dict["links"][0].get("ip_address")
+                obj.subnet_cidr = maas_dict["links"][0]["subnet"].get("cidr")
+                obj.vlan = maas_dict["links"][0]["subnet"]["vlan"].get("name")
             obj.machine_id = maas_dict["system_id"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
 
     def to_maas(self):
-        to_maas_dict = {}
-        if self.id:
-            to_maas_dict["id"] = self.id
-        if self.name:
-            to_maas_dict["name"] = self.name
-        if self.subnet_cidr:
-            to_maas_dict["subnet_cidr"] = self.subnet_cidr
-        return to_maas_dict
+        return dict(
+            id = self.id,
+            name = self.name,
+            subnet_cidr = self.subnet_cidr,
+            ip_address = self.ip_address,
+            fabric = self.fabric,
+            vlan = self.vlan,
+            label_name = self.label_name
+        )
 
     def to_ansible(self):
-        to_ansible_dict = {}
-        if self.name:
-            to_ansible_dict["name"] = self.name
-        if self.subnet_cidr:
-            to_ansible_dict["subnet_cidr"] = self.subnet_cidr
-        return to_ansible_dict
+        return dict(
+            id = self.id,
+            name = self.name,
+            subnet_cidr = self.subnet_cidr,
+            ip_address = self.ip_address,
+            fabric = self.fabric,
+            vlan = self.vlan
+        )

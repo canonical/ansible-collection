@@ -13,18 +13,21 @@ class Disk(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
-        name=None,  # Disk name.
+        name=None,
         id=None,
         size=None,
+        pool=None
     ):
         self.name = name
         self.id = id
         self.size = size
+        self.pool = pool
 
     @classmethod
     def from_ansible(cls, disk_dict):
         obj = Disk()
-        obj.size = disk_dict["size_gigabytes"]
+        obj.size = disk_dict.get("size_gigabytes")
+        obj.pool = disk_dict.get("pool")
         return obj
 
     @classmethod
@@ -46,10 +49,14 @@ class Disk(MaasValueMapper):
             to_maas_dict["name"] = self.name
         if self.size:
             to_maas_dict["size"] = self.size
+        if self.pool:
+            to_maas_dict["pool"] = self.pool
         return to_maas_dict
 
     def to_ansible(self):
-        to_ansible_dict = {}
-        if self.size:
-            to_ansible_dict["size_gigabytes"] = self.size
-        return to_ansible_dict
+        return dict(
+            id = self.id,
+            name = self.name,
+            size = self.size,
+            pool = self.pool,
+        )
