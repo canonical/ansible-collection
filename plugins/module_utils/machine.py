@@ -30,6 +30,9 @@ class Machine(MaasValueMapper):
         domain=None,
         network_interfaces=[],
         disks=[],
+        status=None,
+        osystem=None,
+        distro_series=None,
     ):
         self.hostname = hostname
         self.id = id
@@ -41,6 +44,9 @@ class Machine(MaasValueMapper):
         self.zone = zone
         self.pool = pool
         self.domain = domain
+        self.status = status
+        self.osystem = osystem
+        self.distro_series = distro_series
 
     @classmethod
     def get_by_name(
@@ -54,17 +60,24 @@ class Machine(MaasValueMapper):
             ansible_maas_map={name_field_ansible: "hostname"},
         )
         maas_dict = rest_client.get_record(
-            "/api/2.0/machines/", query, must_exist=must_exist
+            "/api/2.0/machines/",
+            query,
+            must_exist=must_exist,
         )
         if maas_dict:
             machine_from_maas = cls.from_maas(maas_dict)
             return machine_from_maas
 
     @classmethod
-    def get_by_id(cls, id, client, must_exist=False):
-        maas_dict = client.get(f"/api/2.0/machines/{id}/").json
-        vmhost_from_maas = cls.from_maas(maas_dict)
-        return vmhost_from_maas
+    def get_by_id(cls, id, client):
+        # rest_client.get_record doesn't work here
+        # in case if machine doesn't exist .json throws error: MaasError("Received invalid JSON response: {0}".format(self.data))
+        try:
+            maas_dict = client.get(f"/api/2.0/machines/{id}/").json
+            vmhost_from_maas = cls.from_maas(maas_dict)
+            return vmhost_from_maas
+        except errors.MaasError:
+            raise errors.MachineNotFound(id)
 
     @classmethod
     def from_ansible(cls, module):
@@ -103,6 +116,9 @@ class Machine(MaasValueMapper):
             obj.disks = [
                 Disk.from_maas(disk) for disk in maas_dict["blockdevice_set"] or []
             ]
+            obj.status = maas_dict["status_name"]
+            obj.osystem = maas_dict["osystem"]
+            obj.distro_series = maas_dict["distro_series"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -134,24 +150,19 @@ class Machine(MaasValueMapper):
         return to_maas_dict
 
     def to_ansible(self):
-        to_ansible_dict = {}
-        if self.hostname:
-            to_ansible_dict["hostname"] = self.hostname
-        if self.id:
-            to_ansible_dict["id"] = self.id
-        if self.memory:
-            to_ansible_dict["memory"] = self.memory
-        if self.cores:
-            to_ansible_dict["cores"] = self.cores
-        if self.network_interfaces:
-            to_ansible_dict["network_interfaces"] = [
-                net_interface.to_ansible() for net_interface in self.network_interfaces
-            ]
-        if self.disks:
-            to_ansible_dict["storage_disks"] = [
-                disk.to_ansible() for disk in self.disks
-            ]
-        return to_ansible_dict
+        return dict(
+            hostname = self.hostname,
+            id = self.id,
+            memory = self.memory,
+            cores = self.cores,
+            network_interfaces = [
+            net_interface.to_ansible() for net_interface in self.network_interfaces
+            ],
+            storage_disks = [disk.to_ansible() for disk in self.disks],
+            status = self.status,
+            osystem = self.osystem,
+            distro_series = self.distro_series
+        )
 
     def payload_for_compose(self, module):
         payload = self.to_maas()
@@ -179,3 +190,19 @@ class Machine(MaasValueMapper):
             tmp = payload.pop("storage")
             payload["storage"] = ",".join([f"label:{disk['size']}" for disk in tmp])
         return payload
+
+    def __eq__(self, other):
+        """One Machine is equal to another if it has ALL attributes exactly the same"""
+        return all(
+            (
+                self.hostname == other.hostname,
+                self.id == other.id,
+                self.memory == other.memory,
+                self.cores == other.cores,
+                self.network_interfaces == other.network_interfaces,
+                self.disks == other.disks,
+                self.status == other.status,
+                self.osystem == other.osystem,
+                self.distro_series == other.distro_series,
+            )
+        )

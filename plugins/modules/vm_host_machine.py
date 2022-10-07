@@ -183,7 +183,7 @@ def ensure_ready(module, client, vm_host_obj):
     machine_obj = Machine.from_ansible(module)
     payload = machine_obj.payload_for_compose(module)
     task = vm_host_obj.send_compose_request(module, client, payload)
-    after = (Machine.get_by_id(task["system_id"], client, must_exist=True)).to_ansible()
+    after = (Machine.get_by_id(task["system_id"], client)).to_ansible()
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
