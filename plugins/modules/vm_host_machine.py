@@ -16,14 +16,14 @@ author:
 short_description: Creates a virtual machine on a specified host.
 description:
   - Create VM on a specified host.
+  - Does not support update or delete, only create.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
 options:
   vm_host:
-    description:
-      - Name of the host.
+    description: Name of the host.
     type: str
     required: True
   hostname:
@@ -32,13 +32,27 @@ options:
       - Underscores are not supported.
     type: str
   cores:
+    description: The number of CPU cores.
+    type: int
+    default: 1
+  pinned_cores:
     description:
-      - Number of CPUs.
+      - List of host CPU cores to pin the VM to.
+      - pinned_cores and cores are mutually exclusive.
+    type: int
+  zone:
+    description: The ID of the zone in which to put the newly composed machine.
+    type: int
+  pool:
+    description: The ID of the pool in which to put the newly composed machine.
+    type: int
+  domain:
+    description: The ID of the domain in which to put the newly composed machine.
     type: int
   memory:
-    description:
-      - Physical memory.
+    description:  The VM host machine RAM memory, specified in MB.
     type: int
+    default: 2048
   storage_disks:
     description:
       - Storage disks.
@@ -47,22 +61,49 @@ options:
     suboptions:
       size_gigabytes:
         type: int
-        description:
-          - Disk size in gigabytes.
+        description: Disk size in gigabytes.
+        required: true
+      pool:
+        type: str
+        description: The VM host storage pool name.
   network_interfaces:
     description:
       - Network interface.
     type: dict
     elements: dict
     suboptions:
+      label_name:
+        type: str
+        description: 
+          - The network interface label name.
+          - Network interface label name as shown in the web aplication.
+        required: true
       name:
         type: str
-        description:
-          - Used to identify.
+        description: 
+          - The network interface name.
+          - Matches an interface with the specified name. (For example, "eth0".)
       subnet_cidr:
         type: str
+        description: 
+          - The subnet CIDR for the network interface.
+          - Matches an interface attached to the specified subnet CIDR. (For example, "192.168.0.0/24".)
+      ip_address:
+        type: str
+        description: 
+          - Ip address.
+          - Matches an interface whose VLAN is on the subnet implied by the given IP address.
+      fabric:
+        type: str
         description:
-          - Subnet mask.
+          - The fabric for the network interface.
+          - Matches an interface attached to the specified fabric.
+      vlan:
+        type: str
+        description: 
+          - The VLAN for the network interface.
+          - Matches an interface on the specified VLAN.
+        
 """
 
 EXAMPLES = r"""
@@ -118,7 +159,7 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.vmhost import VMHost
 from ..module_utils.machine import Machine
-from ..module_utils.utils import is_changed
+from ..module_utils.utils import is_changed, required_one_of
 
 
 def prepare_network_data(module):
@@ -170,18 +211,44 @@ def main():
             ),
             cores=dict(
                 type="int",
+                default=1,
+            ),
+            pinned_cores=dict(
+                type="int",
+            ),
+            zone=dict(
+                type="int",
+            ),
+            pool=dict(
+                type="int",
+            ),
+            domain=dict(
+                type="int",
             ),
             memory=dict(
                 type="int",
+                default=2048,
             ),
             network_interfaces=dict(
                 type="dict",
                 options=dict(
-                    name=dict(
+                    label_name=dict(
                         type="str",
                         required=True,
                     ),
+                    name=dict(
+                        type="str",
+                    ),
                     subnet_cidr=dict(
+                        type="str",
+                    ),
+                    fabric=dict(
+                        type="str",
+                    ),
+                    vlan=dict(
+                        type="str",
+                    ),
+                    ip_address=dict(
                         type="str",
                     ),
                 ),
@@ -198,9 +265,15 @@ def main():
                 ),
             ),
         ),
+        mutually_exclusive=[("cores", "pinned_cores")],
     )
 
     try:
+        required_one_of(
+            module,
+            option="network_interfaces",
+            list_suboptions=["name", "subnet_cidr", "fabric", "vlan", "ip_address"],
+        )
         host = module.params["instance"]["host"]
         client_key = module.params["instance"]["client_key"]
         token_key = module.params["instance"]["token_key"]

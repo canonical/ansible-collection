@@ -19,7 +19,7 @@
       cores: 2
       memory: 2000
       network_interfaces:
-        name: my_first
+        label_name: my_first
         subnet_cidr: "10.10.10.0/24"
       storage_disks:
         - size_gigabytes: 8

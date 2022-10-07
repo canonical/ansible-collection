@@ -53,7 +53,11 @@ class TestMain:
             hostname="this-machine",
             cores=3,
             memory=2048,
-            network_interfaces={"name": "my_interface", "subnet_cidr": "10.10.10.0/24"},
+            network_interfaces={
+                "label_name": "my-interface",
+                "name": "esp0",
+                "subnet_cidr": "10.10.10.0/24",
+            },
             storage_disks=[{"size_gigabytes": 15}, {"size_gigabytes": 10}],
         )
 
@@ -206,6 +210,9 @@ class TestEnsureReady:
             system_id="123",
             interface_set=None,
             blockdevice_set=None,
+            domain=dict(id=1),
+            zone=dict(id=1),
+            pool=dict(id=1),
             status_name="Ready",
             osystem="ubuntu",
             distro_series="jammy",
@@ -218,11 +225,21 @@ class TestEnsureReady:
             cpu_count=2,
             memory=5000,
             system_id="123",
+            domain=dict(id=1),
+            zone=dict(id=1),
+            pool=dict(id=1),
             interface_set=[
                 {
                     "id": "123",
                     "name": "this_name",
-                    "links": [{"subnet": {"cidr": "some_ip"}}],
+                    "links": [
+                        {
+                            "subnet": {
+                                "cidr": "some_ip",
+                                "vlan": {"name": "name_1", "fabric": "fabric-1"},
+                            }
+                        }
+                    ],
                     "system_id": 1,
                 }
             ],
@@ -249,6 +266,9 @@ class TestEnsureReady:
                 "status_name": "Ready",
                 "osystem": "ubuntu",
                 "distro_series": "jammy",
+                "domain": {"id": 1},
+                "zone": {"id": 1},
+                "pool": {"id": 1},
             }
         task = {
             "system_id": "1234",
@@ -305,11 +325,14 @@ class TestEnsureReady:
                 "cpu_count": 2,
                 "memory": 5000,
                 "system_id": "123",
+                "domain": {"id": 1},
+                "zone": {"id": 1},
+                "pool": {"id": 1},
                 "interface_set": [
                     {
                         "id": "123",
                         "name": "this_name",
-                        "links": [{"subnet": {"cidr": "some_ip"}}],
+                        "links": [{"subnet": {"cidr": "some_ip", 'vlan': {'name': 'name_1', 'fabric': 'fabric-1'}}}],
                         "system_id": 1,
                     }
                 ],

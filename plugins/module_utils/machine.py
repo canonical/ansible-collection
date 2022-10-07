@@ -5,6 +5,7 @@
 
 
 from __future__ import absolute_import, division, print_function
+
 from ..module_utils.utils import (
     get_query,
     MaasValueMapper,
@@ -23,6 +24,10 @@ class Machine(MaasValueMapper):
         id=None,
         memory=None,
         cores=None,
+        pinned_cores=None,
+        zone=None,
+        pool=None,
+        domain=None,
         network_interfaces=[],
         disks=[],
         status=None,
@@ -35,6 +40,10 @@ class Machine(MaasValueMapper):
         self.cores = cores
         self.network_interfaces = network_interfaces
         self.disks = disks
+        self.pinned_cores = pinned_cores
+        self.zone = zone
+        self.pool = pool
+        self.domain = domain
         self.status = status
         self.osystem = osystem
         self.distro_series = distro_series
@@ -76,6 +85,10 @@ class Machine(MaasValueMapper):
         obj.hostname = module.params.get("hostname")
         obj.cores = module.params.get("cores")
         obj.memory = module.params.get("memory")
+        obj.domain = module.params.get("domain")
+        obj.pinned_cores = module.params.get("pinned_cores")
+        obj.pool = module.params.get("pool")
+        obj.zone = module.params.get("zone")
         obj.network_interfaces = [
             NetworkInterface.from_ansible(net_interface)
             for net_interface in module.params.get("network_interfaces") or []
@@ -93,6 +106,9 @@ class Machine(MaasValueMapper):
             obj.id = maas_dict["system_id"]
             obj.memory = maas_dict["memory"]
             obj.cores = maas_dict["cpu_count"]
+            obj.domain = maas_dict["domain"]["id"]
+            obj.zone = maas_dict["zone"]["id"]
+            obj.pool = maas_dict["pool"]["id"]
             obj.network_interfaces = [
                 NetworkInterface.from_maas(net_interface)
                 for net_interface in maas_dict["interface_set"] or []
@@ -117,6 +133,14 @@ class Machine(MaasValueMapper):
             to_maas_dict["memory"] = self.memory
         if self.cores:
             to_maas_dict["cores"] = self.cores
+        if self.pinned_cores:
+            to_maas_dict["pinned_cores"] = self.pinned_cores
+        if self.zone:
+            to_maas_dict["zone"] = self.zone
+        if self.pool:
+            to_maas_dict["pool"] = self.pool
+        if self.domain:
+            to_maas_dict["domain"] = self.domain
         if self.network_interfaces:
             to_maas_dict["interfaces"] = [
                 net_interface.to_maas() for net_interface in self.network_interfaces
@@ -145,9 +169,22 @@ class Machine(MaasValueMapper):
         if "interfaces" in payload:
             tmp = payload.pop("interfaces")
             for net_interface in tmp:
+                payload_string_list = []
+                if net_interface.get("subnet_cidr"):
+                    payload_string_list.append(
+                        f"subnet_cidr={net_interface['subnet_cidr']}"
+                    )
+                if net_interface.get("ip_address"):
+                    payload_string_list.append(f"ip={net_interface['ip_address']}")
+                if net_interface.get("fabric"):
+                    payload_string_list.append(f"fabric={net_interface['fabric']}")
+                if net_interface.get("vlan"):
+                    payload_string_list.append(f"vlan={net_interface['vlan']}")
+                if net_interface.get("name"):
+                    payload_string_list.append(f"name={net_interface['name']}")
                 payload[
                     "interfaces"
-                ] = f"{net_interface['name']}:subnet_cidr={net_interface['subnet_cidr']}"
+                ] = f"{net_interface['label_name']}:{','.join(payload_string_list)}"
                 break  # Right now, compose only allows for one network interface.
         if "storage" in payload:
             tmp = payload.pop("storage")

@@ -65,6 +65,9 @@ class TestGet:
             status_name="Ready",
             osystem="ubuntu",
             distro_series="jammy",
+            domain=dict(id=1),
+            pool=dict(id=1),
+            zone=dict(id=1),
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(
@@ -86,13 +89,22 @@ class TestPayloadForCompose:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_maas"
         ).return_value = dict(
-            interfaces=[dict(name="test", subnet_cidr="ip")],
+            interfaces=[
+                dict(
+                    label_name="test",
+                    name="esp0",
+                    subnet_cidr="subnet",
+                    fabric="fabric-1",
+                    vlan="vlan-1",
+                    ip_address="ip",
+                )
+            ],
             storage=[dict(size=5), dict(size=10)],
         )
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
         assert results == {
-            "interfaces": "test:subnet_cidr=ip",
+            "interfaces": "test:subnet_cidr=subnet,ip=ip,fabric=fabric-1,vlan=vlan-1,name=esp0",
             "storage": "label:5,label:10",
         }
 
@@ -118,10 +130,12 @@ class TestPayloadForCompose:
         module = ""
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_maas"
-        ).return_value = dict(interfaces=[dict(name="test", subnet_cidr="ip")])
+        ).return_value = dict(
+            interfaces=[dict(label_name="test", name="esp0", subnet_cidr="ip")]
+        )
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
-        assert results == {"interfaces": "test:subnet_cidr=ip"}
+        assert results == {"interfaces": "test:subnet_cidr=ip,name=esp0"}
 
 
 # TODO: test mapper, when more values are added.
