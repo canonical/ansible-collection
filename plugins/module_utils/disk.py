@@ -24,7 +24,7 @@ class Disk(MaasValueMapper):
     @classmethod
     def from_ansible(cls, disk_dict):
         obj = Disk()
-        obj.size = disk_dict.get("size_gigabytes")
+        obj.size = disk_dict["size_gigabytes"]
         return obj
 
     @classmethod

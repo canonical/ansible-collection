@@ -70,15 +70,22 @@ class NetworkInterface(MaasValueMapper):
         return obj
 
     def to_maas(self):
-        return dict(
-            id=self.id,
-            name=self.name,
-            subnet_cidr=self.subnet_cidr,
-            ip_address=self.ip_address,
-            fabric=self.fabric,
-            vlan=self.vlan,
-            label_name=self.label_name,
-        )
+        to_maas_dict = {}
+        if self.id:
+            to_maas_dict["id"] = self.id
+        if self.name:
+            to_maas_dict["name"] = self.name
+        if self.subnet_cidr:
+            to_maas_dict["subnet_cidr"] = self.subnet_cidr
+        if self.ip_address:
+            to_maas_dict["ip_address"] = self.ip_address
+        if self.fabric:
+            to_maas_dict["fabric"] = self.fabric
+        if self.vlan:
+            to_maas_dict["vlan"] = self.vlan
+        if self.label_name:
+            to_maas_dict["label_name"] = self.label_name
+        return to_maas_dict
 
     def to_ansible(self):
         return dict(
