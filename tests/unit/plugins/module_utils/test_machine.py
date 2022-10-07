@@ -12,7 +12,7 @@ import sys
 import pytest
 
 from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
+from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
 )
 
@@ -25,14 +25,59 @@ class TestGet:
     def test_get_by_id(self, client, mocker):
         id = 123
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.utils.get_query"
-        ).return_value = []
-        mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
         ).return_value = None
         client.get.return_value = Response(200, "{}")
-        results = Machine.get_by_id(id, client, must_exist=True)
-        assert results == None
+        results = Machine.get_by_id(id, client)
+        assert results is None
+
+    def test_get_by_name(self, create_module, mocker, client):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    client_key="nzW4EBWjyDe",
+                ),
+                hostname="my_instance",
+                state="absent",
+                allocate_params={
+                    "memory": 2000,
+                    "cpu": 1,
+                },
+                deploy_params={
+                    "osystem": "ubuntu",
+                    "distro_series": "jammy",
+                },
+            ),
+        )
+
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
+        ).return_value = dict(
+            hostname="my_instance",
+            system_id="sytem_id",
+            memory=2000,
+            cpu_count=2,
+            interface_set=None,
+            blockdevice_set=None,
+            status_name="Ready",
+            osystem="ubuntu",
+            distro_series="jammy",
+        )
+
+        assert Machine.get_by_name(module, client, True) == Machine(
+            hostname="my_instance",
+            id="sytem_id",
+            memory=2000,
+            cores=2,
+            network_interfaces=[],
+            disks=[],
+            status="Ready",
+            osystem="ubuntu",
+            distro_series="jammy",
+        )
 
 
 class TestPayloadForCompose:
@@ -46,7 +91,6 @@ class TestPayloadForCompose:
         )
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
-        print(results)
         assert results == {
             "interfaces": "test:subnet_cidr=ip",
             "storage": "label:5,label:10",
@@ -59,7 +103,6 @@ class TestPayloadForCompose:
         ).return_value = dict()
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
-        print(results)
         assert results == {}
 
     def test_payload_for_compose_with_storage_without_interface(self, mocker):
@@ -69,7 +112,6 @@ class TestPayloadForCompose:
         ).return_value = dict(storage=[dict(size=5), dict(size=10)])
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
-        print(results)
         assert results == {"storage": "label:5,label:10"}
 
     def test_payload_for_compose_with_interface_without_storage(self, mocker):
@@ -79,7 +121,6 @@ class TestPayloadForCompose:
         ).return_value = dict(interfaces=[dict(name="test", subnet_cidr="ip")])
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
-        print(results)
         assert results == {"interfaces": "test:subnet_cidr=ip"}
 
 
