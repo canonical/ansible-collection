@@ -50,7 +50,7 @@ class Disk(MaasValueMapper):
 
     def to_ansible(self):
         return dict(
-            id = self.id,
-            name = self.name,
-            size = self.size,
+            id=self.id,
+            name=self.name,
+            size_gigabytes=self.size,
         )

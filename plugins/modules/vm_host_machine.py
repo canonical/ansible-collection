@@ -269,7 +269,11 @@ def main():
     )
 
     try:
-        required_one_of(module, option="network_interfaces", list_suboptions=["name", "subnet_cidr", "fabric", "vlan", "ip_address"])
+        required_one_of(
+            module,
+            option="network_interfaces",
+            list_suboptions=["name", "subnet_cidr", "fabric", "vlan", "ip_address"],
+        )
         host = module.params["instance"]["host"]
         client_key = module.params["instance"]["client_key"]
         token_key = module.params["instance"]["token_key"]

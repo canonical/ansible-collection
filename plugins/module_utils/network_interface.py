@@ -13,7 +13,7 @@ class NetworkInterface(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
-        name=None, # Only used during create (search query), after name=label_name.
+        name=None,  # Only used during create (search query), after name=label_name.
         id=None,
         subnet_cidr=None,
         machine_id=None,
@@ -49,17 +49,17 @@ class NetworkInterface(MaasValueMapper):
             obj.name = maas_dict["name"]
             obj.label_name = maas_dict["name"]
             obj.id = maas_dict["id"]
-            if maas_dict["discovered"]: # Auto assigned IP
+            if maas_dict.get("discovered"):  # Auto assigned IP
                 obj.ip_address = maas_dict["discovered"][0].get("ip_address")
                 obj.subnet_cidr = maas_dict["discovered"][0]["subnet"].get("cidr")
                 obj.vlan = maas_dict["discovered"][0]["subnet"]["vlan"].get("name")
                 obj.fabric = maas_dict["discovered"][0]["subnet"]["vlan"].get("fabric")
-            elif len(maas_dict["links"]) > 0: # Static IP
+            elif maas_dict.get("links") and len(maas_dict["links"]) > 0:  # Static IP
                 obj.ip_address = maas_dict["links"][0].get("ip_address")
                 obj.subnet_cidr = maas_dict["links"][0]["subnet"].get("cidr")
                 obj.vlan = maas_dict["links"][0]["subnet"]["vlan"].get("name")
                 obj.fabric = maas_dict["links"][0]["subnet"]["vlan"].get("fabric")
-            else: # interface auto generated
+            else:  # interface auto generated
                 obj.ip_address = maas_dict.get("ip_address")
                 obj.subnet_cidr = maas_dict.get("cidr")
                 obj.vlan = maas_dict["vlan"].get("name")
@@ -71,21 +71,21 @@ class NetworkInterface(MaasValueMapper):
 
     def to_maas(self):
         return dict(
-            id = self.id,
-            name = self.name,
-            subnet_cidr = self.subnet_cidr,
-            ip_address = self.ip_address,
-            fabric = self.fabric,
-            vlan = self.vlan,
-            label_name = self.label_name
+            id=self.id,
+            name=self.name,
+            subnet_cidr=self.subnet_cidr,
+            ip_address=self.ip_address,
+            fabric=self.fabric,
+            vlan=self.vlan,
+            label_name=self.label_name,
         )
 
     def to_ansible(self):
         return dict(
-            id = self.id,
-            name = self.name,
-            subnet_cidr = self.subnet_cidr,
-            ip_address = self.ip_address,
-            fabric = self.fabric,
-            vlan = self.vlan
+            id=self.id,
+            name=self.name,
+            subnet_cidr=self.subnet_cidr,
+            ip_address=self.ip_address,
+            fabric=self.fabric,
+            vlan=self.vlan,
         )

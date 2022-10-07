@@ -29,7 +29,11 @@ class TestMapper:
             name="test_net_int",
             id=123,
             system_id=1234,
-            links=[dict(subnet=dict(cidr="ip"))],
+            links=[
+                dict(
+                    subnet=dict(cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1"))
+                )
+            ],
         )
 
     @staticmethod
@@ -66,24 +70,47 @@ class TestMapper:
 
     def test_to_maas(self):
         net_interface_dict = self._get_net_interface()
-        expected = dict(name="test_net_int", id=123, subnet_cidr="ip")
+        expected = dict(
+            name="test_net_int",
+            id=123,
+            subnet_cidr="ip",
+            ip_address="this-ip",
+            fabric="fabric-1",
+            vlan="vlan-1",
+            label_name="this-interface",
+        )
         net_interface_obj = NetworkInterface(
             net_interface_dict["name"],
             net_interface_dict["id"],
             net_interface_dict["links"][0]["subnet"]["cidr"],
             net_interface_dict["system_id"],
+            "this-ip",
+            net_interface_dict["links"][0]["subnet"]["vlan"]["fabric"],
+            net_interface_dict["links"][0]["subnet"]["vlan"]["name"],
+            "this-interface",
         )
         results = net_interface_obj.to_maas()
         assert results == expected
 
     def test_to_ansible(self):
         net_interface_dict = self._get_net_interface()
-        expected = dict(name="test_net_int", subnet_cidr="ip")
+        expected = dict(
+            id=123,
+            name="test_net_int",
+            subnet_cidr="ip",
+            ip_address="this-ip",
+            fabric="this-fabric",
+            vlan="this-vlan",
+        )
         net_interface_obj = NetworkInterface(
             net_interface_dict["name"],
             net_interface_dict["id"],
             net_interface_dict["links"][0]["subnet"]["cidr"],
             net_interface_dict["system_id"],
+            "this-ip",
+            "this-fabric",
+            "this-vlan",
+            "this-label",
         )
         results = net_interface_obj.to_ansible()
         assert results == expected

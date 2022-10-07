@@ -159,15 +159,17 @@ class Machine(MaasValueMapper):
             tmp = payload.pop("interfaces")
             for net_interface in tmp:
                 payload_string_list = []
-                if net_interface["subnet_cidr"]:
-                    payload_string_list.append(f"subnet_cidr={net_interface['subnet_cidr']}")
-                if net_interface["ip_address"]:
+                if net_interface.get("subnet_cidr"):
+                    payload_string_list.append(
+                        f"subnet_cidr={net_interface['subnet_cidr']}"
+                    )
+                if net_interface.get("ip_address"):
                     payload_string_list.append(f"ip={net_interface['ip_address']}")
-                if net_interface["fabric"]:
+                if net_interface.get("fabric"):
                     payload_string_list.append(f"fabric={net_interface['fabric']}")
-                if net_interface["vlan"]:
+                if net_interface.get("vlan"):
                     payload_string_list.append(f"vlan={net_interface['vlan']}")
-                if net_interface["name"]:
+                if net_interface.get("name"):
                     payload_string_list.append(f"name={net_interface['name']}")
                 payload[
                     "interfaces"
@@ -175,5 +177,5 @@ class Machine(MaasValueMapper):
                 break  # Right now, compose only allows for one network interface.
         if "storage" in payload:
             tmp = payload.pop("storage")
-            payload["storage"] = ",".join([f"label:{disk['size']}(tag1, tag2)" for disk in tmp])
+            payload["storage"] = ",".join([f"label:{disk['size']}" for disk in tmp])
         return payload

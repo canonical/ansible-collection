@@ -35,7 +35,6 @@ class TestSendComposeRequest:
             200, '{"system_id":"123", "resource_uri":""}'
         )
         results = vmhost_obj.send_compose_request(module, client, payload)
-        print(results)
         assert results == {"system_id": "123", "resource_uri": ""}
 
 
