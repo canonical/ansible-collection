@@ -238,9 +238,8 @@ class TestEnsureReady:
     def test_ensure_ready_without_storaga_and_net_interfaces(
         self, create_module, client, mocker
     ):
-        before = []
-        after = [
-            {
+        before = None
+        after ={
                 "hostname": "machine_1",
                 "cpu_count": 2,
                 "memory": 5000,
@@ -251,7 +250,6 @@ class TestEnsureReady:
                 "osystem": "ubuntu",
                 "distro_series": "jammy",
             }
-        ]
         task = {
             "system_id": "1234",
             "resource_uri": "https://www.something-somewhere.com",
@@ -301,9 +299,8 @@ class TestEnsureReady:
     def test_ensure_ready_with_storage_and_net_interfaces(
         self, create_module, client, mocker
     ):
-        before = []
-        after = [
-            {
+        before = None
+        after ={
                 "hostname": "machine_2",
                 "cpu_count": 2,
                 "memory": 5000,
@@ -324,7 +321,6 @@ class TestEnsureReady:
                 "osystem": "ubuntu",
                 "distro_series": "jammy",
             }
-        ]
         task = {
             "system_id": "1234",
             "resource_uri": "https://www.something-somewhere.com",
