@@ -65,6 +65,9 @@ class TestGet:
             status_name="Ready",
             osystem="ubuntu",
             distro_series="jammy",
+            domain=dict(id=1),
+            pool=dict(id=1),
+            zone=dict(id=1),
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(

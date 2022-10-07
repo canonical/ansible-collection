@@ -332,7 +332,7 @@ class TestEnsureReady:
                     {
                         "id": "123",
                         "name": "this_name",
-                        "links": [{"subnet": {"cidr": "some_ip"}}],
+                        "links": [{"subnet": {"cidr": "some_ip", 'vlan': {'name': 'name_1', 'fabric': 'fabric-1'}}}],
                         "system_id": 1,
                     }
                 ],
