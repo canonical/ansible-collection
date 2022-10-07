@@ -233,7 +233,8 @@ class TestRelease:
 
         assert result[0] is False
 
-    def test_release_status_new(self, create_module, client, mocker):
+    @pytest.mark.parametrize("status", ["New", "Failed"])
+    def test_release_status_new_or_failed(self, create_module, client, mocker, status):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -258,7 +259,7 @@ class TestRelease:
             "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
         ).return_value = Machine(
             id=123456,
-            status="New",
+            status=status,
         )
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.modules.instance.commission"
@@ -310,6 +311,223 @@ class TestRelease:
         assert changed is True
 
 
+class TestDeploy:
+    def test_deploy_name_not_provided(self, create_module, client, mocker):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    client_key="nzW4EBWjyDe",
+                ),
+                hostname=None,
+                state="ready",
+                allocate_params={
+                    "memory": 2000,
+                    "cores": 1,
+                },
+                deploy_params={
+                    "osystem": "ubuntu",
+                    "distro_series": "jammy",
+                    "timeout": 30,
+                },
+            ),
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.allocate"
+        ).return_value = Machine(
+            id=123456,
+            status="Allocated",
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+        )
+
+        result = instance.deploy(module, client)
+
+        client.post.assert_called_with(
+            "/api/2.0/machines/123456/",
+            query={"op": "deploy"},
+            data={
+                "osystem": "ubuntu",
+                "distro_series": "jammy",
+            },
+            timeout=30,
+        )
+        assert result[0] is True
+
+    def test_deploy_status_deployed(self, create_module, client, mocker):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    client_key="nzW4EBWjyDe",
+                ),
+                hostname="my_instance",
+                state="ready",
+                allocate_params={
+                    "memory": 2000,
+                    "cores": 1,
+                },
+                deploy_params={
+                    "osystem": "ubuntu",
+                    "distro_series": "jammy",
+                    "timeout": 30,
+                },
+            ),
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+        ).return_value = Machine(
+            status="Deployed",
+        )
+
+        changed = instance.deploy(module, client)[0]
+
+        assert changed is False
+
+    def test_deploy_status_commissioning(self, create_module, client, mocker):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    client_key="nzW4EBWjyDe",
+                ),
+                hostname="my_instance",
+                state="ready",
+                allocate_params={
+                    "memory": 2000,
+                    "cores": 1,
+                },
+                deploy_params={
+                    "osystem": "ubuntu",
+                    "distro_series": "jammy",
+                    "timeout": 30,
+                },
+            ),
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+        ).return_value = Machine(
+            id=123456,
+            status="Commissioning",
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+        )
+
+        result = instance.deploy(module, client)
+
+        client.post.assert_called_with(
+            "/api/2.0/machines/123456/",
+            query={"op": "deploy"},
+            data={
+                "osystem": "ubuntu",
+                "distro_series": "jammy",
+            },
+            timeout=30,
+        )
+        assert result[0] is True
+
+    @pytest.mark.parametrize("status", ["New", "Failed"])
+    def test_release_status_new_or_failed(self, create_module, client, mocker, status):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    client_key="nzW4EBWjyDe",
+                ),
+                hostname="my_instance",
+                state="ready",
+                allocate_params={
+                    "memory": 2000,
+                    "cores": 1,
+                },
+                deploy_params={
+                    "osystem": "ubuntu",
+                    "distro_series": "jammy",
+                    "timeout": 30,
+                },
+            ),
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+        ).return_value = Machine(
+            id=123456,
+            status=status,
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.commission"
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+        )
+
+        result = instance.deploy(module, client)
+        client.post.assert_called_with(
+            "/api/2.0/machines/123456/",
+            query={"op": "deploy"},
+            data={
+                "osystem": "ubuntu",
+                "distro_series": "jammy",
+            },
+            timeout=30,
+        )
+        assert result[0] is True
+
+    def test_deploy_status_ready(self, create_module, client, mocker):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    client_key="nzW4EBWjyDe",
+                ),
+                hostname="my_instance",
+                state="ready",
+                allocate_params={
+                    "memory": 2000,
+                    "cores": 1,
+                },
+                deploy_params={
+                    "osystem": "ubuntu",
+                    "distro_series": "jammy",
+                    "timeout": 30,
+                },
+            ),
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+        ).return_value = Machine(
+            id=123456,
+            status="Ready",
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+        )
+
+        result = instance.deploy(module, client)
+
+        client.post.assert_called_with(
+            "/api/2.0/machines/123456/",
+            query={"op": "deploy"},
+            data={
+                "osystem": "ubuntu",
+                "distro_series": "jammy",
+            },
+            timeout=30,
+        )
+        assert result[0] is True
+
+
 class TestMain:
     # in module diff needs to be added for this to work
     def test_all_params(self, run_main):
@@ -351,10 +569,7 @@ class TestMain:
 
         assert success is True
 
-    @pytest.mark.parametrize(
-        "state",
-        ["ready", "absent"],
-    )
+    @pytest.mark.parametrize("state", ["ready", "absent"])
     def test_required_if(self, run_main, state):
         params = dict(
             instance=dict(

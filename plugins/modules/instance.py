@@ -219,7 +219,7 @@ def release(module, client: Client):
                 before=updated_machine.to_ansible(), after=updated_machine.to_ansible()
             ),
         )
-    if machine.status == "New":
+    if machine.status == "New" or machine.status == "Failed":
         # commissioning will bring machine to the ready state
         commission(machine.id, client)
         updated_machine = wait_for_state(machine.id, client, False, "Ready")
@@ -255,7 +255,7 @@ def deploy(module, client: Client):
             machine.to_ansible(),
             dict(before=machine.to_ansible(), after=machine.to_ansible()),
         )
-    if machine.status == "New":
+    if machine.status == "New" or machine.status == "Failed":
         commission(machine.id, client)
         wait_for_state(machine.id, client, False, "Ready")
     if machine.status == "Commissioning":
