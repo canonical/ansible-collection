@@ -61,7 +61,7 @@ class Machine(MaasValueMapper):
         )
         maas_dict = rest_client.get_record(
             "/api/2.0/machines/",
-            query=None,
+            query=query,
             must_exist=must_exist,
         )
         if maas_dict:
