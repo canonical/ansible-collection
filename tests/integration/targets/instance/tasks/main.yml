@@ -162,12 +162,16 @@
     canonical.maas.instance:
       state: deployed
       allocate_params:
-        cores: 3
+        cores: 2
         memory: 2000
+      network_interfaces:
+        name: my_network
+        subnet_cidr: 10.10.10.0/24
+        ip_address: 10.10.10.190
       deploy_params:
         osystem: ubuntu
         distro_series: jammy
-    register: machines
+    register: machine
   - ansible.builtin.assert:
       that:
         - machine is changed
@@ -176,11 +180,14 @@
         - machine.record.osystem == "ubuntu"
         - machine.record.distro_series == "jammy"
         - machine.record.status == "Deployed"
+        - machine.record.network_interfaces | length == 1
+        - machine.record.network_interfaces[0].name == "my_network"
+        - machine.record.network_interfaces[0].subnet_cidr == "10.10.10.0/24"
+        - machine.record.network_interfaces[0].ip_address == "10.10.10.190"
   
   - name: Release machine (ephemeral machine is deleted)
     canonical.maas.instance:
-      hostname: awake-raven
-      #hostname: "{{ machine.record.hostname }}"
+      hostname: "{{ machine.record.hostname }}"
       state: ready
     register: machine
   - ansible.builtin.assert:
@@ -193,9 +200,6 @@
       allocate_params:
         cores: 20
         memory: 2000
-      deploy_params:
-        osystem: ubuntu
-        distro_series: jammy
     register: machine
     ignore_errors: true
   - ansible.builtin.assert:
