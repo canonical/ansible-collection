@@ -180,7 +180,7 @@ def ensure_ready(module, client, vm_host_obj):
     before = None
     after = None
     if module.params["hostname"]:
-        vm_obj = Machine.get_by_name(module, client)
+        vm_obj = Machine.get_by_name_and_host(module, client)
         if vm_obj:
             return (
                 is_changed(before, after),
