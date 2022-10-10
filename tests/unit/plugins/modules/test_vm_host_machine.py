@@ -256,20 +256,20 @@ class TestEnsureReady:
         self, create_module, client, mocker
     ):
         before = None
-        after ={
-                "hostname": "machine_1",
-                "cpu_count": 2,
-                "memory": 5000,
-                "system_id": "123",
-                "interface_set": None,
-                "blockdevice_set": None,
-                "status_name": "Ready",
-                "osystem": "ubuntu",
-                "distro_series": "jammy",
-                "domain": {"id": 1},
-                "zone": {"id": 1},
-                "pool": {"id": 1},
-            }
+        after = {
+            "hostname": "machine_1",
+            "cpu_count": 2,
+            "memory": 5000,
+            "system_id": "123",
+            "interface_set": None,
+            "blockdevice_set": None,
+            "status_name": "Ready",
+            "osystem": "ubuntu",
+            "distro_series": "jammy",
+            "domain": {"id": 1},
+            "zone": {"id": 1},
+            "pool": {"id": 1},
+        }
         task = {
             "system_id": "1234",
             "resource_uri": "https://www.something-somewhere.com",
@@ -320,30 +320,37 @@ class TestEnsureReady:
         self, create_module, client, mocker
     ):
         before = None
-        after ={
-                "hostname": "machine_2",
-                "cpu_count": 2,
-                "memory": 5000,
-                "system_id": "123",
-                "domain": {"id": 1},
-                "zone": {"id": 1},
-                "pool": {"id": 1},
-                "interface_set": [
-                    {
-                        "id": "123",
-                        "name": "this_name",
-                        "links": [{"subnet": {"cidr": "some_ip", 'vlan': {'name': 'name_1', 'fabric': 'fabric-1'}}}],
-                        "system_id": 1,
-                    }
-                ],
-                "blockdevice_set": [
-                    {"size": 5, "name": "1", "id": "1"},
-                    {"size": 5, "name": "2", "id": "2"},
-                ],
-                "status_name": "Ready",
-                "osystem": "ubuntu",
-                "distro_series": "jammy",
-            }
+        after = {
+            "hostname": "machine_2",
+            "cpu_count": 2,
+            "memory": 5000,
+            "system_id": "123",
+            "domain": {"id": 1},
+            "zone": {"id": 1},
+            "pool": {"id": 1},
+            "interface_set": [
+                {
+                    "id": "123",
+                    "name": "this_name",
+                    "links": [
+                        {
+                            "subnet": {
+                                "cidr": "some_ip",
+                                "vlan": {"name": "name_1", "fabric": "fabric-1"},
+                            }
+                        }
+                    ],
+                    "system_id": 1,
+                }
+            ],
+            "blockdevice_set": [
+                {"size": 5, "name": "1", "id": "1"},
+                {"size": 5, "name": "2", "id": "2"},
+            ],
+            "status_name": "Ready",
+            "osystem": "ubuntu",
+            "distro_series": "jammy",
+        }
         task = {
             "system_id": "1234",
             "resource_uri": "https://www.something-somewhere.com",

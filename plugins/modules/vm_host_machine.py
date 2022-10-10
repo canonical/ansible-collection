@@ -74,23 +74,23 @@ options:
     suboptions:
       label_name:
         type: str
-        description: 
+        description:
           - The network interface label name.
           - Network interface label name as shown in the web aplication.
         required: true
       name:
         type: str
-        description: 
+        description:
           - The network interface name.
           - Matches an interface with the specified name. (For example, "eth0".)
       subnet_cidr:
         type: str
-        description: 
+        description:
           - The subnet CIDR for the network interface.
           - Matches an interface attached to the specified subnet CIDR. (For example, "192.168.0.0/24".)
       ip_address:
         type: str
-        description: 
+        description:
           - Ip address.
           - Matches an interface whose VLAN is on the subnet implied by the given IP address.
       fabric:
@@ -100,29 +100,31 @@ options:
           - Matches an interface attached to the specified fabric.
       vlan:
         type: str
-        description: 
+        description:
           - The VLAN for the network interface.
           - Matches an interface on the specified VLAN.
-        
 """
 
 EXAMPLES = r"""
-- name: Create new machine
+- name: Create machine with compose
   hosts: localhost
   tasks:
-  - name: Create new machine on some-host with hostname new-machine, network interface and two disks.
+  - name: Create new machine on sunny-raptor host
     canonical.maas.vm_host_machine:
       instance:
-        host: 'some host address'
-        token_key: 'token key'
-        token_secret: 'token secret'
-        client_key: 'client key'
-      vm_host: some-host
-      hostname: new-machine
+        host: host-ip
+        token_key: token-key
+        token_secret: token-secret
+        client_key: client-key
+      vm_host: sunny-raptor
+      hostname: new-machine-3
       cores: 2
       memory: 2048
+      zone: 1
+      pool: 0
+      domain: 0
       network_interfaces:
-        name: my_new
+        label_name: my-net
         subnet_cidr: "10.10.10.0/24"
       storage_disks:
         - size_gigabytes: 3
@@ -135,22 +137,27 @@ EXAMPLES = r"""
 
 RETURN = r"""
 record:
-  description:
-    - The created record of a machine.
-  returned: success
-  type: dict
-  sample:
-    id: new-machine-id
-    hostname: 'new-machine'
-    memory: 2046
-    cores: 2
-    network_interfaces:
-      - name: 'my_new'
-        subnet_cidr: 10.0.0.0/24
-    storage:
-      - size_gigabytes: 5
-      - size_gigabytes: 10
-      
+  cores: 2
+  distro_series: ''
+  hostname: new-machine-3
+  id: 6h4fn6
+  memory: 2048
+  network_interfaces:
+  - fabric: fabric-1
+    id: 277
+    ip_address: 10.10.10.190
+    name: my-net
+    subnet_cidr: 10.10.10.0/24
+    vlan: untagged
+  osystem: ''
+  status: Commissioning
+  storage_disks:
+  - id: 288
+    name: sda
+    size_gigabytes: 3
+  - id: 289
+    name: sdb
+    size_gigabytes: 5
 """
 
 from ansible.module_utils.basic import AnsibleModule
