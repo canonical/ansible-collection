@@ -74,10 +74,12 @@ class NetworkInterface(MaasValueMapper):
                 obj.vlan = maas_dict["links"][0]["subnet"]["vlan"].get("name")
                 obj.fabric = maas_dict["links"][0]["subnet"]["vlan"].get("fabric")
             else:  # interface auto generated
+                # TODO: DOMEN get mac address from maas_dict
+                raise errors.MaasError(maas_dict)
                 obj.ip_address = maas_dict.get("ip_address")
                 obj.subnet_cidr = maas_dict.get("cidr")
-                obj.vlan = maas_dict["vlan"].get("name")
-                obj.fabric = maas_dict["vlan"].get("fabric")
+                obj.vlan = maas_dict["vlan"].get("name") if maas_dict["vlan"] else None
+                obj.fabric = maas_dict["vlan"].get("fabric") if maas_dict["vlan"] else None
             obj.machine_id = maas_dict["system_id"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)

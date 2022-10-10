@@ -80,14 +80,14 @@ def ensure_present(module, client, machine_obj):
     after = []
     new_nic_obj = NetworkInterface.from_ansible(module.params)
     existing_nic = machine_obj.find_nic_by_mac(new_nic_obj.mac_address)
-    if existing_nic:
-        if existing_nic.needs_update(new_nic_obj):
-            before.append(existing_nic)
-            new_nic_obj.send_update_request(new_nic_obj.payload_for_update())
-            after.append()
+    if existing_nic and existing_nic.needs_update(new_nic_obj):
+        before.append(existing_nic)
+        new_nic_obj.send_update_request(new_nic_obj.payload_for_update())
+        after.append()
     else:
         new_nic_obj.send_create_request(client, machine_obj, new_nic_obj.payload_for_create())
-        after.append()
+    updated_machine_obj = Machine.get_by_name_and_host(module, client, must_exist=True)
+    after.append(updated_machine_obj.find_nic_by_mac(new_nic_obj.mac_address))
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
@@ -98,7 +98,7 @@ def ensure_absent(module, client, machine_obj):
 
 
 def run(module, client):
-    machine_obj = Machine.get_by_name(module, client, must_exist=True)
+    machine_obj = Machine.get_by_name_and_host(module, client, must_exist=True)
     if module.params["state"] == NicState.present:
         changed, records, diff = ensure_present(module, client, machine_obj)
     else:
