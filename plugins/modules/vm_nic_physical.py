@@ -5,7 +5,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
-from socket import AF_ECONET
 
 from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
     NetworkInterface,
@@ -26,6 +25,10 @@ extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
 options:
+  vm_host:
+    description: Name of the host.
+    type: str
+    required: True
   hostname:
     description: Name of the virtual machine.
     type: str
@@ -108,6 +111,10 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("instance"),
+            vm_host=dict(
+                type="str",
+                required=True,
+            ),
             hostname=dict(
                 type="str",
                 required=True,
