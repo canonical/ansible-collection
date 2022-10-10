@@ -57,10 +57,14 @@ class TestAllocate:
                 allocate_params={
                     "memory": 2000,
                     "cores": 1,
+                    "zone": "my_zone",
+                    "pool": "my_pool",
+                    "tags": None,
                 },
-                deploy_params={
-                    "osystem": "ubuntu",
-                    "distro_series": "jammy",
+                network_interfaces={
+                    "name": "my_network",
+                    "subnet_cidr": "10.10.10.10/24",
+                    "ip_address": "10.10.10.190",
                 },
             ),
         )
@@ -73,7 +77,48 @@ class TestAllocate:
         client.post.assert_called_with(
             "/api/2.0/machines/",
             query={"op": "allocate"},
-            data={"cpu_count": 1, "mem": 2000},
+            data={
+                "cpu_count": 1,
+                "mem": 2000,
+                "zone": "my_zone",
+                "pool": "my_pool",
+                "interfaces": "my_network:subnet_cidr=10.10.10.10/24,ip=10.10.10.190",
+            },
+        )
+
+    def test_allocate_tags(self, client, create_module, mocker):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    client_key="nzW4EBWjyDe",
+                ),
+                hostname="my_instance",
+                state="ready",
+                allocate_params={
+                    "memory": None,
+                    "cores": None,
+                    "zone": None,
+                    "pool": None,
+                    "tags": ["my_tag"],
+                },
+                network_interfaces=None,
+            ),
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.from_maas"
+        )
+
+        instance.allocate(module, client)
+
+        client.post.assert_called_with(
+            "/api/2.0/machines/",
+            query={"op": "allocate"},
+            data={
+                "tag_names": "my_tag",
+            },
         )
 
 
@@ -104,14 +149,6 @@ class TestDelete:
                 ),
                 hostname="my_instance",
                 state="absent",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
-                deploy_params={
-                    "osystem": "ubuntu",
-                    "distro_series": "jammy",
-                },
             ),
         )
         mocker.patch(
@@ -146,14 +183,6 @@ class TestDelete:
                 ),
                 hostname="my_instance",
                 state="absent",
-                allocate_params={
-                    "memory": 2000,
-                    "cpu": 1,
-                },
-                deploy_params={
-                    "osystem": "ubuntu",
-                    "distro_series": "jammy",
-                },
             ),
         )
         mocker.patch(
@@ -177,14 +206,6 @@ class TestRelease:
                 ),
                 hostname="my_instance",
                 state="ready",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
-                deploy_params={
-                    "osystem": "ubuntu",
-                    "distro_series": "jammy",
-                },
             ),
         )
         mocker.patch(
@@ -208,14 +229,6 @@ class TestRelease:
                 ),
                 hostname="my_instance",
                 state="ready",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
-                deploy_params={
-                    "osystem": "ubuntu",
-                    "distro_series": "jammy",
-                },
             ),
         )
         mocker.patch(
@@ -245,14 +258,6 @@ class TestRelease:
                 ),
                 hostname="my_instance",
                 state="ready",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
-                deploy_params={
-                    "osystem": "ubuntu",
-                    "distro_series": "jammy",
-                },
             ),
         )
         mocker.patch(
@@ -283,14 +288,6 @@ class TestRelease:
                 ),
                 hostname="my_instance",
                 state="ready",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
-                deploy_params={
-                    "osystem": "ubuntu",
-                    "distro_series": "jammy",
-                },
             ),
         )
         mocker.patch(
@@ -323,14 +320,12 @@ class TestDeploy:
                 ),
                 hostname=None,
                 state="ready",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
                 deploy_params={
                     "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
+                    "hwe_kernel": "my_kernel",
+                    "user_data": "my_data",
                 },
             ),
         )
@@ -352,6 +347,8 @@ class TestDeploy:
             data={
                 "osystem": "ubuntu",
                 "distro_series": "jammy",
+                "hwe_kernel": "my_kernel",
+                "user_data": "my_data",
             },
             timeout=30,
         )
@@ -368,14 +365,12 @@ class TestDeploy:
                 ),
                 hostname="my_instance",
                 state="ready",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
                 deploy_params={
                     "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
+                    "hwe_kernel": "my_kernel",
+                    "user_data": "my_data",
                 },
             ),
         )
@@ -400,14 +395,12 @@ class TestDeploy:
                 ),
                 hostname="my_instance",
                 state="ready",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
                 deploy_params={
                     "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
+                    "hwe_kernel": "my_kernel",
+                    "user_data": "my_data",
                 },
             ),
         )
@@ -429,6 +422,8 @@ class TestDeploy:
             data={
                 "osystem": "ubuntu",
                 "distro_series": "jammy",
+                "hwe_kernel": "my_kernel",
+                "user_data": "my_data",
             },
             timeout=30,
         )
@@ -446,14 +441,12 @@ class TestDeploy:
                 ),
                 hostname="my_instance",
                 state="ready",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
                 deploy_params={
                     "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
+                    "hwe_kernel": "my_kernel",
+                    "user_data": "my_data",
                 },
             ),
         )
@@ -477,6 +470,8 @@ class TestDeploy:
             data={
                 "osystem": "ubuntu",
                 "distro_series": "jammy",
+                "hwe_kernel": "my_kernel",
+                "user_data": "my_data",
             },
             timeout=30,
         )
@@ -493,14 +488,12 @@ class TestDeploy:
                 ),
                 hostname="my_instance",
                 state="ready",
-                allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
-                },
                 deploy_params={
                     "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
+                    "hwe_kernel": "my_kernel",
+                    "user_data": "my_data",
                 },
             ),
         )
@@ -522,6 +515,8 @@ class TestDeploy:
             data={
                 "osystem": "ubuntu",
                 "distro_series": "jammy",
+                "hwe_kernel": "my_kernel",
+                "user_data": "my_data",
             },
             timeout=30,
         )
