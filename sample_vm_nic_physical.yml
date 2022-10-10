@@ -8,7 +8,8 @@
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
         client_key: nzW4EBWjyDe5B5szja
-      hostname: new-machine
+      vm_host: sunny-raptor
+      hostname: calm-guinea
       state: present
       mac_address: '00:16:3e:ae:78:75'
       vlan: 5
