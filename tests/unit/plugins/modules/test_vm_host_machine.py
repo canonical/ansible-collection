@@ -34,7 +34,6 @@ class TestMain:
         )
 
         success, results = run_main(vm_host_machine, params)
-        print(success, results)
         assert success is True
         assert results == {
             "changed": False,
@@ -54,12 +53,15 @@ class TestMain:
             hostname="this-machine",
             cores=3,
             memory=2048,
-            network_interfaces={"name": "my_interface", "subnet_cidr": "10.10.10.0/24"},
+            network_interfaces={
+                "label_name": "my-interface",
+                "name": "esp0",
+                "subnet_cidr": "10.10.10.0/24",
+            },
             storage_disks=[{"size_gigabytes": 15}, {"size_gigabytes": 10}],
         )
 
         success, results = run_main(vm_host_machine, params)
-        print(success, results)
         assert success is True
         assert results == {
             "changed": False,
@@ -114,7 +116,6 @@ class TestRun:
             },
         )
         results = vm_host_machine.run(module, client)
-        print(results)
         assert results == (
             True,
             [{"hostname": "some_name", "id": "new_id", "memory": 5000, "cores": 2}],
@@ -170,7 +171,6 @@ class TestRun:
             "ansible_collections.canonical.maas.plugins.modules.vm_host_machine.ensure_ready"
         ).return_value = (True, after, dict(before=before, after=after))
         results = vm_host_machine.run(module, client)
-        print(results)
         assert results == (True, after, dict(before=before, after=after))
 
 
@@ -193,7 +193,6 @@ class TestPrepareNetworkData:
             )
         )
         vm_host_machine.prepare_network_data(module)
-        print(module.params["network_interfaces"])
         assert module.params["network_interfaces"] == [network_interfaces]
 
 
@@ -211,6 +210,12 @@ class TestEnsureReady:
             system_id="123",
             interface_set=None,
             blockdevice_set=None,
+            domain=dict(id=1),
+            zone=dict(id=1),
+            pool=dict(id=1),
+            status_name="Ready",
+            osystem="ubuntu",
+            distro_series="jammy",
         )
 
     @staticmethod
@@ -220,11 +225,21 @@ class TestEnsureReady:
             cpu_count=2,
             memory=5000,
             system_id="123",
+            domain=dict(id=1),
+            zone=dict(id=1),
+            pool=dict(id=1),
             interface_set=[
                 {
                     "id": "123",
                     "name": "this_name",
-                    "links": [{"subnet": {"cidr": "some_ip"}}],
+                    "links": [
+                        {
+                            "subnet": {
+                                "cidr": "some_ip",
+                                "vlan": {"name": "name_1", "fabric": "fabric-1"},
+                            }
+                        }
+                    ],
                     "system_id": 1,
                 }
             ],
@@ -232,6 +247,9 @@ class TestEnsureReady:
                 {"size": 5, "name": "1", "id": "1"},
                 {"size": 5, "name": "2", "id": "2"},
             ],
+            status_name="Ready",
+            osystem="ubuntu",
+            distro_series="jammy",
         )
 
     def test_ensure_ready_without_storaga_and_net_interfaces(
@@ -245,6 +263,12 @@ class TestEnsureReady:
             "system_id": "123",
             "interface_set": None,
             "blockdevice_set": None,
+            "status_name": "Ready",
+            "osystem": "ubuntu",
+            "distro_series": "jammy",
+            "domain": {"id": 1},
+            "zone": {"id": 1},
+            "pool": {"id": 1},
         }
         task = {
             "system_id": "1234",
@@ -290,7 +314,6 @@ class TestEnsureReady:
             "ansible_collections.canonical.maas.plugins.module_utils.utils.is_changed"
         ).return_value = True
         results = vm_host_machine.ensure_ready(module, client, host_obj)
-        print(results)
         assert results == (True, after, dict(before=before, after=after))
 
     def test_ensure_ready_with_storage_and_net_interfaces(
@@ -302,11 +325,21 @@ class TestEnsureReady:
             "cpu_count": 2,
             "memory": 5000,
             "system_id": "123",
+            "domain": {"id": 1},
+            "zone": {"id": 1},
+            "pool": {"id": 1},
             "interface_set": [
                 {
                     "id": "123",
                     "name": "this_name",
-                    "links": [{"subnet": {"cidr": "some_ip"}}],
+                    "links": [
+                        {
+                            "subnet": {
+                                "cidr": "some_ip",
+                                "vlan": {"name": "name_1", "fabric": "fabric-1"},
+                            }
+                        }
+                    ],
                     "system_id": 1,
                 }
             ],
@@ -314,6 +347,9 @@ class TestEnsureReady:
                 {"size": 5, "name": "1", "id": "1"},
                 {"size": 5, "name": "2", "id": "2"},
             ],
+            "status_name": "Ready",
+            "osystem": "ubuntu",
+            "distro_series": "jammy",
         }
         task = {
             "system_id": "1234",
