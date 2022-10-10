@@ -151,17 +151,17 @@ class Machine(MaasValueMapper):
 
     def to_ansible(self):
         return dict(
-            hostname = self.hostname,
-            id = self.id,
-            memory = self.memory,
-            cores = self.cores,
-            network_interfaces = [
-            net_interface.to_ansible() for net_interface in self.network_interfaces
+            hostname=self.hostname,
+            id=self.id,
+            memory=self.memory,
+            cores=self.cores,
+            network_interfaces=[
+                net_interface.to_ansible() for net_interface in self.network_interfaces
             ],
-            storage_disks = [disk.to_ansible() for disk in self.disks],
-            status = self.status,
-            osystem = self.osystem,
-            distro_series = self.distro_series
+            storage_disks=[disk.to_ansible() for disk in self.disks],
+            status=self.status,
+            osystem=self.osystem,
+            distro_series=self.distro_series,
         )
 
     def payload_for_compose(self, module):
