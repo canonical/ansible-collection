@@ -69,6 +69,17 @@ class Machine(MaasValueMapper):
             return machine_from_maas
 
     @classmethod
+    def get_by_name_and_host(cls, module, client, must_exist=False):
+        if not module.params.get("hostname") or not module.params.get("vm_host"):
+            raise errors.MaasError("hostname or vm_host parameter missing.")
+        maas_list = client.get("/api/2.0/machines/").json
+        for maas_dict in maas_list:
+            if maas_dict["hostname"] == module.params["hostname"] and maas_dict["pod"]["name"] == module.params["vm_host"]:
+                return cls.from_maas(maas_dict)
+        if must_exist:
+            raise errors.MachineNotFound(module.params.get("hostname"))
+
+    @classmethod
     def get_by_id(cls, id, client):
         # rest_client.get_record doesn't work here
         # in case if machine doesn't exist .json throws error: MaasError("Received invalid JSON response: {0}".format(self.data))
