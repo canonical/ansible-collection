@@ -44,7 +44,7 @@ from ..module_utils.client import Client
 
 
 def run(module, client: Client):
-    response = client.get(f"/api/2.0/boot-resources/")
+    response = client.get("/api/2.0/boot-resources/")
     return response.json
 
 
@@ -59,11 +59,11 @@ def main():
     try:
         instance = module.params["instance"]
         host = instance["host"]
-        client_key = instance["client_key"]
+        consumer_key = instance["customer_key"]
         token_key = instance["token_key"]
         token_secret = instance["token_secret"]
 
-        client = Client(host, token_key, token_secret, client_key)
+        client = Client(host, token_key, token_secret, consumer_key)
         records = run(module, client)
         module.exit_json(changed=False, records=records)
     except errors.MaasError as e:

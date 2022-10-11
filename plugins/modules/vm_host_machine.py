@@ -281,12 +281,14 @@ def main():
             option="network_interfaces",
             list_suboptions=["name", "subnet_cidr", "fabric", "vlan", "ip_address"],
         )
-        host = module.params["instance"]["host"]
-        client_key = module.params["instance"]["client_key"]
-        token_key = module.params["instance"]["token_key"]
-        token_secret = module.params["instance"]["token_secret"]
 
-        client = Client(host, token_key, token_secret, client_key)
+        instance = module.params["instance"]
+        host = instance["host"]
+        consumer_key = instance["customer_key"]
+        token_key = instance["token_key"]
+        token_secret = instance["token_secret"]
+
+        client = Client(host, token_key, token_secret, consumer_key)
         changed, record, diff = run(module, client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as e:

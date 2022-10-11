@@ -29,10 +29,10 @@ SHARED_SPECS = dict(
                 required=True,
                 fallback=(env_fallback, ["MAAS_TOKEN_SECRET"]),
             ),
-            client_key=dict(
+            customer_key=dict(
                 type="str",
                 required=True,
-                fallback=(env_fallback, ["MAAS_CLIENT_KEY"]),
+                fallback=(env_fallback, ["MAAS_CUSTOMER_KEY"]),
             ),
         ),
     )

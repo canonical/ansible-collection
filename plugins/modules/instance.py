@@ -16,7 +16,8 @@ author:
 short_description: Deploy, release or delete machines.
 description:
   - If I(state) value is C(deployed) the selected machine will be deployed.
-    If I(hostname) is not provided, a random machine with I(allocate_params), I(deploy_params) and I(network_interface) parameters will be allocated and deployed.
+    If I(hostname) is not provided, a random machine with I(allocate_params),
+    I(deploy_params) and I(network_interface) parameters will be allocated and deployed.
     If I(hostname) is not provided and no parameters are given, a random machine will be allocated and deployed using the defaults.
   - If I(state) value is C(ready) the selected machine will be released.
   - If I(state) value is C(absent) the selected machine will be deleted.
@@ -418,11 +419,11 @@ def main():
     try:
         instance = module.params["instance"]
         host = instance["host"]
-        client_key = instance["client_key"]
+        consumer_key = instance["customer_key"]
         token_key = instance["token_key"]
         token_secret = instance["token_secret"]
 
-        client = Client(host, token_key, token_secret, client_key)
+        client = Client(host, token_key, token_secret, consumer_key)
         changed, record, diff = run(module, client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as e:
