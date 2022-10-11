@@ -57,7 +57,7 @@ class TestGet:
             "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
         ).return_value = dict(
             hostname="my_instance",
-            system_id="sytem_id",
+            system_id="system_id",
             memory=2000,
             cpu_count=2,
             interface_set=None,
@@ -65,14 +65,18 @@ class TestGet:
             status_name="Ready",
             osystem="ubuntu",
             distro_series="jammy",
-            domain=dict(id=1),
+            domain=dict(id=3),
             pool=dict(id=1),
-            zone=dict(id=1),
+            zone=dict(id=2),
+            tag_names=["my_tag"],
+            hwe_kernel="my_kernel",
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(
             hostname="my_instance",
-            id="sytem_id",
+            id="system_id",
+            pool=1,
+            zone=2,
             memory=2000,
             cores=2,
             network_interfaces=[],
@@ -80,6 +84,9 @@ class TestGet:
             status="Ready",
             osystem="ubuntu",
             distro_series="jammy",
+            tags=["my_tag"],
+            hwe_kernel="my_kernel",
+            domain=3,
         )
 
 

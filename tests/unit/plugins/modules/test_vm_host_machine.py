@@ -213,9 +213,11 @@ class TestEnsureReady:
             domain=dict(id=1),
             zone=dict(id=1),
             pool=dict(id=1),
+            tag_names=["my_tag"],
             status_name="Ready",
             osystem="ubuntu",
             distro_series="jammy",
+            hwe_kernel="ga-22.04",
         )
 
     @staticmethod
@@ -228,6 +230,7 @@ class TestEnsureReady:
             domain=dict(id=1),
             zone=dict(id=1),
             pool=dict(id=1),
+            tag_names=["my_tag"],
             interface_set=[
                 {
                     "id": "123",
@@ -250,6 +253,7 @@ class TestEnsureReady:
             status_name="Ready",
             osystem="ubuntu",
             distro_series="jammy",
+            hwe_kernel="ga-22.04",
         )
 
     def test_ensure_ready_without_storaga_and_net_interfaces(
@@ -258,17 +262,19 @@ class TestEnsureReady:
         before = None
         after = {
             "hostname": "machine_1",
-            "cpu_count": 2,
+            "cores": 2,
             "memory": 5000,
-            "system_id": "123",
-            "interface_set": None,
-            "blockdevice_set": None,
-            "status_name": "Ready",
+            "id": "123",
+            "network_interfaces": None,
+            "storage_disks": None,
+            "status": "Ready",
             "osystem": "ubuntu",
             "distro_series": "jammy",
-            "domain": {"id": 1},
-            "zone": {"id": 1},
-            "pool": {"id": 1},
+            "domain": 1,
+            "zone": 1,
+            "pool": 1,
+            "tags": ["my_tag"],
+            "hwe_kernel": "ga-22.04",
         }
         task = {
             "system_id": "1234",
@@ -309,7 +315,7 @@ class TestEnsureReady:
         ).return_value = machine_obj
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_ansible"
-        ).return_value = machine_dict
+        ).return_value = after
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.utils.is_changed"
         ).return_value = True
@@ -322,13 +328,13 @@ class TestEnsureReady:
         before = None
         after = {
             "hostname": "machine_2",
-            "cpu_count": 2,
+            "cores": 2,
             "memory": 5000,
             "system_id": "123",
             "domain": {"id": 1},
             "zone": {"id": 1},
             "pool": {"id": 1},
-            "interface_set": [
+            "network_interfaces": [
                 {
                     "id": "123",
                     "name": "this_name",
@@ -343,7 +349,7 @@ class TestEnsureReady:
                     "system_id": 1,
                 }
             ],
-            "blockdevice_set": [
+            "storage_disks": [
                 {"size": 5, "name": "1", "id": "1"},
                 {"size": 5, "name": "2", "id": "2"},
             ],
@@ -392,7 +398,7 @@ class TestEnsureReady:
         ).return_value = machine_obj
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_ansible"
-        ).return_value = machine_dict
+        ).return_value = after
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.utils.is_changed"
         ).return_value = True
