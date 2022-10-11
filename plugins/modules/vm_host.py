@@ -16,73 +16,94 @@ author:
 short_description: Create, update and delete VM host of allowed type (LXD and virsh).
 description:
   - If I(state) value is C(absent) the selected VM host will be deleted.
-  - If I(state) value is C(present) new VM host will be created or existing VM host will be updated.
-    If I(hostname) is not provided, a random machine with I(allocate_params) and I(deploy_params) will be allocated and deployed.
-    If no parameters are given, a random machine will be allocated and deployed using the defaults.
-    In case if no machine matching the given constraints could be found, the task will FAIL.
-  - If I(state) value is C(ready) the selected machine will be released.
+  - If I(state) value is C(present) new VM host will be created (if I(vm_host is used)) or existing VM host will be updated.
+  # ADD DOCUMENTATION AFTER ISSUE WITH STATES IS RESOLVED
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
 options:
-  hostname:
-    description:
-      - Name of the VM host to be created, updated or deleted.
-      - Serves as unique identifier of the VM host.
-      - If VM host is not found the task will FAIL.
-    type: str
   state:
     description:
       - Desired state of the VM host.
     choices: [ absent, present ]
     type: str
     required: True
-  type:
+  hostname:
     description:
-      - Desired state of the VM host.
-    choices: [ absent, present ]
+      - The name of a registered ready MAAS machine if I(state) value is C(present). The machine is going to be deployed and registered as a LXD VM host in MAAS.
+      - The name of an existing VM host if I(state) value is C(absent). # OR UPDATING
+      - This option conflicts with I(power_parameters) in case of creating new VM host. If updating it is ok # NEEDS TO BE RESOLVED WHEN IS UPDATING
+      - If machine or VM host is not found the task will FAIL.
     type: str
-    required: True
-  allocate_params:
+  power_parameters:
     description:
-      - Constraints parameters that can be used to allocate a machine with certain characteristics.
-      - All the constraints are optional and when multiple constraints are provided, they are combined using 'AND' semantics.
-      - If no parameters are given, a random machine will be allocated using the defaults.
-      - Relevant only if I(state) value is C(deployed)
+      - Power parameters used for creating new VM host or updating existing VM host.
+      - If creating new VM host required parameters are I(type) and I(power_address). 
+        If I(type) value is C(virsh) the parameters I(power_user) and I(power_pass) are also required. # CHECK IF THIS IS REALLY TRUE
     type: dict
     options:
-      cores:
+      power_type:
         description:
-          - If present, this parameter specifies the minimum number of CPUs a returned machine must have.
-          - A machine with additional CPUs may be allocated if there is no exact match, or if the 'mem' constraint is not also specified.
-        type: int
-      memory:
+          - The new VM host type.
+          - This option conflicts with I(hostname).
+          - This option is used only when creating new VM host. To change the type, the VM host must be deleted and re-added.
+        choices: [ lxd, virsh ]
+        type: str
+      power_address:
         description:
-          - If present, this parameter specifies the minimum amount of memory (expressed in MB) the returned machine must have.
-          - A machine with additional memory may be allocated if there is no exact match, or the 'cpu' constraint is not also specified.
-        type: int
-  deploy_params:
+          - Address that gives MAAS access to the VM host power control. For example, for C(virsh) "qemu+ssh://172.16.99.2/system", for C(lxd), this is just the address of the host.
+          - The address given here must be reachable by the MAAS server.
+        type: str
+      power_user:
+        description:
+          - User name to use for power control of the VM host.
+          - Required for C(virsh) VM hosts that do not have SSH set up for public-key authentication.
+          - This option is used only when creating new VM host.
+        type: str
+      power_pass:
+        description:
+          - User password to use for power control of the VM host.
+          - Required for C(virsh) VM hosts that do not have SSH set up for public-key authentication and for C(lxd) if the MAAS certificate is not registered already in the LXD server.
+        type: str
+  new_hostname:
     description:
-      - Specify the OS and OS release the machine will use.
-      - If no parameters are given, a random machine will be deployed using the defaults.
-      - Relevant only if I(state) value is C(deployed)
-      - If machine is already in deployed state, I(deploy_params) will be ignored. Machine needs to be released first for I(deploy_params) to apply
-    type: dict
-    options:
-      osystem:
-        description:
-          - If present, this parameter specifies the OS the machine will use.
-        type: str
-      distro_series:
-        description:
-          - If present, this parameter specifies the OS release the machine will use.
-        type: str
-      timeout:
-        description:
-          - Time in seconds to wait for server response in case of deploying.
-        type: int
+      - The new VM host name.
+      - This is computed if it's not set.
+    type: str
+  zone:
+    description:
+      - The new VM host zone name.
+      - This is computed if it's not set.
+    type: str
+  pool:
+    description:
+      - The new VM host zone name.
+      - This is computed if it's not set.
+    type: str
+  tags:
+    description:
+      - A tag or list of tags (comma delimited) to assign to the new VM host.
+      - This is computed if it's not set.
+    type: str
+  cpu_over_commit_ratio:
+    description:
+      - The new VM host CPU overcommit ratio (0-10).
+      - This is computed if it's not set.
+    type: int
+  memory_over_commit_ratio:
+    description:
+      - The new VM host RAM memory overcommit ratio (0-10).
+      - This is computed if it's not set.
+    type: int
+  default_macvlan_mode:
+    description:
+      - Default macvlan mode for VM hosts that use it.
+      - This is computed if it's not set.
+    choices: [ bridge, passthru, private, vepa ]
+    type: str
 """
+
 
 EXAMPLES = r"""
 name: Register LXD VM host
@@ -95,6 +116,12 @@ canonical.maas.vm_host:
     # power_pass: does not work with 
   cpu_over_commit_ratio: ... # 1.0
   memory_over_commit_ratio: ... # 1.0
+  default_macvlan_mode:
+  new_hostname:
+  zone:
+  pool:
+  tags:
+
 
 name: Register VIRSH host
 canonical.maas.vm_host:
@@ -106,6 +133,12 @@ canonical.maas.vm_host:
     power_pass: ...
   cpu_over_commit_ratio: ...
   memory_over_commit_ratio: ...
+  default_macvlan_mode:
+  new_hostname:
+  zone:
+  pool:
+  tags:
+  
 
 name: Register known allready allocated machine
 canonical.maas.vm_host:
@@ -113,13 +146,23 @@ canonical.maas.vm_host:
   hostname: my_instance
   cpu_over_commit_ratio: ...
   memory_over_commit_ratio: ...
+  default_macvlan_mode:
+  new_hostname:
+  zone:
+  pool:
+  tags:
 
 name: Change over commit ratios
 canonical.maas.vm_host:
-  state: present
+  state: updated # WE NEED DIFFERENT STATE TO DIFFERENTIATE BETWEEN UPDATING VM HOST OR CREATAING IT FROM MACHINE
   hostname: my_instance
   cpu_over_commit_ratio: ...
   memory_over_commit_ratio: ...
+  default_macvlan_mode:
+  new_hostname:
+  zone:
+  pool:
+  tags:
 
 name: Remove VM host
 canonical.maas.vm_host:
@@ -130,192 +173,218 @@ canonical.maas.vm_host:
 RETURN = r"""
 record:
   description:
-    - The deployed/released machine instance.
+    - Created VM host.
   returned: success
   type: dict
   sample:
-    id: machine-id
-    hostname: this-machine
-    status: Ready
-    memory: 2048
-    cores: 2
-    network_interfaces:
-      - name: this-interface
-        subnet_cidr: 10.0.0.0/24
-    storage_disks:
-      - size_gigabytes: 5
-      - size_gigabytes: 10
-    osystem: ubuntu
-    distro_series: jammy
+    - architectures:
+      - amd64/generic
+      available:
+        cores: 1
+        local_storage: 6884062720
+        memory: 4144
+      capabilities:
+      - composable
+      - dynamic_local_storage
+      - over_commit
+      - storage_pools
+      cpu_over_commit_ratio: 1.0
+      default_macvlan_mode: null
+      host:
+        __incomplete__: true
+        system_id: d6car8
+      id: 1
+      memory_over_commit_ratio: 1.0
+      name: sunny-raptor
+      pool:
+        description: Default pool
+        id: 0
+        name: default
+        resource_uri: /MAAS/api/2.0/resourcepool/0/
+      resource_uri: /MAAS/api/2.0/vm-hosts/1/
+      storage_pools:
+      - available: 6884062720
+        default: true
+        id: default
+        name: default
+        path: /var/snap/lxd/common/lxd/disks/default.img
+        total: 22884062720
+        type: zfs
+        used: 16000000000
+      tags:
+      - pod-console-logging
+      total:
+        cores: 4
+        local_storage: 22884062720
+        memory: 8192
+      type: lxd
+      used:
+        cores: 3
+        local_storage: 16000000000
+        memory: 4048
+      version: '5.5'
+      zone:
+        description: ''
+        id: 1
+        name: default
+        resource_uri: /MAAS/api/2.0/zones/default/
 """
 
 
-from time import sleep
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.machine import Machine
+from ..module_utils.vmhost import VMHost
 
 
-def deploy_machine(module, client):
-    machine = Machine.get_by_name(module, client, must_exist=True)
+def deploy_machine_as_vm_host(module, client):
+    machine = Machine.get_by_name(
+        module, client, must_exist=True
+    )  # Replace with get_by_name_and_vm_host??
     data = {
         "install_rackd": True,  # If true, the rack controller will be installed on this machine.
         "install_kwm": True,  # If true, KVM will be installed on this machine and added to MAAS.
-        "register_vmhost": True,  # If true, the machine will be registered as a LXD VM host in MAAS.
+        "register_vmhost": True,  # TEST THE COMBINATION OF PARAMETERS
     }
+    timeout = 30  # [s]
     client.post(
         f"/api/2.0/machines/{machine.id}/",
         query={"op": "deploy"},
         data=data,
         timeout=timeout,
     ).json  # here we can get TimeoutError: timed out
+    # GET VM_HOST
+    return (
+        True,
+        vm_host,
+        dict(before={}, after=vm_host),
+    )
 
 
-def wait_for_state(system_id, client: Client, check_mode=False, *states):
-    if check_mode:
-        return  # add mocked machine when needed
-    while True:
-        machine = Machine.get_by_id(system_id, client)
-        if machine.status in states:  # IMPLEMENT TIMEOUT?
-            return machine
-        sleep(1)
-
-
-def allocate(module, client: Client):
+def create_vm_host(module, client: Client):
     data = {}
-    if module.params["allocate_params"]:
-        if module.params["allocate_params"]["cores"]:
-            data["cpu_count"] = module.params["allocate_params"]["cores"]
-        if module.params["allocate_params"]["memory"]:
-            data["mem"] = module.params["allocate_params"]["memory"]
-        # here an error can occur:
-        # HTTP Status Code : 409 No machine matching the given constraints could be found.
-        # This happens only when all machines are allocated and we want to release random machine using allocate_params
-    # instance can't be allocated if commissioning, the only action allowed is abort
-    maas_dict = client.post(
-        "/api/2.0/machines/", query={"op": "allocate"}, data=data
+    data["type"] = module.params["power_parameters"]["power_type"]
+    data["power_address"] = module.params["power_parameters"]["power_address"]
+    if module.params["power_parameters"]["power_user"]:
+        data["power_user"] = module.params["power_parameters"]["power_user"]
+    if module.params["power_parameters"]["power_pass"]:
+        data["power_pass"] = module.params["power_parameters"]["power_pass"]
+    # CHECK IF FOR LOOP IS REALLY NOT NEEDED HERE
+    if module.params["tags"]:
+        data["tags"] = module.params["tags"]
+    if module.params["zone"]:
+        data["zone"] = module.params["zone"]
+    if module.params["pool"]:
+        data["pool"] = module.params["pool"]
+    if module.params["new_hostname"]:
+        data["name"] = module.params["new_hostname"]
+    timeout = 30  # DO WE NEED IT? CAN IT TIMEOUT?
+    vm_host = client.post(
+        "/api/2.0/vm-hosts/",
+        data=data,
+        timeout=timeout,
+    ).json  # here we can get TimeoutError: timed out
+
+    data = {}
+    if module.params["cpu_over_commit_ratio"]:
+        data["cpu_over_commit_ratio"] = module.params["cpu_over_commit_ratio"]
+    if module.params["memory_over_commit_ratio"]:
+        data["memory_over_commit_ratio"] = module.params["memory_over_commit_ratio"]
+    if module.params["default_macvlan_mode"]:
+        data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
+    if data:
+        vm_host = client.put(
+            f"/api/2.0/vm-hosts/{vm_host['id']}",
+            data=data,
+            timeout=timeout,
+        ).json  # here we can get TimeoutError: timed out
+
+    return (
+        True,
+        vm_host,
+        dict(before={}, after=vm_host),
+    )
+
+
+def update_vm_host(module, client: Client):
+    vm_host = VMHost.get_by_name(
+        module, client, must_exist=False, name_field_ansible="hostname"
+    )
+    data = {}
+    if module.params["power_parameters"]["power_address"]:
+        if vm_host.power_address != module.params["power_parameters"]["power_address"]:
+            data["power_address"] = module.params["power_parameters"]["power_address"]
+    if module.params["power_parameters"]["power_pass"]:
+        data["power_pass"] = module.params["power_parameters"]["power_pass"]
+    # CHECK IF FOR LOOP IS REALLY NOT NEEDED HERE
+    if module.params["tags"]:
+        if vm_host.tags != module.params["tags"]:
+            data["tags"] = module.params["tags"]
+    if module.params["zone"]:
+        if vm_host.zone != module.params["zone"]:
+            data["zone"] = module.params["zone"]
+    if module.params["pool"]:
+        if vm_host.pool != module.params["pool"]:
+            data["pool"] = module.params["pool"]
+    if module.params["new_hostname"]:
+        if vm_host.name != module.params["new_hostname"]:
+            data["name"] = module.params["new_hostname"]
+    if module.params["cpu_over_commit_ratio"]:
+        if vm_host.cpu_over_commit_ratio != module.params["cpu_over_commit_ratio"]:
+            data["cpu_over_commit_ratio"] = module.params["cpu_over_commit_ratio"]
+    if module.params["memory_over_commit_ratio"]:
+        if (
+            vm_host.memory_over_commit_ratio
+            != module.params["memory_over_commit_ratio"]
+        ):
+            data["memory_over_commit_ratio"] = module.params["memory_over_commit_ratio"]
+    if module.params["default_macvlan_mode"]:
+        if vm_host.default_macvlan_mode != module.params["default_macvlan_mode"]:
+            data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
+    timeout = 30  # DO WE NEED IT? CAN IT TIMEOUT?
+    if data:
+        vm_host_before = client.get(
+            f"/api/2.0/vm-hosts/{vm_host.id}",
+        ).json
+        vm_host = client.put(
+            f"/api/2.0/vm-hosts/{vm_host.id}",
+            data=data,
+            timeout=timeout,
+        ).json  # here we can get TimeoutError: timed out
+        return (
+            True,
+            vm_host,
+            dict(before=vm_host_before, after=vm_host),
+        )
+    vm_host = client.get(
+        f"/api/2.0/vm-hosts/{vm_host.id}",
     ).json
-    return Machine.from_maas(maas_dict)
+    return (
+        False,
+        vm_host,
+        dict(before=vm_host, after=vm_host),
+    )
 
 
-def commission(system_id, client: Client):
-    """
-    From MAAS documentation:
-    A machine in the 'ready', 'declared' or 'failed test' state may initiate a commissioning cycle
-    where it is checked out and tested in preparation for transitioning to the 'ready' state.
-    If it is already in the 'ready' state this is considered a re-commissioning process which is useful
-    if commissioning tests were changed after it previously commissioned.
-
-    Also it is possible to commission the machine when it is in 'new' state.
-    We get state 'new' in case if we abort commissioning of the machine (which was before already in ready or allocated state)
-    """
-    maas_dict = client.post(
-        f"/api/2.0/machines/{system_id}", query={"op": "commission"}
-    ).json
-    return Machine.from_maas(maas_dict)
-
-
-def delete(module, client: Client):
-    machine = Machine.get_by_name(module, client, must_exist=False)
-    if machine:
-        client.delete(f"/api/2.0/machines/{machine.id}/")
-        return True, dict(), dict(before=machine.to_ansible(), after={})
+def delete_vm_host(module, client: Client):
+    vm_host = VMHost.get_by_name(module, client, must_exist=False)
+    if vm_host:
+        vm_host.delete(client)
+        return True, dict(), dict(before=vm_host.to_ansible(), after={})
     return False, dict(), dict(before={}, after={})
 
 
-def release(module, client: Client):
-    machine = Machine.get_by_name(module, client, must_exist=True)
-    if machine.status == "Ready":
-        return (
-            False,
-            machine.to_ansible(),
-            dict(before=machine.to_ansible(), after=machine.to_ansible()),
-        )
-    if machine.status == "Commissioning":
-        # commissioning will bring machine to the ready state
-        # if state == commissioning: "Unexpected response - 409 b\"Machine cannot be released in its current state ('Commissioning').\""
-        updated_machine = wait_for_state(machine.id, client, False, "Ready")
-        return (
-            False,  # No change because we actually don't do anything, just wait for Ready
-            updated_machine.to_ansible(),
-            dict(
-                before=updated_machine.to_ansible(), after=updated_machine.to_ansible()
-            ),
-        )
-    if machine.status == "New":
-        # commissioning will bring machine to the ready state
-        commission(machine.id, client)
-        updated_machine = wait_for_state(machine.id, client, False, "Ready")
-        return (
-            True,
-            updated_machine.to_ansible(),
-            dict(before=machine.to_ansible(), after=updated_machine.to_ansible()),
-        )
-    client.post(f"/api/2.0/machines/{machine.id}/", query={"op": "release"}, data={})
-    try:  # this is a problem for ephemeral machines
-        updated_machine = wait_for_state(machine.id, client, False, "Ready")
-    except errors.MachineNotFound:  # we get this for ephemeral machine
-        updated_machine = machine
-        pass
-    return (
-        True,
-        updated_machine.to_ansible(),
-        dict(before=machine.to_ansible(), after=updated_machine.to_ansible()),
-    )
-
-
-def deploy(module, client: Client):
-    if module.params["hostname"]:
-        machine = Machine.get_by_name(module, client, must_exist=True)
-    else:
-        # allocate random machine
-        # If there is no machine to allocate, new is created and can be deployed. If we release it, it is automatically deleted (ephemeral)
-        machine = allocate(module, client)
-        wait_for_state(machine.id, client, False, "Allocated")
-    if machine.status == "Deployed":
-        return (
-            False,
-            machine.to_ansible(),
-            dict(before=machine.to_ansible(), after=machine.to_ansible()),
-        )
-    if machine.status == "New":
-        commission(machine.id, client)
-        wait_for_state(machine.id, client, False, "Ready")
-    if machine.status == "Commissioning":
-        # commissioning will bring machine to the ready state
-        wait_for_state(machine.id, client, False, "Ready")
-    data = {}
-    timeout = 20  # seconds
-    if module.params["deploy_params"]:
-        if module.params["deploy_params"]["osystem"]:
-            data["osystem"] = module.params["deploy_params"]["osystem"]
-        if module.params["deploy_params"]["distro_series"]:
-            data["distro_series"] = module.params["deploy_params"]["distro_series"]
-        if module.params["deploy_params"]["timeout"]:
-            timeout = module.params["deploy_params"]["timeout"]
-    client.post(
-        f"/api/2.0/machines/{machine.id}/",
-        query={"op": "deploy"},
-        data=data,
-        timeout=timeout,
-    ).json  # here we can get TimeoutError: timed out
-    updated_machine = wait_for_state(machine.id, client, False, "Deployed")
-    return (
-        True,
-        updated_machine.to_ansible(),
-        dict(before=machine.to_ansible(), after=updated_machine.to_ansible()),
-    )
-
-
 def run(module, client: Client):
-    if module.params["state"] == "deployed":
-        return deploy(module, client)
-    if module.params["state"] == "ready":
-        return release(module, client)
+    if module.params["state"] == "present":
+        if module.params["hostname"]:
+            return deploy_machine_as_vm_host(module, client)
+        else:
+            return create_vm_host(module, client)
     if module.params["state"] == "absent":
-        return delete(module, client)
+        return delete_vm_host(module, client)
+    # ADD UPDATE
 
 
 def main():
@@ -324,29 +393,27 @@ def main():
         argument_spec=dict(
             arguments.get_spec("instance"),
             hostname=dict(type="str"),
-            state=dict(
-                type="str", required=True, choices=["ready", "deployed", "absent"]
-            ),
-            deploy_params=dict(
+            state=dict(type="str", required=True, choices=["present", "absent"]),
+            power_parameters=dict(
                 type="dict",
                 options=dict(
-                    osystem=dict(type="str"),
-                    distro_series=dict(type="str"),
-                    timeout=dict(type="int"),
+                    power_type=dict(type="str", choices=["lxd", "virsh"]),
+                    power_address=dict(type="str"),
+                    power_user=dict(type="str"),
+                    power_pass=dict(type="str"),
                 ),
             ),
-            allocate_params=dict(
-                type="dict",
-                options=dict(
-                    cores=dict(type="int"),
-                    memory=dict(type="int"),
-                ),
+            cpu_over_commit_ratio=dict(type="int"),
+            memory_over_commit_ratio=dict(type="int"),
+            default_macvlan_mode=dict(
+                type="str", choices=["bridge, passthru, private, vepa"]
             ),
+            new_hostname=dict(type="str"),
+            pool=dict(type="str"),
+            zone=dict(type="str"),
+            tags=dict(type="list", elements="str"),
         ),
-        required_if=[
-            ("state", "absent", ("hostname",), False),
-            ("state", "ready", ("hostname",), False),
-        ],
+        # ADD REQUIRED IF AFTER RESOLVED ISSUE WITH UPDATE
     )
 
     try:
