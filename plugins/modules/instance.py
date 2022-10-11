@@ -146,16 +146,8 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.machine import Machine
-
-
-def wait_for_state(system_id, client: Client, check_mode=False, *states):
-    if check_mode:
-        return  # add mocked machine when needed
-    while True:
-        machine = Machine.get_by_id(system_id, client)
-        if machine.status in states:  # IMPLEMENT TIMEOUT?
-            return machine
-        sleep(1)
+from ..module_utils.task import Task
+from ..module_utils.state import MachineTaskState
 
 
 def allocate(module, client: Client):
@@ -211,7 +203,7 @@ def release(module, client: Client):
     if machine.status == "Commissioning":
         # commissioning will bring machine to the ready state
         # if state == commissioning: "Unexpected response - 409 b\"Machine cannot be released in its current state ('Commissioning').\""
-        updated_machine = wait_for_state(machine.id, client, False, "Ready")
+        updated_machine = Task.wait_for_state(machine.id, client, False, MachineTaskState.ready)
         return (
             False,  # No change because we actually don't do anything, just wait for Ready
             updated_machine.to_ansible(),
@@ -222,7 +214,7 @@ def release(module, client: Client):
     if machine.status == "New" or machine.status == "Failed":
         # commissioning will bring machine to the ready state
         commission(machine.id, client)
-        updated_machine = wait_for_state(machine.id, client, False, "Ready")
+        updated_machine = Task.wait_for_state(machine.id, client, False, MachineTaskState.ready)
         return (
             True,
             updated_machine.to_ansible(),
@@ -230,7 +222,7 @@ def release(module, client: Client):
         )
     client.post(f"/api/2.0/machines/{machine.id}/", query={"op": "release"}, data={})
     try:  # this is a problem for ephemeral machines
-        updated_machine = wait_for_state(machine.id, client, False, "Ready")
+        updated_machine = Task.wait_for_state(machine.id, client, False, MachineTaskState.ready)
     except errors.MachineNotFound:  # we get this for ephemeral machine
         updated_machine = machine
         pass
@@ -248,7 +240,7 @@ def deploy(module, client: Client):
         # allocate random machine
         # If there is no machine to allocate, new is created and can be deployed. If we release it, it is automatically deleted (ephemeral)
         machine = allocate(module, client)
-        wait_for_state(machine.id, client, False, "Allocated")
+        Task.wait_for_state(machine.id, client, False, MachineTaskState.allocated)
     if machine.status == "Deployed":
         return (
             False,
@@ -257,10 +249,10 @@ def deploy(module, client: Client):
         )
     if machine.status == "New" or machine.status == "Failed":
         commission(machine.id, client)
-        wait_for_state(machine.id, client, False, "Ready")
+        Task.wait_for_state(machine.id, client, False, MachineTaskState.ready)
     if machine.status == "Commissioning":
         # commissioning will bring machine to the ready state
-        wait_for_state(machine.id, client, False, "Ready")
+        Task.wait_for_state(machine.id, client, False, MachineTaskState.ready)
     data = {}
     timeout = 20  # seconds
     if module.params["deploy_params"]:
@@ -276,7 +268,7 @@ def deploy(module, client: Client):
         data=data,
         timeout=timeout,
     ).json  # here we can get TimeoutError: timed out
-    updated_machine = wait_for_state(machine.id, client, False, "Deployed")
+    updated_machine = Task.wait_for_state(machine.id, client, False, MachineTaskState.deployed)
     return (
         True,
         updated_machine.to_ansible(),

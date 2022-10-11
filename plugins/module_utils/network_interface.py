@@ -63,6 +63,10 @@ class NetworkInterface(MaasValueMapper):
             obj.name = maas_dict["name"]
             obj.label_name = maas_dict["name"]
             obj.id = maas_dict["id"]
+            obj.mac_address = maas_dict["mac_address"]
+            obj.machine_id = maas_dict["system_id"]
+            obj.tags = maas_dict["tags"]
+            obj.mtu = maas_dict["effective_mtu"]
             if maas_dict.get("discovered"):  # Auto assigned IP
                 obj.ip_address = maas_dict["discovered"][0].get("ip_address")
                 obj.subnet_cidr = maas_dict["discovered"][0]["subnet"].get("cidr")
@@ -74,13 +78,10 @@ class NetworkInterface(MaasValueMapper):
                 obj.vlan = maas_dict["links"][0]["subnet"]["vlan"].get("name")
                 obj.fabric = maas_dict["links"][0]["subnet"]["vlan"].get("fabric")
             else:  # interface auto generated
-                # TODO: DOMEN get mac address from maas_dict
-                raise errors.MaasError(maas_dict)
                 obj.ip_address = maas_dict.get("ip_address")
                 obj.subnet_cidr = maas_dict.get("cidr")
                 obj.vlan = maas_dict["vlan"].get("name") if maas_dict["vlan"] else None
                 obj.fabric = maas_dict["vlan"].get("fabric") if maas_dict["vlan"] else None
-            obj.machine_id = maas_dict["system_id"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -100,7 +101,7 @@ class NetworkInterface(MaasValueMapper):
         if self.mtu:
             to_maas_dict["mtu"] = self.mtu
         if self.tags:
-            to_maas_dict["tags"] = self.tags
+            to_maas_dict["tags"] = ",".join(self.tags)
         if self.ip_address:
             to_maas_dict["ip_address"] = self.ip_address
         if self.fabric:
@@ -126,22 +127,30 @@ class NetworkInterface(MaasValueMapper):
 
     def needs_update(self, new_nic):
         new_nic_dict = new_nic.to_maas()
-        if is_superset(self.to_maas(), filter_dict(new_nic_dict, new_nic_dict.keys())):
+        if is_superset(self.to_maas(), filter_dict(new_nic_dict, *[key for key in new_nic_dict.keys()])):
             return False
         return True
 
     def payload_for_update(self):
-        return
+        return self.to_maas()
 
-    def send_update_request(self, payload):
-        return
+    def send_update_request(self, client, machine_obj, payload, nic_id):
+        results = client.put(
+            f"/api/2.0/nodes/{machine_obj.id}/interfaces/{nic_id}/", data=payload
+        ).json
+        return results
 
     def payload_for_create(self):
-        payload = self.to_maas()
-        return payload
+        return self.to_maas()
 
-    def send_create_request(self, client, machine_obj ,payload):
+    def send_create_request(self, client, machine_obj, payload):
         results = client.post(
             f"/api/2.0/nodes/{machine_obj.id}/interfaces/", query={"op": "create_physical"}, data=payload
         ).json
         return results
+
+    def send_delete_request(self, client, machine_obj, nic_id):
+        # DELETE does not return valid json.
+        client.delete(
+            f"/api/2.0/nodes/{machine_obj.id}/interfaces/{nic_id}/"
+        )

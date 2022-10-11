@@ -34,6 +34,7 @@
   - name: Get info from created machine.
     canonical.maas.machine_info:
       hostname: "{{ machine.record.hostname }}"
+      vm_host: sunny-raptor
     register: machine_info
   - ansible.builtin.assert:
       that:
@@ -71,6 +72,7 @@
   - name: Get info from created machine. (Idempotence)
     canonical.maas.machine_info:
       hostname: "{{ machine.record.hostname }}"
+      vm_host: sunny-raptor
     register: machine_info
   - ansible.builtin.assert:
       that:
