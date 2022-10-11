@@ -315,7 +315,7 @@ class TestEnsureReady:
         ).return_value = machine_obj
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_ansible"
-        ).return_value = machine_dict
+        ).return_value = after
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.utils.is_changed"
         ).return_value = True
@@ -398,7 +398,7 @@ class TestEnsureReady:
         ).return_value = machine_obj
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_ansible"
-        ).return_value = machine_dict
+        ).return_value = after
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.utils.is_changed"
         ).return_value = True

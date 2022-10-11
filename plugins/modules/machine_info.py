@@ -522,7 +522,7 @@ from ..module_utils.machine import Machine
 
 def run(module, client: Client):
     if module.params["hostname"]:
-        machine = Machine.get_by_name_and_host(module, client,must_exist=True)
+        machine = Machine.get_by_name_and_host(module, client, must_exist=True)
         response = [client.get(f"/api/2.0/machines/{machine.id}/").json]
     else:
         response = client.get(f"/api/2.0/machines/").json
