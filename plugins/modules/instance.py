@@ -210,6 +210,8 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.machine import Machine
+from ..module_utils.task import Task
+from ..module_utils.state import MachineTaskState
 
 
 def allocate(module, client: Client):
