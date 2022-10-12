@@ -3,7 +3,7 @@
     MAAS_HOST: "{{ host }}"
     MAAS_TOKEN_KEY: "{{ token_key }}"
     MAAS_TOKEN_SECRET: "{{ token_secret }}"
-    MAAS_CLIENT_KEY: "{{ client_key }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
 
 
   block:
