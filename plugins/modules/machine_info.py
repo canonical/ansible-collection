@@ -522,10 +522,10 @@ from ..module_utils.machine import Machine
 
 def run(module, client: Client):
     if module.params["hostname"]:
-        machine = Machine.get_by_name(module, client, must_exist=True)
+        machine = Machine.get_by_name_and_host(module, client, must_exist=True)
         response = [client.get(f"/api/2.0/machines/{machine.id}/").json]
     else:
-        response = client.get(f"/api/2.0/machines/").json
+        response = client.get("/api/2.0/machines/").json
     return response
 
 
@@ -534,20 +534,22 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("instance"),
+            vm_host=dict(type="str"),
             hostname=dict(
                 type="str",
             ),
         ),
+        required_together=[("vm_host", "hostname")],
     )
 
     try:
         instance = module.params["instance"]
         host = instance["host"]
-        client_key = instance["client_key"]
+        consumer_key = instance["customer_key"]
         token_key = instance["token_key"]
         token_secret = instance["token_secret"]
 
-        client = Client(host, token_key, token_secret, client_key)
+        client = Client(host, token_key, token_secret, consumer_key)
         records = run(module, client)
         module.exit_json(changed=False, records=records)
     except errors.MaasError as e:

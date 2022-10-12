@@ -18,8 +18,9 @@ description:
   - Plugin return information about all or specific virtual machines in a cluster.
 version_added: 1.0.0
 extends_documentation_fragment:
+  - canonical.maas.cluster_instance
 seealso: []
-options:
+options: {}
 """
 
 # TODO (domen): Update EXAMPLES
@@ -29,7 +30,7 @@ EXAMPLES = r"""
     instance:
       host: ...
       token_key: ...
-      token_secret: ... 
+      token_secret: ...
       client_key: ...
 """
 
@@ -44,7 +45,7 @@ from ..module_utils.client import Client
 
 
 def run(module, client: Client):
-    response = client.get(f"/api/2.0/boot-resources/")
+    response = client.get("/api/2.0/boot-resources/")
     return response.json
 
 
@@ -59,11 +60,11 @@ def main():
     try:
         instance = module.params["instance"]
         host = instance["host"]
-        client_key = instance["client_key"]
+        consumer_key = instance["customer_key"]
         token_key = instance["token_key"]
         token_secret = instance["token_secret"]
 
-        client = Client(host, token_key, token_secret, client_key)
+        client = Client(host, token_key, token_secret, consumer_key)
         records = run(module, client)
         module.exit_json(changed=False, records=records)
     except errors.MaasError as e:

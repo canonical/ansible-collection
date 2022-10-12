@@ -8,12 +8,14 @@ from __future__ import absolute_import, division, print_function
 from .utils import MaasValueMapper
 from . import errors
 
+__metaclass__ = type
+
 
 class Disk(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
-        name=None,  # Disk name.
+        name=None,
         id=None,
         size=None,
     ):
@@ -49,7 +51,8 @@ class Disk(MaasValueMapper):
         return to_maas_dict
 
     def to_ansible(self):
-        to_ansible_dict = {}
-        if self.size:
-            to_ansible_dict["size_gigabytes"] = self.size
-        return to_ansible_dict
+        return dict(
+            id=self.id,
+            name=self.name,
+            size_gigabytes=self.size,
+        )

@@ -45,7 +45,6 @@ class TestMapper:
         disk_dict = self._get_disk_from_ansible()
         disk_obj = Disk(size=disk_dict["size_gigabytes"])
         results = Disk.from_ansible(disk_dict)
-        print(results.size, disk_obj.size)
         assert results.size == disk_obj.size
 
     def test_to_maas(self):
@@ -57,8 +56,7 @@ class TestMapper:
 
     def test_to_ansible(self):
         disk_dict = self._get_disk()
-        expected = dict(size_gigabytes=500000000000)
-        disk_obj = Disk(disk_dict["name"], disk_dict["id"], disk_dict["size"])
+        expected = dict(id=123, name="test_disk", size_gigabytes=500)
+        disk_obj = Disk(disk_dict["name"], disk_dict["id"], 500)
         results = disk_obj.to_ansible()
-        print(results)
         assert results == expected

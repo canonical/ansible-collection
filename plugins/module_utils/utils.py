@@ -6,6 +6,7 @@
 from __future__ import absolute_import, division, print_function
 
 from abc import abstractmethod
+from ..module_utils import errors
 
 __metaclass__ = type
 
@@ -96,3 +97,20 @@ def transform_query(raw_query, query_map):
 
 def is_changed(before, after):
     return not before == after
+
+
+def required_one_of(module, option, list_suboptions):
+    # This enables to check suboptions of an option in ansible module.
+    # Fails playbook if all suboptions are missing.
+    if module.params[option] is None:
+        return
+    module_suboptions = module.params[option].keys()
+    for suboption in list_suboptions:
+        if (
+            suboption in module_suboptions
+            and module.params[option][suboption] is not None
+        ):
+            return
+    raise errors.MaasError(
+        f"{option}: at least one of the options is required: {list_suboptions}"
+    )
