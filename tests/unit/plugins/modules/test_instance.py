@@ -9,7 +9,6 @@ __metaclass__ = type
 
 import sys
 import pytest
-from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.modules import instance
 from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 

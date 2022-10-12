@@ -18,8 +18,9 @@ description:
   - Plugin return information about all or specific virtual machines in a cluster.
 version_added: 1.0.0
 extends_documentation_fragment:
+  - canonical.maas.cluster_instance
 seealso: []
-options:
+options: {}
 """
 
 # TODO (domen): Update EXAMPLES

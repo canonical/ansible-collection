@@ -8,6 +8,8 @@ from __future__ import absolute_import, division, print_function
 from .utils import MaasValueMapper
 from . import errors
 
+__metaclass__ = type
+
 
 class Disk(MaasValueMapper):
     def __init__(

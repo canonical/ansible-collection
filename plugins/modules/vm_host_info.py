@@ -20,7 +20,7 @@ version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.instance
 seealso: []
-options:
+options: {}
 """
 
 EXAMPLES = r"""

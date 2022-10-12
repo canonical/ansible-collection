@@ -525,7 +525,7 @@ def run(module, client: Client):
         machine = Machine.get_by_name_and_host(module, client, must_exist=True)
         response = [client.get(f"/api/2.0/machines/{machine.id}/").json]
     else:
-        response = client.get(f"/api/2.0/machines/").json
+        response = client.get("/api/2.0/machines/").json
     return response
 
 
