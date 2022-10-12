@@ -240,17 +240,30 @@ class Machine(MaasValueMapper):
         )
 
     @classmethod
-    def wait_for_state(cls, system_id, client: Client, check_mode=False, *states):
+    def wait_for_state(cls, id, client: Client, check_mode=False, *states):
         if check_mode:
             return  # add mocked machine when needed
         while True:
-            machine = cls.get_by_id(system_id, client)
+            machine = cls.get_by_id(id, client)
             if machine.status in states:  # IMPLEMENT TIMEOUT?
                 return machine
             sleep(1)
 
-    # def deploy(self, client, payload):
-    #     pass
+    def deploy(self, client, payload, timeout=20):
+        return client.post(
+            f"/api/2.0/machines/{self.id}/",
+            query={"op": "deploy"},
+            data=payload,
+            timeout=timeout,
+        ).json
 
-    # def delete(self, client):
-    #     client.delete(f"/api/2.0/machines/{self.id}/")
+    def delete(self, client):
+        client.delete(f"/api/2.0/machines/{self.id}/")
+
+    def release(self, client):
+        client.post(f"/api/2.0/machines/{self.id}/", query={"op": "release"}, data={})
+
+    def commission(self, client):
+        return client.post(
+            f"/api/2.0/machines/{self.id}", query={"op": "commission"}
+        ).json
