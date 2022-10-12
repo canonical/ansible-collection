@@ -16,8 +16,9 @@ author:
 short_description: Create, update and delete VM host of allowed type (LXD and virsh).
 description:
   - If I(state) value is C(absent) the selected VM host will be deleted.
-  - If I(state) value is C(present) new VM host will be created (if I(vm_host is used)) or existing VM host will be updated.
-  # ADD DOCUMENTATION AFTER ISSUE WITH STATES IS RESOLVED
+  - If I(state) value is C(present), and I(machine) is provided, new VM host will be created from the machine.
+  - If I(state) value is C(present), and I(vm_host_name) is found, an existing VM host will be updated.
+  - If I(state) value is C(present), and I(vm_host_name) is not provided or not found, new VM host will be created.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.instance
@@ -29,12 +30,20 @@ options:
     choices: [ absent, present ]
     type: str
     required: True
-  hostname:
+  vm_host_name:
     description:
-      - The name of a registered ready MAAS machine if I(state) value is C(present). The machine is going to be deployed and registered as a LXD VM host in MAAS.
-      - The name of an existing VM host if I(state) value is C(absent). # OR UPDATING
-      - This option conflicts with I(power_parameters) in case of creating new VM host. If updating it is ok # NEEDS TO BE RESOLVED WHEN IS UPDATING
-      - If machine or VM host is not found the task will FAIL.
+      - The name of an VM host to be created, updated or deleted.
+      - If I(state) value is C(absent), existing VM host will be deleted.
+      - If I(state) value is C(present), and I(vm_host_name) is not provided or not found, a new VM host will be created.
+      - If I(state) value is C(present), and I(vm_host_name) is found, an existing VM host will be updated.
+      - This is computed if it's not set.
+    type: str
+  machine:
+    description:
+      - The name of registered ready MAAS machine to be deployed and registered as a LXD VM host in MAAS.
+      - Relevant only if I(state) value is C(present).
+      - This option conflicts with I(power_parameters).
+      - If machine is not found the task will FAIL.
     type: str
   power_parameters:
     description:
@@ -66,10 +75,9 @@ options:
           - User password to use for power control of the VM host.
           - Required for C(virsh) VM hosts that do not have SSH set up for public-key authentication and for C(lxd) if the MAAS certificate is not registered already in the LXD server.
         type: str
-  new_hostname:
+  new_vm_host_name:
     description:
-      - The new VM host name.
-      - This is computed if it's not set.
+      - Update VM host name.
     type: str
   zone:
     description:
@@ -109,65 +117,66 @@ EXAMPLES = r"""
 name: Register LXD VM host
 canonical.maas.vm_host:
   state: present
+  vm_host_name: new-lxd
   power_parameters:
     power_type: lxd
-    power_address: ...
-    # power_user: lxd does not use username
-    # power_pass: does not work with 
-  cpu_over_commit_ratio: ... # 1.0
-  memory_over_commit_ratio: ... # 1.0
-  default_macvlan_mode:
-  new_hostname:
-  zone:
-  pool:
+    power_address: 172.16.117.70:8443
+  cpu_over_commit_ratio: 1
+  memory_over_commit_ratio: 2
+  default_macvlan_mode: bridge
+  zone: my-zone
+  pool: my-pool
   tags:
-
+    - pod-console-logging
+    - my-tag
 
 name: Register VIRSH host
 canonical.maas.vm_host:
   state: present
+  vm_host_name: new-virsh
   power_parameters:
     power_type: virsh
-    power_address: ...
-    power_user: ...
-    power_pass: ...
-  cpu_over_commit_ratio: ...
-  memory_over_commit_ratio: ...
-  default_macvlan_mode:
-  new_hostname:
-  zone:
-  pool:
+    power_address: qemu+ssh://172.16.99.2/system
+    power_user: user
+    power_pass: pass
+  cpu_over_commit_ratio: 1
+  memory_over_commit_ratio: 2
+  default_macvlan_mode: bridge
+  zone: my-zone
+  pool: my-pool
   tags:
-  
+    - pod-console-logging
+    - my-tag
 
 name: Register known allready allocated machine
 canonical.maas.vm_host:
   state: present
-  hostname: my_instance
-  cpu_over_commit_ratio: ...
-  memory_over_commit_ratio: ...
-  default_macvlan_mode:
-  new_hostname:
-  zone:
-  pool:
-  tags:
+  vm_host_name: new-vm-host-name
+  machine: my_machine
+  cpu_over_commit_ratio: 1
+  memory_over_commit_ratio: 2
+  default_macvlan_mode: bridge
 
-name: Change over commit ratios
+name: Update VM host
 canonical.maas.vm_host:
-  state: updated # WE NEED DIFFERENT STATE TO DIFFERENTIATE BETWEEN UPDATING VM HOST OR CREATAING IT FROM MACHINE
-  hostname: my_instance
-  cpu_over_commit_ratio: ...
-  memory_over_commit_ratio: ...
-  default_macvlan_mode:
-  new_hostname:
-  zone:
-  pool:
+  state: present
+  vm_host_name: my-virsh
+  power_parameters:
+    power_address: qemu+ssh://172.16.99.2/system
+    power_pass: pass_updated
+  new_vm_host_name: my-virsh-updated
+  cpu_over_commit_ratio: 2
+  memory_over_commit_ratio: 3
+  default_macvlan_mode: bridge
+  zone: new-zone
+  pool: new-pool
   tags:
+    - new-tag
 
 name: Remove VM host
 canonical.maas.vm_host:
   state: absent
-  hostname: sunny-raptor
+  vm_host_name: sunny-raptor
 """
 
 RETURN = r"""
@@ -241,7 +250,7 @@ from ..module_utils.vmhost import VMHost
 
 def deploy_machine_as_vm_host(module, client):
     machine = Machine.get_by_name(
-        module, client, must_exist=True
+        module, client, must_exist=True, name_field_ansible="machine"
     )  # Replace with get_by_name_and_vm_host??
     data = {
         "install_rackd": True,  # If true, the rack controller will be installed on this machine.
@@ -258,8 +267,8 @@ def deploy_machine_as_vm_host(module, client):
     # GET VM_HOST
     return (
         True,
-        vm_host,
-        dict(before={}, after=vm_host),
+        machine,
+        dict(before={}, after=machine),
     )
 
 
@@ -278,8 +287,8 @@ def create_vm_host(module, client: Client):
         data["zone"] = module.params["zone"]
     if module.params["pool"]:
         data["pool"] = module.params["pool"]
-    if module.params["new_hostname"]:
-        data["name"] = module.params["new_hostname"]
+    if module.params["vm_host_name"]:
+        data["name"] = module.params["vm_host_name"]
     timeout = 30  # DO WE NEED IT? CAN IT TIMEOUT?
     vm_host = client.post(
         "/api/2.0/vm-hosts/",
@@ -308,14 +317,10 @@ def create_vm_host(module, client: Client):
     )
 
 
-def update_vm_host(module, client: Client):
-    vm_host = VMHost.get_by_name(
-        module, client, must_exist=False, name_field_ansible="hostname"
-    )
+def update_vm_host(module, client: Client, vm_host):
     data = {}
     if module.params["power_parameters"]["power_address"]:
-        if vm_host.power_address != module.params["power_parameters"]["power_address"]:
-            data["power_address"] = module.params["power_parameters"]["power_address"]
+        data["power_address"] = module.params["power_parameters"]["power_address"]
     if module.params["power_parameters"]["power_pass"]:
         data["power_pass"] = module.params["power_parameters"]["power_pass"]
     # CHECK IF FOR LOOP IS REALLY NOT NEEDED HERE
@@ -329,8 +334,8 @@ def update_vm_host(module, client: Client):
         if vm_host.pool != module.params["pool"]:
             data["pool"] = module.params["pool"]
     if module.params["new_hostname"]:
-        if vm_host.name != module.params["new_hostname"]:
-            data["name"] = module.params["new_hostname"]
+        if vm_host.name != module.params["new_vm_host_name"]:
+            data["name"] = module.params["new_vm_host_name"]
     if module.params["cpu_over_commit_ratio"]:
         if vm_host.cpu_over_commit_ratio != module.params["cpu_over_commit_ratio"]:
             data["cpu_over_commit_ratio"] = module.params["cpu_over_commit_ratio"]
@@ -343,11 +348,13 @@ def update_vm_host(module, client: Client):
     if module.params["default_macvlan_mode"]:
         if vm_host.default_macvlan_mode != module.params["default_macvlan_mode"]:
             data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
-    timeout = 30  # DO WE NEED IT? CAN IT TIMEOUT?
+
+    vm_host_before = client.get(
+        f"/api/2.0/vm-hosts/{vm_host.id}",
+    ).json
+
     if data:
-        vm_host_before = client.get(
-            f"/api/2.0/vm-hosts/{vm_host.id}",
-        ).json
+        timeout = 30  # DO WE NEED IT? CAN IT TIMEOUT?
         vm_host = client.put(
             f"/api/2.0/vm-hosts/{vm_host.id}",
             data=data,
@@ -358,18 +365,18 @@ def update_vm_host(module, client: Client):
             vm_host,
             dict(before=vm_host_before, after=vm_host),
         )
-    vm_host = client.get(
-        f"/api/2.0/vm-hosts/{vm_host.id}",
-    ).json
+
     return (
         False,
-        vm_host,
-        dict(before=vm_host, after=vm_host),
+        vm_host_before,
+        dict(before=vm_host_before, after=vm_host_before),
     )
 
 
 def delete_vm_host(module, client: Client):
-    vm_host = VMHost.get_by_name(module, client, must_exist=False)
+    vm_host = VMHost.get_by_name(
+        module, client, must_exist=False, name_field_ansible="vm_host_name"
+    )
     if vm_host:
         vm_host.delete(client)
         return True, dict(), dict(before=vm_host.to_ansible(), after={})
@@ -378,13 +385,18 @@ def delete_vm_host(module, client: Client):
 
 def run(module, client: Client):
     if module.params["state"] == "present":
-        if module.params["hostname"]:
+        if module.params["machine"]:
             return deploy_machine_as_vm_host(module, client)
         else:
+            if module.params["vm_host_name"]:
+                vm_host = VMHost.get_by_name(
+                    module, client, must_exist=False, name_field_ansible="vm_host_name"
+                )
+                if vm_host:
+                    return update_vm_host(module, client, vm_host)
             return create_vm_host(module, client)
     if module.params["state"] == "absent":
         return delete_vm_host(module, client)
-    # ADD UPDATE
 
 
 def main():
@@ -392,7 +404,8 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("instance"),
-            hostname=dict(type="str"),
+            vm_host_name=dict(type="str"),
+            machine=dict(type="str"),
             state=dict(type="str", required=True, choices=["present", "absent"]),
             power_parameters=dict(
                 type="dict",
@@ -408,7 +421,7 @@ def main():
             default_macvlan_mode=dict(
                 type="str", choices=["bridge, passthru, private, vepa"]
             ),
-            new_hostname=dict(type="str"),
+            new_vm_host_name=dict(type="str"),
             pool=dict(type="str"),
             zone=dict(type="str"),
             tags=dict(type="list", elements="str"),
