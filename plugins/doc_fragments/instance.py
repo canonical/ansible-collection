@@ -39,10 +39,10 @@ options:
             variable will be used.
         required: true
         type: str
-      client_key:
+      customer_key:
         description:
           - Client secret used for authentication.
-          - If not set, the value of the C(MAAS_CLIENT_KEY) environment
+          - If not set, the value of the C(MAAS_CUSTOMER_KEY) environment
             variable will be used.
         required: true
         type: str
