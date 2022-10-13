@@ -6,10 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
-    NetworkInterface,
-)
-
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -178,7 +174,7 @@ def run(module, client):
         MachineTaskState.comissioning,
     ]:
         raise errors.MaasError(
-            f"Machine {machine_obj.hostname} is not in the right state, needs to be in {[MachineTaskState.ready.value, MachineTaskState.allocated.value, MachineTaskState.broken.value]}."
+            f"Machine {machine_obj.hostname} is not in the right state, needs to be in Ready, Allocated or Broken."
         )
     if machine_obj.status in [
         MachineTaskState.allocating,

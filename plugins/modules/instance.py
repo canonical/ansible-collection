@@ -190,8 +190,6 @@ record:
     hwe_kernel: ga-22.04
 """
 
-
-from time import sleep
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
