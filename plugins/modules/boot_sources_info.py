@@ -13,19 +13,18 @@ module: machines
 
 author:
   - Jure Medvesek (@juremedvesek)
-short_description: Return info about virtual machines
+short_description: Return info about boot sources.
 description:
-  - Plugin return information about all or specific virtual machines in a cluster.
+  - Plugin returns information about available boot sources.
 version_added: 1.0.0
 extends_documentation_fragment:
-- canonical.maas.cluster_instance
+  - canonical.maas.cluster_instance
 seealso: []
 options:
 """
 
-# TODO (domen): Update EXAMPLES
 EXAMPLES = r"""
-- name: List machines
+- name: List boot sources
   cannonical.maas.vm_host_info:
     cluster_instance:
       host: ...
@@ -35,8 +34,14 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-machines:
+records:
+  description:
+    - Boot sources info list.
+  returned: success
+  type: list
+  sample: # ADD SAMPLE
 """
+
 
 from ansible.module_utils.basic import AnsibleModule
 

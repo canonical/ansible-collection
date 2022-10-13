@@ -13,9 +13,9 @@ module: machines
 
 author:
   - Jure Medvesek (@juremedvesek)
-short_description: Return info about virtual machines
+short_description: Return info about virtual machines.
 description:
-  - Plugin return information about all or specific virtual machines in a cluster.
+  - Plugin returns information about all virtual machines or specific virtual machine in a cluster.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -30,33 +30,21 @@ options:
 
 EXAMPLES = r"""
 - name: Get list of all machines
-  hosts: localhost
-  tasks:
-  - name: List machines
-    canonical.maas.machine_info:
-      cluster_instance:
-        host: http://localhost:5240/MAAS
-        token_key: URCfn6EhdZSj9CSDf7
-        token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-        customer_key: nzW4EBWjyDe5B5szja
-    register: machines
-  - debug:
-      var: machines
+  canonical.maas.machine_info:
+    cluster_instance:
+      host: http://localhost:5240/MAAS
+      token_key: URCfn6EhdZSj9CSDf7
+      token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
+      customer_key: nzW4EBWjyDe5B5szja
 
 - name: Get info about a specific machine
-  hosts: localhost
-  tasks:
-  - name: Get solid-fish machine
-    canonical.maas.machine_info:
-      cluster_instance:
-        host: http://localhost:5240/MAAS
-        token_key: URCfn6EhdZSj9CSDf7
-        token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-        customer_key: nzW4EBWjyDe5B5szja
-      hostname: solid-fish
-    register: machines
-  - debug:
-      var: machines
+  canonical.maas.machine_info:
+    cluster_instance:
+      host: http://localhost:5240/MAAS
+      token_key: URCfn6EhdZSj9CSDf7
+      token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
+      customer_key: nzW4EBWjyDe5B5szja
+    hostname: solid-fish
 """
 
 RETURN = r"""
