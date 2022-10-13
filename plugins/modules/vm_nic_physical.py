@@ -36,7 +36,6 @@ options:
   vlan:
     description: Virtual LAN.
     type: str
-    default: untagged
   name:
     description: Network interface name.
     type: str
@@ -55,62 +54,64 @@ options:
 """
 
 EXAMPLES = r"""
-- name: Create nic and Delete nic
-  hosts: localhost
-  tasks:
-  - name: Create new nic on sunny-raptor host with machine calm-guinea
-    canonical.maas.vm_nic_physical:
-      instance:
-        host: host-ip
-        token_key: token-key
-        token_secret: token-secret
-        client_key: client-key
-      vm_host: sunny-raptor
-      hostname: calm-guinea
-      state: present
-      mac_address: '00:16:3e:ae:78:75'
-      vlan: vlan-5
-      name: new_nic
-      mtu: 1700
-      tags:
-        - first
-        - second
-    register: nic_info
+- name: Create new nic on sunny-raptor host with machine calm-guinea
+  canonical.maas.vm_nic_physical:
+    cluster_instance:
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
+    vm_host: sunny-raptor
+    hostname: calm-guinea
+    state: present
+    mac_address: '00:16:3e:ae:78:75'
+    vlan: vlan-5
+    name: new_nic
+    mtu: 1700
+    tags:
+      - first
+      - second
+  register: nic_info
 
-  - debug:
-      var: nic_info
+- debug:
+    var: nic_info
 
-  - name: Delete nic from machine calm-guinea on host sunny-raptor
-    canonical.maas.vm_nic_physical:
-      instance:
-        host: host-ip
-        token_key: token-key
-        token_secret: token-secret
-        client_key: client-key
-      vm_host: sunny-raptor
-      hostname: calm-guinea
-      state: absent
-      mac_address: '00:16:3e:ae:78:75'
-    register: nic_info
+- name: Delete nic from machine calm-guinea on host sunny-raptor
+  canonical.maas.vm_nic_physical:
+    cluster_instance:
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
+    vm_host: sunny-raptor
+    hostname: calm-guinea
+    state: absent
+    mac_address: '00:16:3e:ae:78:75'
+  register: nic_info
 
-  - debug:
-      var: nic_info
+- debug:
+    var: nic_info
 
 """
 
 RETURN = r"""
-records:
-  fabric: fabric-1
-  id: 327
-  ip_address: 10.10.10.190
-  mac: 00:16:3e:ae:78:75
-  mtu: 1700
-  name: new_nic
-  subnet_cidr: 10.10.10.0/24
-  tags:
-  - first
-  - second
-  vlan: vlan-5
+record:
+  description:
+    - Created virtual machine on a specified host.
+  returned: success
+  type: dict
+  sample:
+    fabric: fabric-1
+    id: 327
+    ip_address: 10.10.10.190
+    mac: 00:16:3e:ae:78:75
+    mtu: 1700
+    name: new_nic
+    subnet_cidr: 10.10.10.0/24
+    tags:
+      - first
+      - second
+    vlan: vlan-5
 """
 
 from ansible.module_utils.basic import AnsibleModule

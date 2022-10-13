@@ -102,33 +102,30 @@ options:
 """
 
 EXAMPLES = r"""
-- name: Create machine with compose
-  hosts: localhost
-  tasks:
-  - name: Create new machine on sunny-raptor host
-    canonical.maas.vm_host_machine:
-      cluster_instance:
-        host: host-ip
-        token_key: token-key
-        token_secret: token-secret
-        customer_key: customer-key
-      vm_host: sunny-raptor
-      hostname: new-machine-3
-      cores: 2
-      memory: 2048
-      zone: 1
-      pool: 0
-      domain: 0
-      network_interfaces:
-        label_name: my-net
-        subnet_cidr: "10.10.10.0/24"
-      storage_disks:
-        - size_gigabytes: 3
-        - size_gigabytes: 5
-    register: machine
+- name: Create new machine on sunny-raptor host
+  canonical.maas.vm_host_machine:
+    cluster_instance:
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
+    vm_host: sunny-raptor
+    hostname: new-machine-3
+    cores: 2
+    memory: 2048
+    zone: 1
+    pool: 0
+    domain: 0
+    network_interfaces:
+      label_name: my-net
+      subnet_cidr: "10.10.10.0/24"
+    storage_disks:
+      - size_gigabytes: 3
+      - size_gigabytes: 5
+  register: machine
 
-  - debug:
-      var: machine
+- debug:
+    var: machine
 """
 
 RETURN = r"""
