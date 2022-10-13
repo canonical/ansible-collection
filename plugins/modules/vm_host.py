@@ -258,17 +258,12 @@ def deploy_machine_as_vm_host(module, client):
         "register_vmhost": True,  # TEST THE COMBINATION OF PARAMETERS
     }
     timeout = 30  # [s]
-    client.post(
-        f"/api/2.0/machines/{machine.id}/",
-        query={"op": "deploy"},
-        data=data,
-        timeout=timeout,
-    ).json  # here we can get TimeoutError: timed out
+    machine.deploy(client, data, timeout)  # here we can get TimeoutError: timed out
     # GET VM_HOST
     return (
         True,
-        machine,
-        dict(before={}, after=machine),
+        vm_host,
+        dict(before={}, after=vm_host),
     )
 
 
@@ -289,12 +284,8 @@ def create_vm_host(module, client: Client):
         data["pool"] = module.params["pool"]
     if module.params["vm_host_name"]:
         data["name"] = module.params["vm_host_name"]
-    timeout = 30  # DO WE NEED IT? CAN IT TIMEOUT?
-    vm_host = client.post(
-        "/api/2.0/vm-hosts/",
-        data=data,
-        timeout=timeout,
-    ).json  # here we can get TimeoutError: timed out
+
+    vm_host_obj, vm_host = VMHost.create(client, data)
 
     data = {}
     if module.params["cpu_over_commit_ratio"]:
@@ -304,11 +295,7 @@ def create_vm_host(module, client: Client):
     if module.params["default_macvlan_mode"]:
         data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
     if data:
-        vm_host = client.put(
-            f"/api/2.0/vm-hosts/{vm_host['id']}",
-            data=data,
-            timeout=timeout,
-        ).json  # here we can get TimeoutError: timed out
+        vm_host = vm_host_obj.update(data)
 
     return (
         True,
@@ -317,7 +304,7 @@ def create_vm_host(module, client: Client):
     )
 
 
-def update_vm_host(module, client: Client, vm_host):
+def update_vm_host(module, client: Client, vm_host_obj):
     data = {}
     if module.params["power_parameters"]["power_address"]:
         data["power_address"] = module.params["power_parameters"]["power_address"]
@@ -325,41 +312,34 @@ def update_vm_host(module, client: Client, vm_host):
         data["power_pass"] = module.params["power_parameters"]["power_pass"]
     # CHECK IF FOR LOOP IS REALLY NOT NEEDED HERE
     if module.params["tags"]:
-        if vm_host.tags != module.params["tags"]:
+        if vm_host_obj.tags != module.params["tags"]:
             data["tags"] = module.params["tags"]
     if module.params["zone"]:
-        if vm_host.zone != module.params["zone"]:
+        if vm_host_obj.zone != module.params["zone"]:
             data["zone"] = module.params["zone"]
     if module.params["pool"]:
-        if vm_host.pool != module.params["pool"]:
+        if vm_host_obj.pool != module.params["pool"]:
             data["pool"] = module.params["pool"]
     if module.params["new_hostname"]:
-        if vm_host.name != module.params["new_vm_host_name"]:
+        if vm_host_obj.name != module.params["new_vm_host_name"]:
             data["name"] = module.params["new_vm_host_name"]
     if module.params["cpu_over_commit_ratio"]:
-        if vm_host.cpu_over_commit_ratio != module.params["cpu_over_commit_ratio"]:
+        if vm_host_obj.cpu_over_commit_ratio != module.params["cpu_over_commit_ratio"]:
             data["cpu_over_commit_ratio"] = module.params["cpu_over_commit_ratio"]
     if module.params["memory_over_commit_ratio"]:
         if (
-            vm_host.memory_over_commit_ratio
+            vm_host_obj.memory_over_commit_ratio
             != module.params["memory_over_commit_ratio"]
         ):
             data["memory_over_commit_ratio"] = module.params["memory_over_commit_ratio"]
     if module.params["default_macvlan_mode"]:
-        if vm_host.default_macvlan_mode != module.params["default_macvlan_mode"]:
+        if vm_host_obj.default_macvlan_mode != module.params["default_macvlan_mode"]:
             data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
 
-    vm_host_before = client.get(
-        f"/api/2.0/vm-hosts/{vm_host.id}",
-    ).json
+    vm_host_before = vm_host_obj.get(client)
 
     if data:
-        timeout = 30  # DO WE NEED IT? CAN IT TIMEOUT?
-        vm_host = client.put(
-            f"/api/2.0/vm-hosts/{vm_host.id}",
-            data=data,
-            timeout=timeout,
-        ).json  # here we can get TimeoutError: timed out
+        vm_host = vm_host_obj.update(client, data)
         return (
             True,
             vm_host,
@@ -389,11 +369,11 @@ def run(module, client: Client):
             return deploy_machine_as_vm_host(module, client)
         else:
             if module.params["vm_host_name"]:
-                vm_host = VMHost.get_by_name(
+                vm_host_obj = VMHost.get_by_name(
                     module, client, must_exist=False, name_field_ansible="vm_host_name"
                 )
-                if vm_host:
-                    return update_vm_host(module, client, vm_host)
+                if vm_host_obj:
+                    return update_vm_host(module, client, vm_host_obj)
             return create_vm_host(module, client)
     if module.params["state"] == "absent":
         return delete_vm_host(module, client)
