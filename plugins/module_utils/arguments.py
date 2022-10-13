@@ -10,7 +10,7 @@ __metaclass__ = type
 from ansible.module_utils.basic import env_fallback
 
 SHARED_SPECS = dict(
-    instance=dict(
+    cluster_instance=dict(
         type="dict",
         apply_defaults=True,
         options=dict(
