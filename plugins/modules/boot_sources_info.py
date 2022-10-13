@@ -18,6 +18,7 @@ description:
   - Plugin return information about all or specific virtual machines in a cluster.
 version_added: 1.0.0
 extends_documentation_fragment:
+- canonical.maas.cluster_instance
 seealso: []
 options:
 """
@@ -26,11 +27,11 @@ options:
 EXAMPLES = r"""
 - name: List machines
   cannonical.maas.vm_host_info:
-    instance:
+    cluster_instance:
       host: ...
       token_key: ...
       token_secret: ...
-      client_key: ...
+      customer_key: ...
 """
 
 RETURN = r"""
@@ -52,16 +53,16 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            arguments.get_spec("instance"),
+            arguments.get_spec("cluster_instance"),
         ),
     )
 
     try:
-        instance = module.params["instance"]
-        host = instance["host"]
-        consumer_key = instance["customer_key"]
-        token_key = instance["token_key"]
-        token_secret = instance["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        consumer_key = cluster_instance["customer_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
         client = Client(host, token_key, token_secret, consumer_key)
         records = run(module, client)

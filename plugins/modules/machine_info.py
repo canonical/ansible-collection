@@ -18,7 +18,7 @@ description:
   - Plugin return information about all or specific virtual machines in a cluster.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.instance
+  - canonical.maas.cluster_instance
 seealso: []
 options:
   hostname:
@@ -34,11 +34,11 @@ EXAMPLES = r"""
   tasks:
   - name: List machines
     canonical.maas.machine_info:
-      instance:
+      cluster_instance:
         host: http://localhost:5240/MAAS
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-        client_key: nzW4EBWjyDe5B5szja
+        customer_key: nzW4EBWjyDe5B5szja
     register: machines
   - debug:
       var: machines
@@ -48,11 +48,11 @@ EXAMPLES = r"""
   tasks:
   - name: Get solid-fish machine
     canonical.maas.machine_info:
-      instance:
+      cluster_instance:
         host: http://localhost:5240/MAAS
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-        client_key: nzW4EBWjyDe5B5szja
+        customer_key: nzW4EBWjyDe5B5szja
       hostname: solid-fish
     register: machines
   - debug:
@@ -533,7 +533,7 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            arguments.get_spec("instance"),
+            arguments.get_spec("cluster_instance"),
             vm_host=dict(type="str"),
             hostname=dict(
                 type="str",
@@ -543,11 +543,11 @@ def main():
     )
 
     try:
-        instance = module.params["instance"]
-        host = instance["host"]
-        consumer_key = instance["customer_key"]
-        token_key = instance["token_key"]
-        token_secret = instance["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        consumer_key = cluster_instance["customer_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
         client = Client(host, token_key, token_secret, consumer_key)
         records = run(module, client)

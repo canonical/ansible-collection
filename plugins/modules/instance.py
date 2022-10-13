@@ -23,7 +23,7 @@ description:
   - If I(state) value is C(absent) the selected machine will be deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.instance
+  - canonical.maas.cluster_instance
 seealso: []
 options:
   hostname:
@@ -376,7 +376,7 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            arguments.get_spec("instance"),
+            arguments.get_spec("cluster_instance"),
             hostname=dict(type="str"),
             state=dict(
                 type="str", required=True, choices=["ready", "deployed", "absent"]
@@ -417,11 +417,11 @@ def main():
     )
 
     try:
-        instance = module.params["instance"]
-        host = instance["host"]
-        consumer_key = instance["customer_key"]
-        token_key = instance["token_key"]
-        token_secret = instance["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        consumer_key = cluster_instance["customer_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
         client = Client(host, token_key, token_secret, consumer_key)
         changed, record, diff = run(module, client)
