@@ -63,14 +63,10 @@ options:
         type: int
         description: Disk size in gigabytes.
         required: true
-      pool:
-        type: str
-        description: The VM host storage pool name.
   network_interfaces:
     description:
       - Network interface.
     type: dict
-    elements: dict
     suboptions:
       label_name:
         type: str
@@ -137,27 +133,32 @@ EXAMPLES = r"""
 
 RETURN = r"""
 record:
-  cores: 2
-  distro_series: ''
-  hostname: new-machine-3
-  id: 6h4fn6
-  memory: 2048
-  network_interfaces:
-  - fabric: fabric-1
-    id: 277
-    ip_address: 10.10.10.190
-    name: my-net
-    subnet_cidr: 10.10.10.0/24
-    vlan: untagged
-  osystem: ''
-  status: Commissioning
-  storage_disks:
-  - id: 288
-    name: sda
-    size_gigabytes: 3
-  - id: 289
-    name: sdb
-    size_gigabytes: 5
+  description:
+    - Created virtual machine on a specified host.
+  returned: success
+  type: dict
+  sample:
+    cores: 2
+    distro_series: ''
+    hostname: new-machine-3
+    id: 6h4fn6
+    memory: 2048
+    network_interfaces:
+    - fabric: fabric-1
+      id: 277
+      ip_address: 10.10.10.190
+      name: my-net
+      subnet_cidr: 10.10.10.0/24
+      vlan: untagged
+    osystem: ''
+    status: Commissioning
+    storage_disks:
+    - id: 288
+      name: sda
+      size_gigabytes: 3
+    - id: 289
+      name: sdb
+      size_gigabytes: 5
 """
 
 from ansible.module_utils.basic import AnsibleModule

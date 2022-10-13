@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: machines
+module: boot_sources_info
 
 author:
   - Jure Medvesek (@juremedvesek)
@@ -20,7 +20,7 @@ version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
-options:
+options: {}
 """
 
 EXAMPLES = r"""

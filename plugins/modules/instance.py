@@ -45,7 +45,7 @@ options:
       - If no parameters are given, a random machine will be allocated using the defaults.
       - Relevant only if I(state) value is C(deployed) and I(hostname) is not provided.
     type: dict
-    options:
+    suboptions:
       cores:
         description:
           - The minimum number of CPUs a returned machine must have.
@@ -65,6 +65,7 @@ options:
       tags:
         description: A set of tag names that must be assigned on the MAAS machine to be allocated.
         type: list
+        elements: str
   deploy_params:
     description:
       - Constraints parameters that can be used to deploy a machine.
@@ -73,7 +74,7 @@ options:
       - Relevant only if I(state) value is C(deployed) and I(hostname) is not provided.
       - If machine is already in deployed state, I(deploy_params) will be ignored. Machine needs to be released first for I(deploy_params) to apply
     type: dict
-    options:
+    suboptions:
       osystem:
         description: The OS the machine will use.
         type: str
@@ -95,8 +96,7 @@ options:
     description:
       - Network interface.
     type: dict
-    elements: dict
-    options:
+    suboptions:
       name:
         description:
           - The name of the network interface to be configured on the allocated machine.

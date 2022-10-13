@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: machines
+module: machine_info
 
 author:
   - Jure Medvesek (@juremedvesek)
@@ -25,6 +25,10 @@ options:
     description:
       - Name of a specific machine.
       - In order to get info about a specific machine.
+    type: str
+  vm_host:
+    description:
+      - Name of a specific vm_host where specific virtual machine is located.
     type: str
 """
 
