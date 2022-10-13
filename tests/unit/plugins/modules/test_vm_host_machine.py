@@ -256,6 +256,9 @@ class TestEnsureReady:
             tag_names=["my_tag"],
             interface_set=[
                 {
+                    "mac_address": "this-mac",
+                    "tags": [],
+                    "effective_mtu": 1500,
                     "id": "123",
                     "name": "this_name",
                     "links": [
