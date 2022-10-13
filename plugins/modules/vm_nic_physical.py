@@ -181,7 +181,7 @@ def run(module, client):
         MachineTaskState.allocating,
         MachineTaskState.comissioning,
     ]:
-        Task.wait_for_state(
+        Machine.wait_for_state(
             machine_obj.id,
             client,
             False,

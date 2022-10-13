@@ -43,12 +43,3 @@ class Task:
         task_status = rest_client.get_record(endpoint)
         return task_status if task_status else {}
 
-    @staticmethod
-    def wait_for_state(system_id, client, check_mode=False, *states):
-        if check_mode:
-            return  # add mocked machine when needed
-        while True:
-            machine = Machine.get_by_id(system_id, client)
-            if machine.status in states:  # IMPLEMENT TIMEOUT?
-                return machine
-            sleep(20)
