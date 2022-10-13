@@ -36,19 +36,20 @@ EXAMPLES = r"""
 - name: Get list of all machines
   canonical.maas.machine_info:
     cluster_instance:
-      host: http://localhost:5240/MAAS
-      token_key: URCfn6EhdZSj9CSDf7
-      token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-      customer_key: nzW4EBWjyDe5B5szja
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
 
-- name: Get info about a specific machine
+- name: Get info about a specific machine on a specific host
   canonical.maas.machine_info:
     cluster_instance:
-      host: http://localhost:5240/MAAS
-      token_key: URCfn6EhdZSj9CSDf7
-      token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-      customer_key: nzW4EBWjyDe5B5szja
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
     hostname: solid-fish
+    vm_host: sunny-raptor
 """
 
 RETURN = r"""
