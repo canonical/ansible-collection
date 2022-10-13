@@ -8,8 +8,8 @@
 
   block:
   - name: VM host cleanup
-    canonical.maas.instance:
-      hostname: "{{ item }}"
+    canonical.maas.vm_host:
+      vm_host_name: "{{ item }}"
       state: absent
     loop:
       - lxd-test
@@ -80,7 +80,7 @@
       - vm_host is not changed
   
   - name: Delete LXD host
-    canonical.maas.instance:
+    canonical.maas.vm_host:
       hostname: lxd-test-updated
       state: absent
     register: vm_host
@@ -119,7 +119,7 @@
       - vm_host.record.tags == ["pod-console-logging", "my_tag"]
   
   - name: Delete VIRSH host
-    canonical.maas.instance:
+    canonical.maas.vm_host:
       hostname: new-virsh
       state: absent
     register: vm_host

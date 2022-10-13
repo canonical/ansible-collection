@@ -420,11 +420,11 @@ def main():
     try:
         cluster_instance = module.params["cluster_instance"]
         host = cluster_instance["host"]
-        client_key = cluster_instance["client_key"]
+        customer_key = cluster_instance["customer_key"]
         token_key = cluster_instance["token_key"]
         token_secret = cluster_instance["token_secret"]
 
-        client = Client(host, token_key, token_secret, client_key)
+        client = Client(host, token_key, token_secret, customer_key)
         changed, record, diff = run(module, client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as e:
