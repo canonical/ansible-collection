@@ -115,53 +115,53 @@ options:
 """
 
 EXAMPLES = r"""
-name: Remove/delete machine
-canonical.maas.instance:
-  hostname: my_instance
-  state: absent
+- name: Remove/delete machine
+  canonical.maas.instance:
+    hostname: my_instance
+    state: absent
 
-name: Release machine
-canonical.maas.instance:
-  hostname: my_instance
-  state: ready
+- name: Release machine
+  canonical.maas.instance:
+    hostname: my_instance
+    state: ready
 
-name: Deploy already commissioned machine
-canonical.maas.instance:
-  hostname: my_instance
-  state: deployed
+- name: Deploy already commissioned machine
+  canonical.maas.instance:
+    hostname: my_instance
+    state: deployed
 
-name: Deploy already commissioned machine with custom settings
-canonical.maas.instance:
-  hostname: my_instance
-  state: deployed
-  deploy_params:
-    osystem: ubuntu
-    distro_series: focal
-    hwe_kernel: my_kernel
-    user_data: my_user_data
+- name: Deploy already commissioned machine with custom settings
+  canonical.maas.instance:
+    hostname: my_instance
+    state: deployed
+    deploy_params:
+      osystem: ubuntu
+      distro_series: focal
+      hwe_kernel: my_kernel
+      user_data: my_user_data
 
-name: Deploy random/new machine with default constraints
-canonical.maas.instance:
-  state: deployed
+- name: Deploy random/new machine with default constraints
+  canonical.maas.instance:
+    state: deployed
 
-name: Deploy random/new machine with custom settings and constraints
-canonical.maas.instance:
-  state: deployed
-  allocate_params:
-    cores: 2
-    memory: 2000
-    zone: my_zone
-    pool: my_pool
-    tags: my_tag
-  network_interfaces:
-    name: my_network
-    subnet_cidr: 10.10.10.0/24
-    ip_address: 10.10.10.190
-  deploy_params:
-    osystem: ubuntu
-    distro_series: jammy
-    hwe_kernel: my_kernel
-    user_data: my_user_data
+- name: Deploy random/new machine with custom settings and constraints
+  canonical.maas.instance:
+    state: deployed
+    allocate_params:
+      cores: 2
+      memory: 2000
+      zone: my_zone
+      pool: my_pool
+      tags: my_tag
+    network_interfaces:
+      name: my_network
+      subnet_cidr: 10.10.10.0/24
+      ip_address: 10.10.10.190
+    deploy_params:
+      osystem: ubuntu
+      distro_series: jammy
+      hwe_kernel: my_kernel
+      user_data: my_user_data
 """
 
 RETURN = r"""
