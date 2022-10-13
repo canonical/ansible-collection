@@ -278,7 +278,9 @@ def release(module, client: Client):
     if machine.status == "Commissioning":
         # commissioning will bring machine to the ready state
         # if state == commissioning: "Unexpected response - 409 b\"Machine cannot be released in its current state ('Commissioning').\""
-        updated_machine = Task.wait_for_state(machine.id, client, False, MachineTaskState.ready)
+        updated_machine = Task.wait_for_state(
+            machine.id, client, False, MachineTaskState.ready
+        )
         return (
             False,  # No change because we actually don't do anything, just wait for Ready
             updated_machine.to_ansible(),
@@ -289,7 +291,9 @@ def release(module, client: Client):
     if machine.status == "New" or machine.status == "Failed":
         # commissioning will bring machine to the ready state
         commission(machine.id, client)
-        updated_machine = Task.wait_for_state(machine.id, client, False, MachineTaskState.ready)
+        updated_machine = Task.wait_for_state(
+            machine.id, client, False, MachineTaskState.ready
+        )
         return (
             True,
             updated_machine.to_ansible(),
@@ -297,7 +301,9 @@ def release(module, client: Client):
         )
     client.post(f"/api/2.0/machines/{machine.id}/", query={"op": "release"}, data={})
     try:  # this is a problem for ephemeral machines
-        updated_machine = Task.wait_for_state(machine.id, client, False, MachineTaskState.ready)
+        updated_machine = Task.wait_for_state(
+            machine.id, client, False, MachineTaskState.ready
+        )
     except errors.MachineNotFound:  # we get this for ephemeral machine
         updated_machine = machine
         pass
@@ -347,7 +353,9 @@ def deploy(module, client: Client):
         data=data,
         timeout=timeout,
     ).json  # here we can get TimeoutError: timed out
-    updated_machine = Task.wait_for_state(machine.id, client, False, MachineTaskState.deployed)
+    updated_machine = Task.wait_for_state(
+        machine.id, client, False, MachineTaskState.deployed
+    )
     return (
         True,
         updated_machine.to_ansible(),

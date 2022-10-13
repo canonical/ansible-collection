@@ -134,12 +134,16 @@ def ensure_present(module, client, machine_obj):
     new_nic_obj = NetworkInterface.from_ansible(module.params)
     existing_nic = machine_obj.find_nic_by_mac(new_nic_obj.mac_address)
     if existing_nic and existing_nic.needs_update(new_nic_obj):
-      before = existing_nic.to_ansible()
-      new_nic_obj.send_update_request(client, machine_obj, new_nic_obj.payload_for_update(), existing_nic.id)
+        before = existing_nic.to_ansible()
+        new_nic_obj.send_update_request(
+            client, machine_obj, new_nic_obj.payload_for_update(), existing_nic.id
+        )
     elif not existing_nic:
-      new_nic_obj.send_create_request(client, machine_obj, new_nic_obj.payload_for_create())
+        new_nic_obj.send_create_request(
+            client, machine_obj, new_nic_obj.payload_for_create()
+        )
     else:
-      return is_changed(before, after), after, dict(before=before, after=after)
+        return is_changed(before, after), after, dict(before=before, after=after)
     updated_machine_obj = Machine.get_by_name_and_host(module, client, must_exist=True)
     after = updated_machine_obj.find_nic_by_mac(new_nic_obj.mac_address).to_ansible()
     return is_changed(before, after), after, dict(before=before, after=after)
@@ -150,26 +154,50 @@ def ensure_absent(module, client, machine_obj):
     after = None
     nic_to_delete_obj = machine_obj.find_nic_by_mac(module.params["mac_address"])
     if nic_to_delete_obj:
-      before = nic_to_delete_obj.to_ansible()
-      nic_to_delete_obj.send_delete_request(client, machine_obj, nic_to_delete_obj.id)
-      # Check if nic was actually deleted, if not failed = True in playbook.
-      updated_machine_obj = Machine.get_by_name_and_host(module, client, must_exist=True)
-      if updated_machine_obj.find_nic_by_mac(nic_to_delete_obj.mac_address):
-        raise errors.MaasError(f"Delete network interface task failed with mac: {nic_to_delete_obj.mac_address}")
+        before = nic_to_delete_obj.to_ansible()
+        nic_to_delete_obj.send_delete_request(client, machine_obj, nic_to_delete_obj.id)
+        # Check if nic was actually deleted, if not failed = True in playbook.
+        updated_machine_obj = Machine.get_by_name_and_host(
+            module, client, must_exist=True
+        )
+        if updated_machine_obj.find_nic_by_mac(nic_to_delete_obj.mac_address):
+            raise errors.MaasError(
+                f"Delete network interface task failed with mac: {nic_to_delete_obj.mac_address}"
+            )
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def run(module, client):
     # Machine needs to be allocated, broken or ready.
     machine_obj = Machine.get_by_name_and_host(module, client, must_exist=True)
-    if machine_obj.status not in [MachineTaskState.ready, MachineTaskState.allocated, MachineTaskState.allocating, MachineTaskState.broken, MachineTaskState.comissioning]:
-      raise errors.MaasError(f"Machine {machine_obj.hostname} is not in the right state, needs to be in {[MachineTaskState.ready.value, MachineTaskState.allocated.value, MachineTaskState.broken.value]}.")
-    if machine_obj.status in [MachineTaskState.allocating, MachineTaskState.comissioning]:
-      Task.wait_for_state(machine_obj.id, client, False, [MachineTaskState.ready, MachineTaskState.broken, MachineTaskState.allocated])
+    if machine_obj.status not in [
+        MachineTaskState.ready,
+        MachineTaskState.allocated,
+        MachineTaskState.allocating,
+        MachineTaskState.broken,
+        MachineTaskState.comissioning,
+    ]:
+        raise errors.MaasError(
+            f"Machine {machine_obj.hostname} is not in the right state, needs to be in {[MachineTaskState.ready.value, MachineTaskState.allocated.value, MachineTaskState.broken.value]}."
+        )
+    if machine_obj.status in [
+        MachineTaskState.allocating,
+        MachineTaskState.comissioning,
+    ]:
+        Task.wait_for_state(
+            machine_obj.id,
+            client,
+            False,
+            [
+                MachineTaskState.ready,
+                MachineTaskState.broken,
+                MachineTaskState.allocated,
+            ],
+        )
     if module.params["state"] == NicState.present:
-      changed, records, diff = ensure_present(module, client, machine_obj)
+        changed, records, diff = ensure_present(module, client, machine_obj)
     else:
-      changed, records, diff = ensure_absent(module, client, machine_obj)
+        changed, records, diff = ensure_absent(module, client, machine_obj)
     return changed, records, diff
 
 
