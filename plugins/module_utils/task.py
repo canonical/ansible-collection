@@ -51,4 +51,4 @@ class Task:
             machine = Machine.get_by_id(system_id, client)
             if machine.status in states:  # IMPLEMENT TIMEOUT?
                 return machine
-            sleep(1)
+            sleep(20)
