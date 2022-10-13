@@ -134,7 +134,10 @@ class NetworkInterface(MaasValueMapper):
 
     def needs_update(self, new_nic):
         new_nic_dict = new_nic.to_maas()
-        if is_superset(self.to_maas(), filter_dict(new_nic_dict, *[key for key in new_nic_dict.keys()])):
+        if is_superset(
+            self.to_maas(),
+            filter_dict(new_nic_dict, *[key for key in new_nic_dict.keys()]),
+        ):
             return False
         return True
 
@@ -152,12 +155,12 @@ class NetworkInterface(MaasValueMapper):
 
     def send_create_request(self, client, machine_obj, payload):
         results = client.post(
-            f"/api/2.0/nodes/{machine_obj.id}/interfaces/", query={"op": "create_physical"}, data=payload
+            f"/api/2.0/nodes/{machine_obj.id}/interfaces/",
+            query={"op": "create_physical"},
+            data=payload,
         ).json
         return results
 
     def send_delete_request(self, client, machine_obj, nic_id):
         # DELETE does not return valid json.
-        client.delete(
-            f"/api/2.0/nodes/{machine_obj.id}/interfaces/{nic_id}/"
-        )
+        client.delete(f"/api/2.0/nodes/{machine_obj.id}/interfaces/{nic_id}/")
