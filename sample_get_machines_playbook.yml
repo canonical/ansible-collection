@@ -3,11 +3,11 @@
   tasks:
   - name: List machines
     canonical.maas.machine_info:
-      instance:
+      cluster_instance:
         host: http://localhost:5240/MAAS
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-        client_key: nzW4EBWjyDe5B5szja
+        customer_key: nzW4EBWjyDe5B5szja
       #hostname: solid-fish # Use this field to filter results by name.
       #vm_host sunny-raptor # Use this field to filter by host in combination with name.
     register: machines
