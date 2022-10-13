@@ -7,11 +7,15 @@
 
 
   block:
-  - name: Delete LXD host
+  - name: VM host cleanup
     canonical.maas.instance:
-      hostname: lxd-test
+      hostname: "{{ item }}"
       state: absent
-
+    loop:
+      - lxd-test
+      - lxd-test-updated
+      - new-virsh
+      - vm_host_from_machine
 
   - name: Register LXD VM host
     canonical.maas.vm_host:
@@ -42,7 +46,7 @@
       - vm_host.record.tags == ["pod-console-logging", "my_tag"]
   
   - name: Update LXD VM host
-    canonical.maas.vm_host: *update-lxd-host
+    canonical.maas.vm_host: &update-lxd-host
       state: present
       vm_host_name: lxd-test
      #  power_parameters:
@@ -55,6 +59,7 @@
       pool: new-pool
       tags:
         - new-tag
+    register: vm_host
   - ansible.builtin.assert:
     that:
       - vm_host is changed
@@ -68,7 +73,8 @@
       - vm_host.record.tags == ["pod-console-logging", "new_tag"] # Do old one get deleted?
 
   - name: Update LXD VM host - idempotence
-      canonical.maas.vm_host: &update-lxd-host
+      canonical.maas.vm_host: *update-lxd-host
+    register: vm_host
   - ansible.builtin.assert:
     that:
       - vm_host is not changed
@@ -77,6 +83,7 @@
     canonical.maas.instance:
       hostname: lxd-test-updated
       state: absent
+    register: vm_host
   - ansible.builtin.assert:
     that:
       - vm_host is changed
@@ -115,6 +122,7 @@
     canonical.maas.instance:
       hostname: new-virsh
       state: absent
+    register: vm_host
   - ansible.builtin.assert:
     that:
       - vm_host is changed
@@ -122,14 +130,26 @@
   - name: Register known allready allocated machine
     canonical.maas.vm_host:
       state: present
-      vm_host_name: new-vm-host-name
+      vm_host_name: vm_host_from_machine
       machine: my_machine
       cpu_over_commit_ratio: 1
       memory_over_commit_ratio: 2
       default_macvlan_mode: bridge
+  - ansible.builtin.assert:
+    that:
+      - vm_host is changed
+      - vm_host.record.name == "vm_host_from_machine"
+      - vm_host.record.type == "lxd"
+      - vm_host.record.cpu_over_commit_ratio == 1.0
+      - vm_host.record.memory_over_commit_ratio == 2.0
+      - vm_host.record.default_macvlan_mode == "bridge"
 
   - name: Remove VM host
     canonical.maas.vm_host:
       state: absent
-      vm_host_name: sunny-raptor
+      vm_host_name: vm_host_from_machine
+    register: vm_host
+  - ansible.builtin.assert:
+    that:
+      - vm_host is changed
   
