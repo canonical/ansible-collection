@@ -9,14 +9,12 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: vm_host_machine
+module: nic_link
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Creates a virtual machine on a specified host.
-description:
-  - Create VM on a specified host.
-  - Does not support update or delete, only create.
+short_description: Manages network interfaces on a specific machine.
+description: Connects, updates or disconnects an existing network interface on a specified machine.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
