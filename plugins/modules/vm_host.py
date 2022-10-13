@@ -16,12 +16,12 @@ author:
 short_description: Create, update and delete VM host of allowed type (LXD and virsh).
 description:
   - If I(state) value is C(absent) the selected VM host will be deleted.
-  - If I(state) value is C(present), and I(machine) is provided, new VM host will be created from the machine.
+  - If I(state) value is C(present), and I(machine) is provided, new VM host with the name I(vm_host_name) will be created from the machine.
   - If I(state) value is C(present), and I(vm_host_name) is found, an existing VM host will be updated.
-  - If I(state) value is C(present), and I(vm_host_name) is not provided or not found, new VM host will be created.
+  - If I(state) value is C(present), and I(vm_host_name) is not found, new VM host with the name I(vm_host_name) will be created.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.instance
+  - canonical.maas.cluster_instance
 seealso: []
 options:
   state:
@@ -37,6 +37,7 @@ options:
       - If I(state) value is C(present), and I(vm_host_name) is not provided or not found, a new VM host will be created.
       - If I(state) value is C(present), and I(vm_host_name) is found, an existing VM host will be updated.
       - This is computed if it's not set.
+    required: True
     type: str
   machine:
     description:
@@ -48,10 +49,10 @@ options:
   power_parameters:
     description:
       - Power parameters used for creating new VM host or updating existing VM host.
-      - If creating new VM host required parameters are I(type) and I(power_address). 
+      - If creating new VM host required parameters are I(type) and I(power_address).
         If I(type) value is C(virsh) the parameters I(power_user) and I(power_pass) are also required. # CHECK IF THIS IS REALLY TRUE
     type: dict
-    options:
+    suboptions:
       power_type:
         description:
           - The new VM host type.
@@ -61,7 +62,8 @@ options:
         type: str
       power_address:
         description:
-          - Address that gives MAAS access to the VM host power control. For example, for C(virsh) "qemu+ssh://172.16.99.2/system", for C(lxd), this is just the address of the host.
+          - Address that gives MAAS access to the VM host power control.
+            For example, for C(virsh) "qemu+ssh://172.16.99.2/system", for C(lxd), this is just the address of the host.
           - The address given here must be reachable by the MAAS server.
         type: str
       power_user:
@@ -73,7 +75,8 @@ options:
       power_pass:
         description:
           - User password to use for power control of the VM host.
-          - Required for C(virsh) VM hosts that do not have SSH set up for public-key authentication and for C(lxd) if the MAAS certificate is not registered already in the LXD server.
+          - Required for C(virsh) VM hosts that do not have SSH set up for public-key authentication and for C(lxd)
+            if the MAAS certificate is not registered already in the LXD server.
         type: str
   new_vm_host_name:
     description:
@@ -93,7 +96,8 @@ options:
     description:
       - A tag or list of tags (comma delimited) to assign to the new VM host.
       - This is computed if it's not set.
-    type: str
+    type: list  # CHECK IF THIS IS TRUE
+    elements: str
   cpu_over_commit_ratio:
     description:
       - The new VM host CPU overcommit ratio (0-10).
@@ -258,8 +262,13 @@ def deploy_machine_as_vm_host(module, client):
         "register_vmhost": True,  # TEST THE COMBINATION OF PARAMETERS
     }
     timeout = 30  # [s]
-    machine.deploy(client, data, timeout)  # here we can get TimeoutError: timed out
-    # GET VM_HOST
+    machine.deploy(client, data, timeout)
+    Machine.wait_for_state(
+        machine.id, client, False, "Deployed"
+    )  # Check if we wait for deployed state
+    vm_host = VMHost.get_by_name(
+        module, client, must_exist=True, name_field_ansible="vm_host_name"
+    )
     return (
         True,
         vm_host,
@@ -383,8 +392,8 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            arguments.get_spec("instance"),
-            vm_host_name=dict(type="str"),
+            arguments.get_spec("cluster_instance"),
+            vm_host_name=dict(type="str", required=True),
             machine=dict(type="str"),
             state=dict(type="str", required=True, choices=["present", "absent"]),
             power_parameters=dict(
@@ -393,28 +402,27 @@ def main():
                     power_type=dict(type="str", choices=["lxd", "virsh"]),
                     power_address=dict(type="str"),
                     power_user=dict(type="str"),
-                    power_pass=dict(type="str"),
+                    power_pass=dict(type="str", no_log=True),
                 ),
             ),
             cpu_over_commit_ratio=dict(type="int"),
             memory_over_commit_ratio=dict(type="int"),
             default_macvlan_mode=dict(
-                type="str", choices=["bridge, passthru, private, vepa"]
+                type="str", choices=["bridge", "passthru", "private", "vepa"]
             ),
             new_vm_host_name=dict(type="str"),
             pool=dict(type="str"),
             zone=dict(type="str"),
             tags=dict(type="list", elements="str"),
         ),
-        # ADD REQUIRED IF AFTER RESOLVED ISSUE WITH UPDATE
     )
 
     try:
-        instance = module.params["instance"]
-        host = instance["host"]
-        client_key = instance["client_key"]
-        token_key = instance["token_key"]
-        token_secret = instance["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        client_key = cluster_instance["client_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
         client = Client(host, token_key, token_secret, client_key)
         changed, record, diff = run(module, client)
