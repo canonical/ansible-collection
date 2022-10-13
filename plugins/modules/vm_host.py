@@ -266,9 +266,10 @@ def deploy_machine_as_vm_host(module, client):
     Machine.wait_for_state(
         machine.id, client, False, "Deployed"
     )  # Check if we wait for deployed state
-    vm_host = VMHost.get_by_name(
+    vm_host_obj = VMHost.get_by_name(
         module, client, must_exist=True, name_field_ansible="vm_host_name"
     )
+    vm_host = vm_host_obj.get(client)
     return (
         True,
         vm_host,
@@ -304,7 +305,7 @@ def create_vm_host(module, client: Client):
     if module.params["default_macvlan_mode"]:
         data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
     if data:
-        vm_host = vm_host_obj.update(data)
+        vm_host = vm_host_obj.update(client, data)
 
     return (
         True,
@@ -376,14 +377,12 @@ def run(module, client: Client):
     if module.params["state"] == "present":
         if module.params["machine"]:
             return deploy_machine_as_vm_host(module, client)
-        else:
-            if module.params["vm_host_name"]:
-                vm_host_obj = VMHost.get_by_name(
-                    module, client, must_exist=False, name_field_ansible="vm_host_name"
-                )
-                if vm_host_obj:
-                    return update_vm_host(module, client, vm_host_obj)
-            return create_vm_host(module, client)
+        vm_host_obj = VMHost.get_by_name(
+            module, client, must_exist=False, name_field_ansible="vm_host_name"
+        )
+        if vm_host_obj:
+            return update_vm_host(module, client, vm_host_obj)
+        return create_vm_host(module, client)
     if module.params["state"] == "absent":
         return delete_vm_host(module, client)
 

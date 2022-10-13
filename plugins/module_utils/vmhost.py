@@ -49,8 +49,9 @@ class VMHost(MaasValueMapper):
         maas_dict = rest_client.get_record(
             "/api/2.0/vm-hosts/", query, must_exist=must_exist
         )
-        vmhost_from_maas = cls.from_maas(maas_dict)
-        return vmhost_from_maas
+        if maas_dict:
+            vmhost_from_maas = cls.from_maas(maas_dict)
+            return vmhost_from_maas
 
     @classmethod
     def from_ansible(cls, module):
@@ -88,7 +89,7 @@ class VMHost(MaasValueMapper):
         client.delete(f"/api/2.0/vm-hosts/{self.id}/")
 
     def get(self, client):
-        return client.get(f"/api/2.0/vm-hosts/{self.id}").json
+        return client.get(f"/api/2.0/vm-hosts/{self.id}/").json
 
     @classmethod
     def create(cls, client, payload):
@@ -101,8 +102,8 @@ class VMHost(MaasValueMapper):
         return vm_host, vm_host_maas_dict
 
     def update(self, client, payload):
-        return client.post(
-            f"/api/2.0/vm-hosts/{self.id}",
+        return client.put(
+            f"/api/2.0/vm-hosts/{self.id}/",
             data=payload,
             # timeout = 30  # DO WE NEED IT? CAN IT TIMEOUT?
         ).json
