@@ -1,0 +1,155 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+  - name: VM host cleanup
+    canonical.maas.vm_host:
+      vm_host_name: "{{ item }}"
+      state: absent
+    loop:
+      - lxd-test
+      - lxd-test-updated
+      - new-virsh
+      - vm_host_from_machine
+
+  - name: Register LXD VM host
+    canonical.maas.vm_host:
+      state: present
+      vm_host_name: lxd-test
+      power_parameters:
+        power_type: lxd
+        power_address: 172.16.117.70:8443
+      cpu_over_commit_ratio: 1
+      memory_over_commit_ratio: 2
+      default_macvlan_mode: bridge
+      zone: my-zone
+      pool: my-pool
+      tags:
+        - pod-console-logging
+        - my-tag
+    register: vm_host
+  - ansible.builtin.assert:
+      that:
+        - vm_host is changed
+        - vm_host.record.name == "lxd-test"
+        - vm_host.record.type == "lxd"
+        - vm_host.record.cpu_over_commit_ratio == 1.0
+        - vm_host.record.memory_over_commit_ratio == 2.0
+        - vm_host.record.default_macvlan_mode == "bridge"
+        - vm_host.record.zone.name == "my-zone"
+        - vm_host.record.pool.name == "my-pool"
+        - vm_host.record.tags == ["pod-console-logging", "my_tag"]
+    
+  - name: Update LXD VM host
+    canonical.maas.vm_host: &update-lxd-host
+      state: present
+      vm_host_name: lxd-test
+     #  power_parameters:
+        # power_address: can I test this?
+      new_vm_host_name: lxd-test-updated
+      cpu_over_commit_ratio: 2
+      memory_over_commit_ratio: 3
+      default_macvlan_mode: passthru
+      zone: new-zone
+      pool: new-pool
+      tags:
+        - new-tag
+    register: vm_host
+  - ansible.builtin.assert:
+    that:
+      - vm_host is changed
+      - vm_host.record.name == "lxd-test-updated"
+      - vm_host.record.type == "lxd"
+      - vm_host.record.cpu_over_commit_ratio == 2.0
+      - vm_host.record.memory_over_commit_ratio == 3.0
+      - vm_host.record.default_macvlan_mode == "passthru"
+      - vm_host.record.zone.name == "new-zone"
+      - vm_host.record.pool.name == "new-pool"
+      - vm_host.record.tags == ["pod-console-logging", "new_tag"] # Do old one get deleted?
+
+  - name: Update LXD VM host - idempotence
+      canonical.maas.vm_host: *update-lxd-host
+    register: vm_host
+  - ansible.builtin.assert:
+    that:
+      - vm_host is not changed
+  
+  - name: Delete LXD host
+    canonical.maas.vm_host:
+      hostname: lxd-test-updated
+      state: absent
+    register: vm_host
+  - ansible.builtin.assert:
+    that:
+      - vm_host is changed
+
+  - name: Register VIRSH host
+    canonical.maas.vm_host:
+      state: present
+      vm_host_name: new-virsh
+      power_parameters:
+        power_type: virsh
+        power_address: qemu+ssh://172.16.99.2/system
+        power_user: user
+        power_pass: pass
+      cpu_over_commit_ratio: 1
+      memory_over_commit_ratio: 2
+      default_macvlan_mode: bridge
+      zone: my-zone
+      pool: my-pool
+      tags:
+        - pod-console-logging
+        - my-tag
+    register: vm_host
+  - ansible.builtin.assert:
+    that:
+      - vm_host is changed
+      - vm_host.record.name == "new-virsh"
+      - vm_host.record.type == "virsh"
+      - vm_host.record.cpu_over_commit_ratio == 1.0
+      - vm_host.record.memory_over_commit_ratio == 2.0
+      - vm_host.record.default_macvlan_mode == "bridge"
+      - vm_host.record.zone.name == "my-zone"
+      - vm_host.record.pool.name == "my-pool"
+      - vm_host.record.tags == ["pod-console-logging", "my_tag"]
+  
+  - name: Delete VIRSH host
+    canonical.maas.vm_host:
+      hostname: new-virsh
+      state: absent
+    register: vm_host
+  - ansible.builtin.assert:
+    that:
+      - vm_host is changed
+
+  - name: Register known allready allocated machine
+    canonical.maas.vm_host:
+      state: present
+      vm_host_name: vm_host_from_machine
+      machine: my_machine
+      cpu_over_commit_ratio: 1
+      memory_over_commit_ratio: 2
+      default_macvlan_mode: bridge
+  - ansible.builtin.assert:
+    that:
+      - vm_host is changed
+      - vm_host.record.name == "vm_host_from_machine"
+      - vm_host.record.type == "lxd"
+      - vm_host.record.cpu_over_commit_ratio == 1.0
+      - vm_host.record.memory_over_commit_ratio == 2.0
+      - vm_host.record.default_macvlan_mode == "bridge"
+
+  - name: Remove VM host
+    canonical.maas.vm_host:
+      state: absent
+      vm_host_name: vm_host_from_machine
+    register: vm_host
+  - ansible.builtin.assert:
+    that:
+      - vm_host is changed
+  
