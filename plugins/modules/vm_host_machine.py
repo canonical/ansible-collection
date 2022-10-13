@@ -19,7 +19,7 @@ description:
   - Does not support update or delete, only create.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.instance
+  - canonical.maas.cluster_instance
 seealso: []
 options:
   vm_host:
@@ -63,14 +63,10 @@ options:
         type: int
         description: Disk size in gigabytes.
         required: true
-      pool:
-        type: str
-        description: The VM host storage pool name.
   network_interfaces:
     description:
       - Network interface.
     type: dict
-    elements: dict
     suboptions:
       label_name:
         type: str
@@ -111,11 +107,11 @@ EXAMPLES = r"""
   tasks:
   - name: Create new machine on sunny-raptor host
     canonical.maas.vm_host_machine:
-      instance:
+      cluster_instance:
         host: host-ip
         token_key: token-key
         token_secret: token-secret
-        client_key: client-key
+        customer_key: customer-key
       vm_host: sunny-raptor
       hostname: new-machine-3
       cores: 2
@@ -137,27 +133,32 @@ EXAMPLES = r"""
 
 RETURN = r"""
 record:
-  cores: 2
-  distro_series: ''
-  hostname: new-machine-3
-  id: 6h4fn6
-  memory: 2048
-  network_interfaces:
-  - fabric: fabric-1
-    id: 277
-    ip_address: 10.10.10.190
-    name: my-net
-    subnet_cidr: 10.10.10.0/24
-    vlan: untagged
-  osystem: ''
-  status: Commissioning
-  storage_disks:
-  - id: 288
-    name: sda
-    size_gigabytes: 3
-  - id: 289
-    name: sdb
-    size_gigabytes: 5
+  description:
+    - Created virtual machine on a specified host.
+  returned: success
+  type: dict
+  sample:
+    cores: 2
+    distro_series: ''
+    hostname: new-machine-3
+    id: 6h4fn6
+    memory: 2048
+    network_interfaces:
+    - fabric: fabric-1
+      id: 277
+      ip_address: 10.10.10.190
+      name: my-net
+      subnet_cidr: 10.10.10.0/24
+      vlan: untagged
+    osystem: ''
+    status: Commissioning
+    storage_disks:
+    - id: 288
+      name: sda
+      size_gigabytes: 3
+    - id: 289
+      name: sdb
+      size_gigabytes: 5
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -208,7 +209,7 @@ def main():
     module = AnsibleModule(
         supports_check_mode=False,
         argument_spec=dict(
-            arguments.get_spec("instance"),
+            arguments.get_spec("cluster_instance"),
             vm_host=dict(
                 type="str",
                 required=True,
@@ -282,11 +283,11 @@ def main():
             list_suboptions=["name", "subnet_cidr", "fabric", "vlan", "ip_address"],
         )
 
-        instance = module.params["instance"]
-        host = instance["host"]
-        consumer_key = instance["customer_key"]
-        token_key = instance["token_key"]
-        token_secret = instance["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        consumer_key = cluster_instance["customer_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
         client = Client(host, token_key, token_secret, consumer_key)
         changed, record, diff = run(module, client)

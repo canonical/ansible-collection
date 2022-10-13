@@ -9,16 +9,16 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: machines
+module: machine_info
 
 author:
   - Jure Medvesek (@juremedvesek)
-short_description: Return info about virtual machines
+short_description: Return info about virtual machines.
 description:
-  - Plugin return information about all or specific virtual machines in a cluster.
+  - Plugin returns information about all virtual machines or specific virtual machine in a cluster.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.instance
+  - canonical.maas.cluster_instance
 seealso: []
 options:
   hostname:
@@ -26,37 +26,30 @@ options:
       - Name of a specific machine.
       - In order to get info about a specific machine.
     type: str
+  vm_host:
+    description:
+      - Name of a specific vm_host where specific virtual machine is located.
+    type: str
 """
 
 EXAMPLES = r"""
 - name: Get list of all machines
-  hosts: localhost
-  tasks:
-  - name: List machines
-    canonical.maas.machine_info:
-      instance:
-        host: http://localhost:5240/MAAS
-        token_key: URCfn6EhdZSj9CSDf7
-        token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-        client_key: nzW4EBWjyDe5B5szja
-    register: machines
-  - debug:
-      var: machines
+  canonical.maas.machine_info:
+    cluster_instance:
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
 
-- name: Get info about a specific machine
-  hosts: localhost
-  tasks:
-  - name: Get solid-fish machine
-    canonical.maas.machine_info:
-      instance:
-        host: http://localhost:5240/MAAS
-        token_key: URCfn6EhdZSj9CSDf7
-        token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-        client_key: nzW4EBWjyDe5B5szja
-      hostname: solid-fish
-    register: machines
-  - debug:
-      var: machines
+- name: Get info about a specific machine on a specific host
+  canonical.maas.machine_info:
+    cluster_instance:
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
+    hostname: solid-fish
+    vm_host: sunny-raptor
 """
 
 RETURN = r"""
@@ -525,7 +518,7 @@ def run(module, client: Client):
         machine = Machine.get_by_name_and_host(module, client, must_exist=True)
         response = [client.get(f"/api/2.0/machines/{machine.id}/").json]
     else:
-        response = client.get(f"/api/2.0/machines/").json
+        response = client.get("/api/2.0/machines/").json
     return response
 
 
@@ -533,7 +526,7 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            arguments.get_spec("instance"),
+            arguments.get_spec("cluster_instance"),
             vm_host=dict(type="str"),
             hostname=dict(
                 type="str",
@@ -543,11 +536,11 @@ def main():
     )
 
     try:
-        instance = module.params["instance"]
-        host = instance["host"]
-        consumer_key = instance["customer_key"]
-        token_key = instance["token_key"]
-        token_secret = instance["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        consumer_key = cluster_instance["customer_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
         client = Client(host, token_key, token_secret, consumer_key)
         records = run(module, client)

@@ -23,7 +23,7 @@ description:
   - If I(state) value is C(absent) the selected machine will be deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.instance
+  - canonical.maas.cluster_instance
 seealso: []
 options:
   hostname:
@@ -45,7 +45,7 @@ options:
       - If no parameters are given, a random machine will be allocated using the defaults.
       - Relevant only if I(state) value is C(deployed) and I(hostname) is not provided.
     type: dict
-    options:
+    suboptions:
       cores:
         description:
           - The minimum number of CPUs a returned machine must have.
@@ -65,6 +65,7 @@ options:
       tags:
         description: A set of tag names that must be assigned on the MAAS machine to be allocated.
         type: list
+        elements: str
   deploy_params:
     description:
       - Constraints parameters that can be used to deploy a machine.
@@ -73,7 +74,7 @@ options:
       - Relevant only if I(state) value is C(deployed) and I(hostname) is not provided.
       - If machine is already in deployed state, I(deploy_params) will be ignored. Machine needs to be released first for I(deploy_params) to apply
     type: dict
-    options:
+    suboptions:
       osystem:
         description: The OS the machine will use.
         type: str
@@ -95,8 +96,7 @@ options:
     description:
       - Network interface.
     type: dict
-    elements: dict
-    options:
+    suboptions:
       name:
         description:
           - The name of the network interface to be configured on the allocated machine.
@@ -376,7 +376,7 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            arguments.get_spec("instance"),
+            arguments.get_spec("cluster_instance"),
             hostname=dict(type="str"),
             state=dict(
                 type="str", required=True, choices=["ready", "deployed", "absent"]
@@ -417,11 +417,11 @@ def main():
     )
 
     try:
-        instance = module.params["instance"]
-        host = instance["host"]
-        consumer_key = instance["customer_key"]
-        token_key = instance["token_key"]
-        token_secret = instance["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        consumer_key = cluster_instance["customer_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
         client = Client(host, token_key, token_secret, consumer_key)
         changed, record, diff = run(module, client)
