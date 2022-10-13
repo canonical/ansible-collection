@@ -17,30 +17,6 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-class TestWaitForState:
-    def test_wait_for_state(self, client, mocker):
-        system_id = "system_id"
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_id"
-        ).return_value = Machine(
-            hostname="my_instance",
-            id=123,
-            memory=2000,
-            cores=2,
-            network_interfaces=[],
-            disks=[],
-            status="Commissioning",
-            osystem="ubuntu",
-            distro_series="jammy",
-        )
-
-        machine = instance.wait_for_state(
-            system_id, client, False, "Ready", "Commissioning"
-        )
-
-        assert machine.status == "Commissioning"
-
-
 class TestAllocate:
     def test_allocate(self, client, create_module, mocker):
         module = create_module(
@@ -121,21 +97,6 @@ class TestAllocate:
         )
 
 
-class TestCommission:
-    def test_commission(self, client, mocker):
-        system_id = "system_id"
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.from_maas"
-        )
-
-        instance.commission(system_id, client)
-
-        client.post.assert_called_with(
-            "/api/2.0/machines/system_id",
-            query={"op": "commission"},
-        )
-
-
 class TestDelete:
     def test_delete(self, client, mocker, create_module):
         module = create_module(
@@ -155,13 +116,6 @@ class TestDelete:
         ).return_value = Machine(
             hostname="my_instance",
             id=123456,
-            memory=2000,
-            cores=2,
-            network_interfaces=[],
-            disks=[],
-            status="Commissioning",
-            osystem="ubuntu",
-            distro_series="jammy",
         )
 
         changed = instance.delete(module, client)[0]
@@ -238,7 +192,7 @@ class TestRelease:
         )
 
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.release(module, client)
@@ -266,10 +220,10 @@ class TestRelease:
             status=status,
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.commission"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.commission"
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.release(module, client)
@@ -296,7 +250,7 @@ class TestRelease:
             status="Deployed",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         changed = instance.release(module, client)[0]
@@ -335,7 +289,7 @@ class TestDeploy:
             status="Allocated",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -410,7 +364,7 @@ class TestDeploy:
             status="Commissioning",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -456,10 +410,10 @@ class TestDeploy:
             status=status,
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.commission"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.commission"
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -503,7 +457,7 @@ class TestDeploy:
             status="Ready",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -530,17 +484,28 @@ class TestMain:
                 host="https://0.0.0.0",
                 token_key="URCfn6EhdZ",
                 token_secret="PhXz3ncACvkcK",
-                client_key="nzW4EBWjyDe",
+                customer_key="nzW4EBWjyDe",
             ),
             hostname=None,
             state="ready",
             allocate_params={
                 "memory": 2000,
                 "cores": 1,
+                "zone": "my_zone",
+                "pool": "my_pool",
+                "tags": None,
+            },
+            network_interfaces={
+                "name": "my_network",
+                "subnet_cidr": "10.10.10.10/24",
+                "ip_address": "10.10.10.190",
             },
             deploy_params={
                 "osystem": "ubuntu",
                 "distro_series": "jammy",
+                "timeout": 30,
+                "hwe_kernel": "my_kernel",
+                "user_data": "my_data",
             },
         )
 
@@ -554,7 +519,7 @@ class TestMain:
                 host="https://0.0.0.0",
                 token_key="URCfn6EhdZ",
                 token_secret="PhXz3ncACvkcK",
-                client_key="nzW4EBWjyDe",
+                customer_key="nzW4EBWjyDe",
             ),
             state="deployed",
         )
@@ -570,7 +535,7 @@ class TestMain:
                 host="https://0.0.0.0",
                 token_key="URCfn6EhdZ",
                 token_secret="PhXz3ncACvkcK",
-                client_key="nzW4EBWjyDe",
+                customer_key="nzW4EBWjyDe",
             ),
             state=state,
         )

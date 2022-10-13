@@ -8,12 +8,14 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+from time import sleep
 from ..module_utils.utils import (
     get_query,
     MaasValueMapper,
 )
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
+from ..module_utils.client import Client
 from ..module_utils.network_interface import NetworkInterface
 from ..module_utils.disk import Disk
 
@@ -101,7 +103,7 @@ class Machine(MaasValueMapper):
 
     @classmethod
     def from_ansible(cls, module):
-        obj = Machine()
+        obj = cls()
         obj.hostname = module.params.get("hostname")
         obj.cores = module.params.get("cores")
         obj.memory = module.params.get("memory")
@@ -120,7 +122,7 @@ class Machine(MaasValueMapper):
 
     @classmethod
     def from_maas(cls, maas_dict):
-        obj = Machine()
+        obj = cls()
         try:
             obj.hostname = maas_dict["hostname"]
             obj.id = maas_dict["system_id"]
@@ -242,3 +244,32 @@ class Machine(MaasValueMapper):
                 self.hwe_kernel == other.hwe_kernel,
             )
         )
+
+    @classmethod
+    def wait_for_state(cls, id, client: Client, check_mode=False, *states):
+        if check_mode:
+            return  # add mocked machine when needed
+        while True:
+            machine = cls.get_by_id(id, client)
+            if machine.status in states:  # IMPLEMENT TIMEOUT?
+                return machine
+            sleep(1)
+
+    def deploy(self, client, payload, timeout=20):
+        return client.post(
+            f"/api/2.0/machines/{self.id}/",
+            query={"op": "deploy"},
+            data=payload,
+            timeout=timeout,
+        ).json
+
+    def delete(self, client):
+        client.delete(f"/api/2.0/machines/{self.id}/")
+
+    def release(self, client):
+        client.post(f"/api/2.0/machines/{self.id}/", query={"op": "release"}, data={})
+
+    def commission(self, client):
+        return client.post(
+            f"/api/2.0/machines/{self.id}", query={"op": "commission"}
+        ).json

@@ -145,4 +145,86 @@ class TestPayloadForCompose:
         assert results == {"interfaces": "test:subnet_cidr=ip,name=esp0"}
 
 
+class TestWaitForState:
+    def test_wait_for_state(self, client, mocker):
+        system_id = "system_id"
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_id"
+        ).return_value = Machine(
+            hostname="my_instance",
+            id="system_id",
+            status="Commissioning",
+        )
+
+        machine = Machine.wait_for_state(
+            system_id, client, False, "Ready", "Commissioning"
+        )
+
+        assert machine.status == "Commissioning"
+
+
+class TestCommission:
+    def test_commission(self, client):
+        machine = Machine(
+            hostname="my_instance",
+            id=123,
+        )
+
+        machine.commission(client)
+
+        client.post.assert_called_with(
+            "/api/2.0/machines/123",
+            query={"op": "commission"},
+        )
+
+
+class TestDeploy:
+    def test_deploy(self, client):
+        machine = Machine(
+            hostname="my_instance",
+            id=123,
+        )
+        payload = {"osystem": "ubuntu"}
+        timeout = 20
+
+        machine.deploy(client, payload, timeout)
+
+        client.post.assert_called_with(
+            "/api/2.0/machines/123/",
+            query={"op": "deploy"},
+            data={"osystem": "ubuntu"},
+            timeout=20,
+        )
+
+
+class TestDelete:
+    def test_delete(self, client):
+        machine = Machine(
+            hostname="my_instance",
+            id=123,
+        )
+
+        machine.delete(client)
+
+        client.delete.assert_called_with(
+            "/api/2.0/machines/123/",
+        )
+
+
+class TestRelease:
+    def test_release(self, client):
+        machine = Machine(
+            hostname="my_instance",
+            id=123,
+        )
+
+        machine.release(client)
+
+        client.post.assert_called_with(
+            "/api/2.0/machines/123/",
+            query={"op": "release"},
+            data={},
+        )
+
+
 # TODO: test mapper, when more values are added.

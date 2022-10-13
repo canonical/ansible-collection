@@ -195,8 +195,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.machine import Machine
-from ..module_utils.task import Task
-from ..module_utils.state import MachineTaskState
 
 
 def allocate(module, client: Client):
@@ -242,25 +240,10 @@ def allocate(module, client: Client):
     return Machine.from_maas(maas_dict)
 
 
-def commission(system_id, client: Client):
-    # From MAAS documentation:
-    # A machine in the 'ready', 'declared' or 'failed test' state may initiate a commissioning cycle
-    # where it is checked out and tested in preparation for transitioning to the 'ready' state.
-    # If it is already in the 'ready' state this is considered a re-commissioning process which is useful
-    # if commissioning tests were changed after it previously commissioned.
-
-    # Also it is possible to commission the machine when it is in 'new' state.
-    # We get state 'new' in case if we abort commissioning of the machine (which was before already in ready or allocated state)
-    maas_dict = client.post(
-        f"/api/2.0/machines/{system_id}", query={"op": "commission"}
-    ).json
-    return Machine.from_maas(maas_dict)
-
-
 def delete(module, client: Client):
     machine = Machine.get_by_name(module, client, must_exist=False)
     if machine:
-        client.delete(f"/api/2.0/machines/{machine.id}/")
+        machine.delete(client)
         return True, dict(), dict(before=machine.to_ansible(), after={})
     return False, dict(), dict(before={}, after={})
 
@@ -276,9 +259,7 @@ def release(module, client: Client):
     if machine.status == "Commissioning":
         # commissioning will bring machine to the ready state
         # if state == commissioning: "Unexpected response - 409 b\"Machine cannot be released in its current state ('Commissioning').\""
-        updated_machine = Task.wait_for_state(
-            machine.id, client, False, MachineTaskState.ready
-        )
+        updated_machine = Machine.wait_for_state(machine.id, client, False, "Ready")
         return (
             False,  # No change because we actually don't do anything, just wait for Ready
             updated_machine.to_ansible(),
@@ -288,20 +269,16 @@ def release(module, client: Client):
         )
     if machine.status == "New" or machine.status == "Failed":
         # commissioning will bring machine to the ready state
-        commission(machine.id, client)
-        updated_machine = Task.wait_for_state(
-            machine.id, client, False, MachineTaskState.ready
-        )
+        machine.commission(client)
+        updated_machine = Machine.wait_for_state(machine.id, client, False, "Ready")
         return (
             True,
             updated_machine.to_ansible(),
             dict(before=machine.to_ansible(), after=updated_machine.to_ansible()),
         )
-    client.post(f"/api/2.0/machines/{machine.id}/", query={"op": "release"}, data={})
+    machine.release(client)
     try:  # this is a problem for ephemeral machines
-        updated_machine = Task.wait_for_state(
-            machine.id, client, False, MachineTaskState.ready
-        )
+        updated_machine = Machine.wait_for_state(machine.id, client, False, "Ready")
     except errors.MachineNotFound:  # we get this for ephemeral machine
         updated_machine = machine
         pass
@@ -319,7 +296,7 @@ def deploy(module, client: Client):
         # allocate random machine
         # If there is no machine to allocate, new is created and can be deployed. If we release it, it is automatically deleted (ephemeral)
         machine = allocate(module, client)
-        Task.wait_for_state(machine.id, client, False, MachineTaskState.allocated)
+        Machine.wait_for_state(machine.id, client, False, "Allocated")
     if machine.status == "Deployed":
         return (
             False,
@@ -327,11 +304,11 @@ def deploy(module, client: Client):
             dict(before=machine.to_ansible(), after=machine.to_ansible()),
         )
     if machine.status == "New" or machine.status == "Failed":
-        commission(machine.id, client)
-        Task.wait_for_state(machine.id, client, False, MachineTaskState.ready)
+        machine.commission(client)
+        Machine.wait_for_state(machine.id, client, False, "Ready")
     if machine.status == "Commissioning":
         # commissioning will bring machine to the ready state
-        Task.wait_for_state(machine.id, client, False, MachineTaskState.ready)
+        Machine.wait_for_state(machine.id, client, False, "Ready")
     data = {}
     timeout = 20  # seconds
     if module.params["deploy_params"]:
@@ -345,15 +322,8 @@ def deploy(module, client: Client):
             data["hwe_kernel"] = module.params["deploy_params"]["hwe_kernel"]
         if module.params["deploy_params"]["user_data"]:
             data["user_data"] = module.params["deploy_params"]["user_data"]
-    client.post(
-        f"/api/2.0/machines/{machine.id}/",
-        query={"op": "deploy"},
-        data=data,
-        timeout=timeout,
-    ).json  # here we can get TimeoutError: timed out
-    updated_machine = Task.wait_for_state(
-        machine.id, client, False, MachineTaskState.deployed
-    )
+    machine.deploy(client, data, timeout)  # here we can get TimeoutError: timed out
+    updated_machine = Machine.wait_for_state(machine.id, client, False, "Deployed")
     return (
         True,
         updated_machine.to_ansible(),
