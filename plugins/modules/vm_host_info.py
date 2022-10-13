@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: vm_hosts
+module: vm_host_info
 
 author:
   - Jure Medvesek (@juremedvesek)
@@ -18,9 +18,9 @@ description:
   - Plugin return information about all or specific vm hosts.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.instance
+  - canonical.maas.cluster_instance
 seealso: []
-options:
+options: {}
 """
 
 EXAMPLES = r"""
@@ -29,11 +29,11 @@ EXAMPLES = r"""
   tasks:
   - name: Get host info.
     canonical.maas.vm_host_info:
-      instance:
+      cluster_instance:
         host: 'host address'
         token_key: 'token key'
         token_secret: 'token secret'
-        client_key: 'client key'
+        customer_key: 'customer key'
     register: hosts
   - debug:
       var: hosts
@@ -114,18 +114,18 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            arguments.get_spec("instance"),
+            arguments.get_spec("cluster_instance"),
         ),
     )
 
     try:
-        instance = module.params["instance"]
-        host = instance["host"]
-        client_key = instance["client_key"]
-        token_key = instance["token_key"]
-        token_secret = instance["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        consumer_key = cluster_instance["customer_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
-        client = Client(host, token_key, token_secret, client_key)
+        client = Client(host, token_key, token_secret, consumer_key)
         records = run(module, client)
         module.exit_json(changed=False, records=records)
     except errors.MaasError as e:

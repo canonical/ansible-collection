@@ -9,33 +9,39 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: machines
+module: boot_sources_info
 
 author:
   - Jure Medvesek (@juremedvesek)
-short_description: Return info about virtual machines
+short_description: Return info about boot sources.
 description:
-  - Plugin return information about all or specific virtual machines in a cluster.
+  - Plugin returns information about available boot sources.
 version_added: 1.0.0
 extends_documentation_fragment:
+  - canonical.maas.cluster_instance
 seealso: []
-options:
+options: {}
 """
 
-# TODO (domen): Update EXAMPLES
 EXAMPLES = r"""
-- name: List machines
+- name: List boot sources
   cannonical.maas.vm_host_info:
-    instance:
+    cluster_instance:
       host: ...
       token_key: ...
       token_secret: ...
-      client_key: ...
+      customer_key: ...
 """
 
 RETURN = r"""
-machines:
+records:
+  description:
+    - Boot sources info list.
+  returned: success
+  type: list
+  sample: # ADD SAMPLE
 """
+
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -44,7 +50,7 @@ from ..module_utils.client import Client
 
 
 def run(module, client: Client):
-    response = client.get(f"/api/2.0/boot-resources/")
+    response = client.get("/api/2.0/boot-resources/")
     return response.json
 
 
@@ -52,18 +58,18 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            arguments.get_spec("instance"),
+            arguments.get_spec("cluster_instance"),
         ),
     )
 
     try:
-        instance = module.params["instance"]
-        host = instance["host"]
-        client_key = instance["client_key"]
-        token_key = instance["token_key"]
-        token_secret = instance["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        consumer_key = cluster_instance["customer_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
-        client = Client(host, token_key, token_secret, client_key)
+        client = Client(host, token_key, token_secret, consumer_key)
         records = run(module, client)
         module.exit_json(changed=False, records=records)
     except errors.MaasError as e:

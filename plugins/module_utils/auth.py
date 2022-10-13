@@ -1,3 +1,7 @@
+from __future__ import absolute_import, division, print_function
+
+__metaclass__ = type
+
 import time
 from random import SystemRandom
 
@@ -17,7 +21,7 @@ def combine_item(key, value):
     return f'{key}="{value}"'
 
 
-def get_oauth_header(client_key, token_key, token_signature):
+def get_oauth_header(consumer_key, token_key, token_signature):
     timestamp = get_timestamp()
     nonce = get_nonce(timestamp)
 
@@ -26,7 +30,7 @@ def get_oauth_header(client_key, token_key, token_signature):
         ("oauth_timestamp", timestamp),
         ("oauth_version", "1.0"),
         ("oauth_signature_method", "PLAINTEXT"),
-        ("oauth_consumer_key", client_key),
+        ("oauth_consumer_key", consumer_key),
         ("oauth_token", token_key),
         ("oauth_signature", f"%26{token_signature}"),
     ]

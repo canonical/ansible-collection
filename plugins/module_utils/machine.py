@@ -6,6 +6,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+__metaclass__ = type
+
 from ..module_utils.utils import (
     get_query,
     MaasValueMapper,
@@ -28,11 +30,13 @@ class Machine(MaasValueMapper):
         zone=None,
         pool=None,
         domain=None,
+        tags=None,
         network_interfaces=[],
         disks=[],
         status=None,
         osystem=None,
         distro_series=None,
+        hwe_kernel=None,
     ):
         self.hostname = hostname
         self.id = id
@@ -44,9 +48,11 @@ class Machine(MaasValueMapper):
         self.zone = zone
         self.pool = pool
         self.domain = domain
+        self.tags = tags
         self.status = status
         self.osystem = osystem
         self.distro_series = distro_series
+        self.hwe_kernel = hwe_kernel
 
     @classmethod
     def get_by_name(
@@ -74,7 +80,10 @@ class Machine(MaasValueMapper):
             raise errors.MaasError("hostname or vm_host parameter missing.")
         maas_list = client.get("/api/2.0/machines/").json
         for maas_dict in maas_list:
-            if maas_dict["hostname"] == module.params["hostname"] and maas_dict["pod"]["name"] == module.params["vm_host"]:
+            if (
+                maas_dict["hostname"] == module.params["hostname"]
+                and maas_dict["pod"]["name"] == module.params["vm_host"]
+            ):
                 return cls.from_maas(maas_dict)
         if must_exist:
             raise errors.MachineNotFound(module.params.get("hostname"))
@@ -120,6 +129,7 @@ class Machine(MaasValueMapper):
             obj.domain = maas_dict["domain"]["id"]
             obj.zone = maas_dict["zone"]["id"]
             obj.pool = maas_dict["pool"]["id"]
+            obj.tags = maas_dict["tag_names"]
             obj.network_interfaces = [
                 NetworkInterface.from_maas(net_interface)
                 for net_interface in maas_dict["interface_set"] or []
@@ -130,6 +140,7 @@ class Machine(MaasValueMapper):
             obj.status = maas_dict["status_name"]
             obj.osystem = maas_dict["osystem"]
             obj.distro_series = maas_dict["distro_series"]
+            obj.hwe_kernel = maas_dict["hwe_kernel"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -164,6 +175,9 @@ class Machine(MaasValueMapper):
         return dict(
             hostname=self.hostname,
             id=self.id,
+            zone=self.zone,
+            pool=self.pool,
+            tags=self.tags,
             memory=self.memory,
             cores=self.cores,
             network_interfaces=[
@@ -173,6 +187,7 @@ class Machine(MaasValueMapper):
             status=self.status,
             osystem=self.osystem,
             distro_series=self.distro_series,
+            hwe_kernel=self.hwe_kernel,
         )
 
     def payload_for_compose(self, module):
@@ -214,6 +229,9 @@ class Machine(MaasValueMapper):
             (
                 self.hostname == other.hostname,
                 self.id == other.id,
+                self.pool == other.pool,
+                self.zone == other.zone,
+                self.tags == other.tags,
                 self.memory == other.memory,
                 self.cores == other.cores,
                 self.network_interfaces == other.network_interfaces,
@@ -221,5 +239,6 @@ class Machine(MaasValueMapper):
                 self.status == other.status,
                 self.osystem == other.osystem,
                 self.distro_series == other.distro_series,
+                self.hwe_kernel == other.hwe_kernel,
             )
         )

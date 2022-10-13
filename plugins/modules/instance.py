@@ -16,14 +16,14 @@ author:
 short_description: Deploy, release or delete machines.
 description:
   - If I(state) value is C(deployed) the selected machine will be deployed.
-    If I(hostname) is not provided, a random machine with I(allocate_params) and I(deploy_params) will be allocated and deployed.
-    If no parameters are given, a random machine will be allocated and deployed using the defaults.
-    In case if no machine matching the given constraints could be found, the task will FAIL.
+    If I(hostname) is not provided, a random machine with I(allocate_params),
+    I(deploy_params) and I(network_interface) parameters will be allocated and deployed.
+    If I(hostname) is not provided and no parameters are given, a random machine will be allocated and deployed using the defaults.
   - If I(state) value is C(ready) the selected machine will be released.
   - If I(state) value is C(absent) the selected machine will be deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.instance
+  - canonical.maas.cluster_instance
 seealso: []
 options:
   hostname:
@@ -41,41 +41,77 @@ options:
   allocate_params:
     description:
       - Constraints parameters that can be used to allocate a machine with certain characteristics.
-      - All the constraints are optional and when multiple constraints are provided, they are combined using 'AND' semantics.
+      - All of the constraints are optional and when multiple constraints are provided, they are combined using 'AND' semantics.
       - If no parameters are given, a random machine will be allocated using the defaults.
-      - Relevant only if I(state) value is C(deployed)
+      - Relevant only if I(state) value is C(deployed) and I(hostname) is not provided.
     type: dict
-    options:
+    suboptions:
       cores:
         description:
-          - If present, this parameter specifies the minimum number of CPUs a returned machine must have.
-          - A machine with additional CPUs may be allocated if there is no exact match, or if the 'mem' constraint is not also specified.
+          - The minimum number of CPUs a returned machine must have.
+          - A machine with additional CPUs may be allocated if there is no exact match, or if the I(memory) constraint is not also specified.
         type: int
       memory:
         description:
-          - If present, this parameter specifies the minimum amount of memory (expressed in MB) the returned machine must have.
-          - A machine with additional memory may be allocated if there is no exact match, or the 'cpu' constraint is not also specified.
+          - The minimum amount of memory (expressed in MB) the returned machine must have.
+          - A machine with additional memory may be allocated if there is no exact match, or the I(cores) constraint is not also specified.
         type: int
+      zone:
+        description: The zone name of the MAAS machine to be allocated.
+        type: str
+      pool:
+        description: The pool name of the MAAS machine to be allocated.
+        type: str
+      tags:
+        description: A set of tag names that must be assigned on the MAAS machine to be allocated.
+        type: list
+        elements: str
   deploy_params:
     description:
-      - Specify the OS and OS release the machine will use.
-      - If no parameters are given, a random machine will be deployed using the defaults.
-      - Relevant only if I(state) value is C(deployed)
+      - Constraints parameters that can be used to deploy a machine.
+      - All of the constraints are optional and when multiple constraints are provided, they are combined using 'AND' semantics.
+      - If no parameters are given, machine previously allocated will be deployed using the defaults.
+      - Relevant only if I(state) value is C(deployed) and I(hostname) is not provided.
       - If machine is already in deployed state, I(deploy_params) will be ignored. Machine needs to be released first for I(deploy_params) to apply
     type: dict
-    options:
+    suboptions:
       osystem:
-        description:
-          - If present, this parameter specifies the OS the machine will use.
+        description: The OS the machine will use.
         type: str
       distro_series:
-        description:
-          - If present, this parameter specifies the OS release the machine will use.
+        description: The OS release the machine will use.
         type: str
       timeout:
-        description:
-          - Time in seconds to wait for server response in case of deploying.
+        description: Time in seconds to wait for server response when deploying.
         type: int
+      hwe_kernel:
+        description:
+          - Specifies the kernel to be used on the machine.
+          - Only used when deploying Ubuntu.
+        type: str
+      user_data:
+        description: Blob of base64-encoded user-data to be made available to the machines through the metadata service.
+        type: str
+  network_interfaces:
+    description:
+      - Network interface.
+    type: dict
+    suboptions:
+      name:
+        description:
+          - The name of the network interface to be configured on the allocated machine.
+          - If both subnet_cidr and ip_address are not defined, the interface will not be configured on the allocated machine.
+        type: str
+      subnet_cidr:
+        type: str
+        description:
+          - An existing subnet CIDR used to configure the network interface.
+          - Unless ip_address is defined, a free IP address is allocated from the subnet.
+      ip_address:
+        type: str
+        description:
+          - Static IP address to be configured on the network interface.
+          - If this is set, the subnet_cidr is required.
 """
 
 EXAMPLES = r"""
@@ -94,27 +130,38 @@ canonical.maas.instance:
   hostname: my_instance
   state: deployed
 
-name: Deploy already commissioned machine with custom OS and OS series
+name: Deploy already commissioned machine with custom settings
 canonical.maas.instance:
   hostname: my_instance
   state: deployed
   deploy_params:
     osystem: ubuntu
     distro_series: focal
+    hwe_kernel: my_kernel
+    user_data: my_user_data
 
-name: Deploy random/new machine with default OS and allocation constraints
+name: Deploy random/new machine with default constraints
 canonical.maas.instance:
   state: deployed
 
-name: Deploy random/new machine with custom OS and allocation constraints
+name: Deploy random/new machine with custom settings and constraints
 canonical.maas.instance:
   state: deployed
   allocate_params:
-    cores: 1
-    memory: 2
+    cores: 2
+    memory: 2000
+    zone: my_zone
+    pool: my_pool
+    tags: my_tag
+  network_interfaces:
+    name: my_network
+    subnet_cidr: 10.10.10.0/24
+    ip_address: 10.10.10.190
   deploy_params:
     osystem: ubuntu
-    distro_series: focal
+    distro_series: jammy
+    hwe_kernel: my_kernel
+    user_data: my_user_data
 """
 
 RETURN = r"""
@@ -126,6 +173,9 @@ record:
   sample:
     id: machine-id
     hostname: this-machine
+    zone: default
+    pool: default
+    tags: pod-console-logging
     status: Ready
     memory: 2048
     cores: 2
@@ -137,6 +187,7 @@ record:
       - size_gigabytes: 10
     osystem: ubuntu
     distro_series: jammy
+    hwe_kernel: ga-22.04
 """
 
 
@@ -157,27 +208,51 @@ def allocate(module, client: Client):
             data["cpu_count"] = module.params["allocate_params"]["cores"]
         if module.params["allocate_params"]["memory"]:
             data["mem"] = module.params["allocate_params"]["memory"]
-        # here an error can occur:
-        # HTTP Status Code : 409 No machine matching the given constraints could be found.
-        # This happens only when all machines are allocated and we want to release random machine using allocate_params
+        if module.params["allocate_params"]["zone"]:
+            data["zone"] = module.params["allocate_params"]["zone"]
+        if module.params["allocate_params"]["pool"]:
+            data["pool"] = module.params["allocate_params"]["pool"]
+    # A function can be written for this in network interface class and also maybe used in Machine.payload_for_compose
+    if module.params["network_interfaces"]:
+        if (
+            module.params["network_interfaces"]["name"]
+            and module.params["network_interfaces"]["subnet_cidr"]
+        ):
+            name = module.params["network_interfaces"]["name"]
+            subnet_cidr = module.params["network_interfaces"]["subnet_cidr"]
+            if module.params["network_interfaces"]["ip_address"]:
+                ip_address = module.params["network_interfaces"]["ip_address"]
+                network_interface = f"{name}:subnet_cidr={subnet_cidr},ip={ip_address}"
+            else:
+                network_interface = f"{name}:subnet_cidr={subnet_cidr}"
+            data["interfaces"] = network_interface
+    # here an error can occur: 409 No machine matching the given constraints could be found.
     # instance can't be allocated if commissioning, the only action allowed is abort
     maas_dict = client.post(
         "/api/2.0/machines/", query={"op": "allocate"}, data=data
     ).json
+    # From MAAS documentation: If multiple tag names are specified, the machine must be tagged with all of them.
+    # To request multiple tags, this parameter must be repeated in the request with each value.
+    if module.params["allocate_params"]:
+        if module.params["allocate_params"]["tags"]:
+            for tag in module.params["allocate_params"]["tags"]:
+                maas_dict = client.post(
+                    "/api/2.0/machines/",
+                    query={"op": "allocate"},
+                    data={"tag_names": tag},
+                ).json
     return Machine.from_maas(maas_dict)
 
 
 def commission(system_id, client: Client):
-    """
-    From MAAS documentation:
-    A machine in the 'ready', 'declared' or 'failed test' state may initiate a commissioning cycle
-    where it is checked out and tested in preparation for transitioning to the 'ready' state.
-    If it is already in the 'ready' state this is considered a re-commissioning process which is useful
-    if commissioning tests were changed after it previously commissioned.
+    # From MAAS documentation:
+    # A machine in the 'ready', 'declared' or 'failed test' state may initiate a commissioning cycle
+    # where it is checked out and tested in preparation for transitioning to the 'ready' state.
+    # If it is already in the 'ready' state this is considered a re-commissioning process which is useful
+    # if commissioning tests were changed after it previously commissioned.
 
-    Also it is possible to commission the machine when it is in 'new' state.
-    We get state 'new' in case if we abort commissioning of the machine (which was before already in ready or allocated state)
-    """
+    # Also it is possible to commission the machine when it is in 'new' state.
+    # We get state 'new' in case if we abort commissioning of the machine (which was before already in ready or allocated state)
     maas_dict = client.post(
         f"/api/2.0/machines/{system_id}", query={"op": "commission"}
     ).json
@@ -262,6 +337,10 @@ def deploy(module, client: Client):
             data["distro_series"] = module.params["deploy_params"]["distro_series"]
         if module.params["deploy_params"]["timeout"]:
             timeout = module.params["deploy_params"]["timeout"]
+        if module.params["deploy_params"]["hwe_kernel"]:
+            data["hwe_kernel"] = module.params["deploy_params"]["hwe_kernel"]
+        if module.params["deploy_params"]["user_data"]:
+            data["user_data"] = module.params["deploy_params"]["user_data"]
     client.post(
         f"/api/2.0/machines/{machine.id}/",
         query={"op": "deploy"},
@@ -289,7 +368,7 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            arguments.get_spec("instance"),
+            arguments.get_spec("cluster_instance"),
             hostname=dict(type="str"),
             state=dict(
                 type="str", required=True, choices=["ready", "deployed", "absent"]
@@ -300,6 +379,8 @@ def main():
                     osystem=dict(type="str"),
                     distro_series=dict(type="str"),
                     timeout=dict(type="int"),
+                    hwe_kernel=dict(type="str"),
+                    user_data=dict(type="str"),
                 ),
             ),
             allocate_params=dict(
@@ -307,6 +388,17 @@ def main():
                 options=dict(
                     cores=dict(type="int"),
                     memory=dict(type="int"),
+                    zone=dict(type="str"),
+                    pool=dict(type="str"),
+                    tags=dict(type="list", elements="str"),
+                ),
+            ),
+            network_interfaces=dict(
+                type="dict",
+                options=dict(
+                    name=dict(type="str"),
+                    subnet_cidr=dict(type="str"),
+                    ip_address=dict(type="str"),
                 ),
             ),
         ),
@@ -317,13 +409,13 @@ def main():
     )
 
     try:
-        instance = module.params["instance"]
-        host = instance["host"]
-        client_key = instance["client_key"]
-        token_key = instance["token_key"]
-        token_secret = instance["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        consumer_key = cluster_instance["customer_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
-        client = Client(host, token_key, token_secret, client_key)
+        client = Client(host, token_key, token_secret, consumer_key)
         changed, record, diff = run(module, client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as e:
