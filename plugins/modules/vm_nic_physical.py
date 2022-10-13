@@ -22,7 +22,7 @@ description:
   - Create VM on a specified host.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.instance
+  - canonical.maas.cluster_instance
 seealso: []
 options:
   vm_host:
@@ -160,10 +160,10 @@ def ensure_absent(module, client, machine_obj):
 
 
 def run(module, client):
-    # Machine needs to be allocated, broken, new or ready.
+    # Machine needs to be allocated, broken or ready.
     machine_obj = Machine.get_by_name_and_host(module, client, must_exist=True)
-    if machine_obj.status not in [MachineTaskState.new, MachineTaskState.ready, MachineTaskState.allocated, MachineTaskState.allocating, MachineTaskState.broken, MachineTaskState.comissioning]:
-      raise errors.MaasError(f"Machine {machine_obj.hostname} is not in the right state, needs to be in {[MachineTaskState.new.value, MachineTaskState.ready.value, MachineTaskState.allocated.value, MachineTaskState.broken.value]}.")
+    if machine_obj.status not in [MachineTaskState.ready, MachineTaskState.allocated, MachineTaskState.allocating, MachineTaskState.broken, MachineTaskState.comissioning]:
+      raise errors.MaasError(f"Machine {machine_obj.hostname} is not in the right state, needs to be in {[MachineTaskState.ready.value, MachineTaskState.allocated.value, MachineTaskState.broken.value]}.")
     if machine_obj.status in [MachineTaskState.allocating, MachineTaskState.comissioning]:
       Task.wait_for_state(machine_obj.id, client, False, [MachineTaskState.ready, MachineTaskState.broken, MachineTaskState.allocated])
     if module.params["state"] == NicState.present:
@@ -177,7 +177,7 @@ def main():
     module = AnsibleModule(
         supports_check_mode=False,
         argument_spec=dict(
-            arguments.get_spec("instance"),
+            arguments.get_spec("cluster_instance"),
             vm_host=dict(
                 type="str",
                 required=True,
@@ -212,12 +212,13 @@ def main():
     )
 
     try:
-        host = module.params["instance"]["host"]
-        client_key = module.params["instance"]["client_key"]
-        token_key = module.params["instance"]["token_key"]
-        token_secret = module.params["instance"]["token_secret"]
+        cluster_instance = module.params["cluster_instance"]
+        host = cluster_instance["host"]
+        customer_key = cluster_instance["customer_key"]
+        token_key = cluster_instance["token_key"]
+        token_secret = cluster_instance["token_secret"]
 
-        client = Client(host, token_key, token_secret, client_key)
+        client = Client(host, token_key, token_secret, customer_key)
         changed, record, diff = run(module, client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as e:
