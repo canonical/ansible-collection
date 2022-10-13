@@ -41,7 +41,7 @@ class TestSendComposeRequest:
 class TestMapper:
     @staticmethod
     def _get_host():
-        return dict(name="test_host", id=123)
+        return dict(name="test_host", id=123, cpu_over_commit_ratio=3, memory_over_commit_ratio=2, default_macvlan_mode="default", tags=[], zone=1, pool=1)
 
     def test_from_maas(self):
         maas_host_dict = self._get_host()

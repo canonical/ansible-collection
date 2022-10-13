@@ -28,6 +28,9 @@ class TestMapper:
             name="test_net_int",
             id=123,
             system_id=1234,
+            mac_address="this-mac",
+            tags=[],
+            effective_mtu=1500,
             links=[
                 dict(
                     subnet=dict(cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1"))
@@ -83,12 +86,16 @@ class TestMapper:
             net_interface_dict["id"],
             net_interface_dict["links"][0]["subnet"]["cidr"],
             net_interface_dict["system_id"],
+            "this-mac",
+            "this-vlan",
+            1500,
+            [],
             "this-ip",
             net_interface_dict["links"][0]["subnet"]["vlan"]["fabric"],
-            net_interface_dict["links"][0]["subnet"]["vlan"]["name"],
             "this-interface",
         )
         results = net_interface_obj.to_maas()
+        print(results)
         assert results == expected
 
     def test_to_ansible(self):
@@ -112,4 +119,5 @@ class TestMapper:
             "this-label",
         )
         results = net_interface_obj.to_ansible()
+        print(results)
         assert results == expected

@@ -24,9 +24,9 @@ pytestmark = pytest.mark.skipif(
 class TestMain:
     def test_minimal_set_of_params(self, run_main):
         params = dict(
-            instance=dict(
+            cluster_instance=dict(
                 host="https://my.host.name",
-                client_key="client key",
+                customer_key="client key",
                 token_key="token key",
                 token_secret="token secret",
             ),
@@ -43,9 +43,9 @@ class TestMain:
 
     def test_maximum_set_of_params(self, run_main):
         params = dict(
-            instance=dict(
+            cluster_instance=dict(
                 host="https://my.host.name",
-                client_key="client key",
+                customer_key="client key",
                 token_key="token key",
                 token_secret="token secret",
             ),
@@ -199,7 +199,7 @@ class TestPrepareNetworkData:
 class TestEnsureReady:
     @staticmethod
     def _get_empty_host_dict():
-        return dict(name="test_name", id="1234")
+        return dict(name="test_name", id="1234", cpu_over_commit_ratio=1, memory_over_commit_ratio=1, default_macvlan_mode="default", tags=None, zone=1, pool=1)
 
     @staticmethod
     def _get_empty_machine_dict():
@@ -233,6 +233,9 @@ class TestEnsureReady:
             tag_names=["my_tag"],
             interface_set=[
                 {
+                    "mac_address": "this-mac",
+                    "tags": [],
+                    "effective_mtu": 1500,
                     "id": "123",
                     "name": "this_name",
                     "links": [
