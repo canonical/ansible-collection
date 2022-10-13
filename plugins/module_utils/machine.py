@@ -8,7 +8,9 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+
 from time import sleep
+
 from ..module_utils.utils import (
     get_query,
     MaasValueMapper,

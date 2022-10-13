@@ -11,6 +11,8 @@ __metaclass__ = type
 from ..module_utils.utils import MaasValueMapper
 from ..module_utils import errors
 
+__metaclass__ = type
+
 
 class NetworkInterface(MaasValueMapper):
     def __init__(
