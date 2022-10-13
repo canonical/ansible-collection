@@ -37,4 +37,4 @@ class MachineTaskState(str, enum.Enum):
     failed = "Failed"
     deploying = "Deploying"
     allocating = "Allocating"
-    teting = "Testing"
+    testing = "Testing"
