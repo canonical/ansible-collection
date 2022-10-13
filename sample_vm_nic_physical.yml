@@ -3,11 +3,11 @@
   tasks:
   - name: Create new nic on sunny-raptor host with VM new-machine
     canonical.maas.vm_nic_physical:
-      instance:
+      cluster_instance:
         host: http://localhost:5240/MAAS
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-        client_key: nzW4EBWjyDe5B5szja
+        customer_key: nzW4EBWjyDe5B5szja
       vm_host: sunny-raptor
       hostname: new-machine-3
       state: present
