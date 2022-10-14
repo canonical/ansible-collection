@@ -128,3 +128,28 @@ class TestMapper:
         )
         results = net_interface_obj.to_ansible()
         assert results == expected
+
+
+class TestNeedsUpdate:
+    def test_needs_update_when_update_is_needed(self):
+        pass
+    
+    def test_needs_update_when_update_is_not_needed(self):
+        pass
+
+
+class TestSendRequestAndPayload:
+    def test_nic_send_update_request(self):
+        pass
+    
+    def test_nic_payload_for_update(self):
+        pass
+
+    def test_nic_send_create_request(self):
+        pass
+    
+    def test_nic_payload_for_create(self):
+        pass
+
+    def test_nic_send_delete_request(self):
+        pass
