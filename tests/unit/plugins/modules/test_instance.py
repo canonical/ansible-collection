@@ -34,7 +34,7 @@ class TestAllocate:
                     "cores": 1,
                     "zone": "my_zone",
                     "pool": "my_pool",
-                    "tags": None,
+                    "tags": "my_tag",
                 },
                 network_interfaces={
                     "name": "my_network",
@@ -57,42 +57,8 @@ class TestAllocate:
                 "mem": 2000,
                 "zone": "my_zone",
                 "pool": "my_pool",
+                "tags": "my_tag",
                 "interfaces": "my_network:subnet_cidr=10.10.10.10/24,ip=10.10.10.190",
-            },
-        )
-
-    def test_allocate_tags(self, client, create_module, mocker):
-        module = create_module(
-            params=dict(
-                instance=dict(
-                    host="https://0.0.0.0",
-                    token_key="URCfn6EhdZ",
-                    token_secret="PhXz3ncACvkcK",
-                    client_key="nzW4EBWjyDe",
-                ),
-                hostname="my_instance",
-                state="ready",
-                allocate_params={
-                    "memory": None,
-                    "cores": None,
-                    "zone": None,
-                    "pool": None,
-                    "tags": ["my_tag"],
-                },
-                network_interfaces=None,
-            ),
-        )
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.from_maas"
-        )
-
-        instance.allocate(module, client)
-
-        client.post.assert_called_with(
-            "/api/2.0/machines/",
-            query={"op": "allocate"},
-            data={
-                "tag_names": "my_tag",
             },
         )
 

@@ -64,8 +64,7 @@ options:
         type: str
       tags:
         description: A set of tag names that must be assigned on the MAAS machine to be allocated.
-        type: list
-        elements: str
+        type: str
   deploy_params:
     description:
       - Constraints parameters that can be used to deploy a machine.
@@ -150,9 +149,9 @@ canonical.maas.instance:
   allocate_params:
     cores: 2
     memory: 2000
-    zone: my_zone
-    pool: my_pool
-    tags: my_tag
+    zone: my-zone
+    pool: my-pool
+    tags: my-tag, my-tag2
   network_interfaces:
     name: my_network
     subnet_cidr: 10.10.10.0/24
@@ -175,7 +174,9 @@ record:
     hostname: this-machine
     zone: default
     pool: default
-    tags: pod-console-logging
+    tags:
+      - pod-console-logging
+      - my-tag
     status: Ready
     memory: 2048
     cores: 2
@@ -209,6 +210,8 @@ def allocate(module, client: Client):
             data["zone"] = module.params["allocate_params"]["zone"]
         if module.params["allocate_params"]["pool"]:
             data["pool"] = module.params["allocate_params"]["pool"]
+        if module.params["allocate_params"]["tags"]:
+            data["tags"] = module.params["allocate_params"]["tags"]
     # A function can be written for this in network interface class and also maybe used in Machine.payload_for_compose
     if module.params["network_interfaces"]:
         if (
@@ -228,16 +231,6 @@ def allocate(module, client: Client):
     maas_dict = client.post(
         "/api/2.0/machines/", query={"op": "allocate"}, data=data
     ).json
-    # From MAAS documentation: If multiple tag names are specified, the machine must be tagged with all of them.
-    # To request multiple tags, this parameter must be repeated in the request with each value.
-    if module.params["allocate_params"]:
-        if module.params["allocate_params"]["tags"]:
-            for tag in module.params["allocate_params"]["tags"]:
-                maas_dict = client.post(
-                    "/api/2.0/machines/",
-                    query={"op": "allocate"},
-                    data={"tag_names": tag},
-                ).json
     return Machine.from_maas(maas_dict)
 
 
@@ -367,7 +360,7 @@ def main():
                     memory=dict(type="int"),
                     zone=dict(type="str"),
                     pool=dict(type="str"),
-                    tags=dict(type="list", elements="str"),
+                    tags=dict(type="str"),
                 ),
             ),
             network_interfaces=dict(
