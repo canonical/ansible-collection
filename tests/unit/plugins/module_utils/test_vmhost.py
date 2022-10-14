@@ -24,7 +24,7 @@ pytestmark = pytest.mark.skipif(
 class TestSendComposeRequest:
     @staticmethod
     def _get_empty_host_dict():
-        return dict(name="test_name", id="1234")
+        return dict(name="test_name", id="1234", cpu_over_commit_ratio=3, memory_over_commit_ratio=3, default_macvlan_mode="default", tags=None, zone=1, pool=1)
 
     def test_send_compose_request(self, client, mocker):
         module = ""
