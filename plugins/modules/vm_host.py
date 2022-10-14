@@ -118,69 +118,69 @@ options:
 
 
 EXAMPLES = r"""
-name: Register LXD VM host
-canonical.maas.vm_host:
-  state: present
-  vm_host_name: new-lxd
-  power_parameters:
-    power_type: lxd
-    power_address: 172.16.117.70:8443
-  cpu_over_commit_ratio: 1
-  memory_over_commit_ratio: 2
-  default_macvlan_mode: bridge
-  zone: my-zone
-  pool: my-pool
-  tags:
-    - pod-console-logging
-    - my-tag
+- name: Register LXD VM host
+  canonical.maas.vm_host:
+    state: present
+    vm_host_name: new-lxd
+    power_parameters:
+      power_type: lxd
+      power_address: 172.16.117.70:8443
+    cpu_over_commit_ratio: 1
+    memory_over_commit_ratio: 2
+    default_macvlan_mode: bridge
+    zone: my-zone
+    pool: my-pool
+    tags:
+      - pod-console-logging
+      - my-tag
 
-name: Register VIRSH host
-canonical.maas.vm_host:
-  state: present
-  vm_host_name: new-virsh
-  power_parameters:
-    power_type: virsh
-    power_address: qemu+ssh://172.16.99.2/system
-    power_user: user
-    power_pass: pass
-  cpu_over_commit_ratio: 1
-  memory_over_commit_ratio: 2
-  default_macvlan_mode: bridge
-  zone: my-zone
-  pool: my-pool
-  tags:
-    - pod-console-logging
-    - my-tag
+- name: Register VIRSH host
+  canonical.maas.vm_host:
+    state: present
+    vm_host_name: new-virsh
+    power_parameters:
+      power_type: virsh
+      power_address: qemu+ssh://172.16.99.2/system
+      power_user: user
+      power_pass: pass
+    cpu_over_commit_ratio: 1
+    memory_over_commit_ratio: 2
+    default_macvlan_mode: bridge
+    zone: my-zone
+    pool: my-pool
+    tags:
+      - pod-console-logging
+      - my-tag
 
-name: Register known allready allocated machine
-canonical.maas.vm_host:
-  state: present
-  vm_host_name: new-vm-host-name
-  machine: my_machine
-  cpu_over_commit_ratio: 1
-  memory_over_commit_ratio: 2
-  default_macvlan_mode: bridge
+- name: Register known allready allocated machine
+  canonical.maas.vm_host:
+    state: present
+    vm_host_name: new-vm-host-name
+    machine: my_machine
+    cpu_over_commit_ratio: 1
+    memory_over_commit_ratio: 2
+    default_macvlan_mode: bridge
 
-name: Update VM host
-canonical.maas.vm_host:
-  state: present
-  vm_host_name: my-virsh
-  power_parameters:
-    power_address: qemu+ssh://172.16.99.2/system
-    power_pass: pass_updated
-  new_vm_host_name: my-virsh-updated
-  cpu_over_commit_ratio: 2
-  memory_over_commit_ratio: 3
-  default_macvlan_mode: bridge
-  zone: new-zone
-  pool: new-pool
-  tags:
-    - new-tag
+- name: Update VM host
+  canonical.maas.vm_host:
+    state: present
+    vm_host_name: my-virsh
+    power_parameters:
+      power_address: qemu+ssh://172.16.99.2/system
+      power_pass: pass_updated
+    new_vm_host_name: my-virsh-updated
+    cpu_over_commit_ratio: 2
+    memory_over_commit_ratio: 3
+    default_macvlan_mode: bridge
+    zone: new-zone
+    pool: new-pool
+    tags:
+      - new-tag
 
-name: Remove VM host
-canonical.maas.vm_host:
-  state: absent
-  vm_host_name: sunny-raptor
+- name: Remove VM host
+  canonical.maas.vm_host:
+    state: absent
+    vm_host_name: sunny-raptor
 """
 
 RETURN = r"""

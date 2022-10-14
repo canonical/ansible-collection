@@ -120,7 +120,6 @@ from ..module_utils import arguments, errors
 from ..module_utils.state import MachineTaskState, NicState
 from ..module_utils.client import Client
 from ..module_utils.machine import Machine
-from ..module_utils.task import Task
 from ..module_utils.network_interface import NetworkInterface
 from ..module_utils.utils import is_changed
 
