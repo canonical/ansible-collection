@@ -6,3 +6,5 @@ tests/output
 # developer instance, including credentials
 tests/integration/integration_config.yml
 tests/integration/inventory
+docs/build
+docs/source/modules
