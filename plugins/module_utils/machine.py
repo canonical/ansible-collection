@@ -245,10 +245,13 @@ class Machine(MaasValueMapper):
         if check_mode:
             return  # add mocked machine when needed
         while True:
-            machine = cls.get_by_id(id, client)
-            if machine.status in states:  # IMPLEMENT TIMEOUT?
-                return machine
-            sleep(1)
+            try:
+                maas_dict = client.get(f"/api/2.0/machines/{id}/").json
+                if maas_dict["status_name"] in states:  # IMPLEMENT TIMEOUT?
+                    return cls.from_maas(maas_dict)
+                sleep(3)
+            except errors.MaasError:
+                raise errors.MachineNotFound(id)
 
     def deploy(self, client, payload, timeout=20):
         return client.post(
