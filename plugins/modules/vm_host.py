@@ -94,10 +94,9 @@ options:
     type: str
   tags:
     description:
-      - A tag or list of tags (comma delimited) to assign to the new VM host.
+      - A tag or tags (comma delimited) to assign to the new VM host.
       - This is computed if it's not set.
-    type: list  # CHECK IF THIS IS TRUE
-    elements: str
+    type: str
   cpu_over_commit_ratio:
     description:
       - The new VM host CPU overcommit ratio (0-10).
@@ -255,25 +254,25 @@ from ..module_utils.vmhost import VMHost
 def deploy_machine_as_vm_host(module, client):
     machine = Machine.get_by_name(
         module, client, must_exist=True, name_field_ansible="machine"
-    )  # Replace with get_by_name_and_vm_host??
+    )  # Replace with fqdn
     data = {
-        "install_rackd": True,  # If true, the rack controller will be installed on this machine.
-        "install_kwm": True,  # If true, KVM will be installed on this machine and added to MAAS.
-        "register_vmhost": True,  # TEST THE COMBINATION OF PARAMETERS
+        "install_rackd": True,
+        "install_kwm": True,
+        "register_vmhost": True,
     }
-    timeout = 30  # [s]
-    machine.deploy(client, data, timeout)
-    Machine.wait_for_state(
-        machine.id, client, False, "Deployed"
-    )  # Check if we wait for deployed state
+    machine.deploy(client, data, timeout=30)
+    try:
+        Machine.wait_for_state(machine.id, client, False, "Deployed")
+    except errors.MachineNotFound:  # when machine is deployed, machine is gone
+        pass
     vm_host_obj = VMHost.get_by_name(
         module, client, must_exist=True, name_field_ansible="vm_host_name"
     )
-    vm_host = vm_host_obj.get(client)
+    vm_host_dict = vm_host_obj.get(client)
     return (
         True,
-        vm_host,
-        dict(before={}, after=vm_host),
+        vm_host_dict,
+        dict(before={}, after=vm_host_dict),
     )
 
 
@@ -285,7 +284,6 @@ def create_vm_host(module, client: Client):
         data["power_user"] = module.params["power_parameters"]["power_user"]
     if module.params["power_parameters"]["power_pass"]:
         data["power_pass"] = module.params["power_parameters"]["power_pass"]
-    # CHECK IF FOR LOOP IS REALLY NOT NEEDED HERE
     if module.params["tags"]:
         data["tags"] = module.params["tags"]
     if module.params["zone"]:
@@ -295,7 +293,7 @@ def create_vm_host(module, client: Client):
     if module.params["vm_host_name"]:
         data["name"] = module.params["vm_host_name"]
 
-    vm_host_obj, vm_host = VMHost.create(client, data)
+    vm_host_obj, vm_host_dict = VMHost.create(client, data)
 
     data = {}
     if module.params["cpu_over_commit_ratio"]:
@@ -305,22 +303,22 @@ def create_vm_host(module, client: Client):
     if module.params["default_macvlan_mode"]:
         data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
     if data:
-        vm_host = vm_host_obj.update(client, data)
+        vm_host_dict = vm_host_obj.update(client, data)
 
     return (
         True,
-        vm_host,
-        dict(before={}, after=vm_host),
+        vm_host_dict,
+        dict(before={}, after=vm_host_dict),
     )
 
 
 def update_vm_host(module, client: Client, vm_host_obj):
     data = {}
-    if module.params["power_parameters"]["power_address"]:
-        data["power_address"] = module.params["power_parameters"]["power_address"]
-    if module.params["power_parameters"]["power_pass"]:
-        data["power_pass"] = module.params["power_parameters"]["power_pass"]
-    # CHECK IF FOR LOOP IS REALLY NOT NEEDED HERE
+    if module.params["power_parameters"]:
+        if module.params["power_parameters"]["power_address"]:
+            data["power_address"] = module.params["power_parameters"]["power_address"]
+        if module.params["power_parameters"]["power_pass"]:
+            data["power_pass"] = module.params["power_parameters"]["power_pass"]
     if module.params["tags"]:
         if vm_host_obj.tags != module.params["tags"]:
             data["tags"] = module.params["tags"]
@@ -330,7 +328,7 @@ def update_vm_host(module, client: Client, vm_host_obj):
     if module.params["pool"]:
         if vm_host_obj.pool != module.params["pool"]:
             data["pool"] = module.params["pool"]
-    if module.params["new_hostname"]:
+    if module.params["new_vm_host_name"]:
         if vm_host_obj.name != module.params["new_vm_host_name"]:
             data["name"] = module.params["new_vm_host_name"]
     if module.params["cpu_over_commit_ratio"]:
@@ -346,30 +344,31 @@ def update_vm_host(module, client: Client, vm_host_obj):
         if vm_host_obj.default_macvlan_mode != module.params["default_macvlan_mode"]:
             data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
 
-    vm_host_before = vm_host_obj.get(client)
+    vm_host_dict_before = vm_host_obj.get(client)
 
     if data:
-        vm_host = vm_host_obj.update(client, data)
+        vm_host_dict = vm_host_obj.update(client, data)
         return (
             True,
-            vm_host,
-            dict(before=vm_host_before, after=vm_host),
+            vm_host_dict,
+            dict(before=vm_host_dict_before, after=vm_host_dict),
         )
 
     return (
         False,
-        vm_host_before,
-        dict(before=vm_host_before, after=vm_host_before),
+        vm_host_dict_before,
+        dict(before=vm_host_dict_before, after=vm_host_dict_before),
     )
 
 
 def delete_vm_host(module, client: Client):
-    vm_host = VMHost.get_by_name(
+    vm_host_obj = VMHost.get_by_name(
         module, client, must_exist=False, name_field_ansible="vm_host_name"
     )
-    if vm_host:
-        vm_host.delete(client)
-        return True, dict(), dict(before=vm_host.to_ansible(), after={})
+    if vm_host_obj:
+        vm_host_dict = vm_host_obj.get(client)
+        vm_host_obj.delete(client)
+        return True, dict(), dict(before=vm_host_dict, after={})
     return False, dict(), dict(before={}, after={})
 
 
@@ -412,7 +411,7 @@ def main():
             new_vm_host_name=dict(type="str"),
             pool=dict(type="str"),
             zone=dict(type="str"),
-            tags=dict(type="list", elements="str"),
+            tags=dict(type="str"),
         ),
     )
 
