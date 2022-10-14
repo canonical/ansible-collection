@@ -183,9 +183,10 @@ class Machine(MaasValueMapper):
             memory=self.memory,
             cores=self.cores,
             network_interfaces=[
-                net_interface.to_ansible() for net_interface in self.network_interfaces
+                net_interface.to_ansible()
+                for net_interface in self.network_interfaces or []
             ],
-            storage_disks=[disk.to_ansible() for disk in self.disks],
+            storage_disks=[disk.to_ansible() for disk in self.disks or []],
             status=self.status,
             osystem=self.osystem,
             distro_series=self.distro_series,
