@@ -66,3 +66,8 @@ units:  ## Run unit tests
 .PHONY: integration
 integration:  ## Run integration tests
 	ansible-test integration --docker --diff
+
+.PHONY: docs
+docs:  ## Build collection documentation
+	pip install -r docs.requirements
+	$(MAKE) -C docs -f Makefile.custom docs
