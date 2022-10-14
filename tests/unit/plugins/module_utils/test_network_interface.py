@@ -76,10 +76,12 @@ class TestMapper:
             name="test_net_int",
             id=123,
             subnet_cidr="ip",
+            mac_address="this-mac",
             ip_address="this-ip",
             fabric="fabric-1",
-            vlan="vlan-1",
+            vlan="this-vlan",
             label_name="this-interface",
+            mtu=1500,
         )
         net_interface_obj = NetworkInterface(
             net_interface_dict["name"],
@@ -106,16 +108,21 @@ class TestMapper:
             ip_address="this-ip",
             fabric="this-fabric",
             vlan="this-vlan",
-            mac_address="this-mac-address",
+            mac="this-mac",
+            mtu=1500,
+            tags=None,
         )
         net_interface_obj = NetworkInterface(
             net_interface_dict["name"],
             net_interface_dict["id"],
             net_interface_dict["links"][0]["subnet"]["cidr"],
             net_interface_dict["system_id"],
+            "this-mac",
+            "this-vlan",
+            1500,
+            None,
             "this-ip",
             "this-fabric",
-            "this-vlan",
             "this-label",
             "this-mac-address",
         )
