@@ -12,7 +12,6 @@ from time import sleep
 
 from ..module_utils.rest_client import RestClient
 from ..module_utils.state import TaskState
-from ..module_utils.machine import Machine
 
 
 class Task:
@@ -42,4 +41,3 @@ class Task:
         # TODO: Add other endpoints
         task_status = rest_client.get_record(endpoint)
         return task_status if task_status else {}
-

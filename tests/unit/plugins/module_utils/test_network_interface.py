@@ -95,7 +95,6 @@ class TestMapper:
             "this-interface",
         )
         results = net_interface_obj.to_maas()
-        print(results)
         assert results == expected
 
     def test_to_ansible(self):
@@ -121,5 +120,4 @@ class TestMapper:
             "this-mac-address",
         )
         results = net_interface_obj.to_ansible()
-        print(results)
         assert results == expected
