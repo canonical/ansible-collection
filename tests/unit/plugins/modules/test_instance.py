@@ -480,7 +480,7 @@ class TestMain:
     # in module diff needs to be added for this to work
     def test_all_params(self, run_main):
         params = dict(
-            instance=dict(
+            cluster_instance=dict(
                 host="https://0.0.0.0",
                 token_key="URCfn6EhdZ",
                 token_secret="PhXz3ncACvkcK",
@@ -515,7 +515,7 @@ class TestMain:
 
     def test_minimal_set_of_params(self, run_main):
         params = dict(
-            instance=dict(
+            cluster_instance=dict(
                 host="https://0.0.0.0",
                 token_key="URCfn6EhdZ",
                 token_secret="PhXz3ncACvkcK",
