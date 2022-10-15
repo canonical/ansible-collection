@@ -11,6 +11,7 @@ import sys
 
 import pytest
 
+import json
 from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
@@ -148,12 +149,21 @@ class TestPayloadForCompose:
 class TestWaitForState:
     def test_wait_for_state(self, client, mocker):
         system_id = "system_id"
+
+        client.get.return_value = Response(
+            200,
+            json.dumps(
+                dict(
+                    hostname="my_instance",
+                    system_id="system_id",
+                    status_name="Commissioning",
+                ),
+            ),
+        )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_id"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
         ).return_value = Machine(
-            hostname="my_instance",
-            id="system_id",
-            status="Commissioning",
+            id="system_id", hostname="my_instance", status="Commissioning"
         )
 
         machine = Machine.wait_for_state(
