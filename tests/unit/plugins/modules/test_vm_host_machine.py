@@ -73,7 +73,16 @@ class TestMain:
 class TestRun:
     @staticmethod
     def _get_empty_host_dict():
-        return dict(name="test_name", id="1234")
+        return dict(
+            name="test_name",
+            id="1234",
+            cpu_over_commit_ratio=1,
+            memory_over_commit_ratio=2,
+            default_macvlan_mode="bridge",
+            pool="my-pool",
+            zone="my-zone",
+            tags="my-tag",
+        )
 
     def test_run_when_state_ready_and_net_interface_and_storage(
         self, create_module, client, mocker

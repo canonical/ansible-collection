@@ -54,6 +54,22 @@ class TestMapper:
 
     def test_from_maas(self):
         maas_host_dict = self._get_host()
-        host = VMHost(maas_host_dict["name"], maas_host_dict["id"])
+        host = VMHost(
+            maas_host_dict["name"],
+            maas_host_dict["id"],
+            maas_host_dict["cpu_over_commit_ratio"],
+            maas_host_dict["memory_over_commit_ratio"],
+            maas_host_dict["default_macvlan_mode"],
+            maas_host_dict["pool"],
+            maas_host_dict["zone"],
+            maas_host_dict["tags"],
+        )
         results = VMHost.from_maas(maas_host_dict)
-        assert results.name == host.name and results.id == host.id
+        assert results.name == host.name
+        assert results.cpu_over_commit_ratio == host.cpu_over_commit_ratio
+        assert results.memory_over_commit_ratio == host.memory_over_commit_ratio
+        assert results.default_macvlan_mode == host.default_macvlan_mode
+        assert results.id == host.id
+        assert results.pool == host.pool
+        assert results.zone == host.zone
+        assert results.tags == host.tags
