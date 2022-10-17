@@ -39,6 +39,7 @@ class Machine(MaasValueMapper):
         osystem=None,
         distro_series=None,
         hwe_kernel=None,
+        power_type=None,
     ):
         self.hostname = hostname
         self.id = id
@@ -55,6 +56,7 @@ class Machine(MaasValueMapper):
         self.osystem = osystem
         self.distro_series = distro_series
         self.hwe_kernel = hwe_kernel
+        self.power_type = power_type
 
     @classmethod
     def get_by_name(
@@ -143,6 +145,7 @@ class Machine(MaasValueMapper):
             obj.osystem = maas_dict["osystem"]
             obj.distro_series = maas_dict["distro_series"]
             obj.hwe_kernel = maas_dict["hwe_kernel"]
+            obj.power_type = maas_dict["power_type"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -191,6 +194,7 @@ class Machine(MaasValueMapper):
             osystem=self.osystem,
             distro_series=self.distro_series,
             hwe_kernel=self.hwe_kernel,
+            power_type=self.power_type,
         )
 
     def payload_for_compose(self, module):
@@ -237,6 +241,7 @@ class Machine(MaasValueMapper):
                 self.osystem == other.osystem,
                 self.distro_series == other.distro_series,
                 self.hwe_kernel == other.hwe_kernel,
+                self.power_type == other.power_type,
             )
         )
 
