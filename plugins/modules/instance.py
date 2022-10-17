@@ -170,25 +170,34 @@ record:
   returned: success
   type: dict
   sample:
-    id: machine-id
-    hostname: this-machine
-    zone: default
+    cores: 2
+    distro_series: focal
+    hostname: new-machine
+    hwe_kernel: ga-22.04
+    id: 6h4fn6
+    memory: 2048
+    network_interfaces:
+    - fabric: fabric-1
+      id: 277
+      ip_address: 10.10.10.190
+      name: my-net
+      subnet_cidr: 10.10.10.0/24
+      vlan: untagged
+    osystem: ubuntu
     pool: default
+    power_type: lxd
+    status: Commissioning
+    storage_disks:
+    - id: 288
+      name: sda
+      size_gigabytes: 3
+    - id: 289
+      name: sdb
+      size_gigabytes: 5
     tags:
       - pod-console-logging
       - my-tag
-    status: Ready
-    memory: 2048
-    cores: 2
-    network_interfaces:
-      - name: this-interface
-        subnet_cidr: 10.0.0.0/24
-    storage_disks:
-      - size_gigabytes: 5
-      - size_gigabytes: 10
-    osystem: ubuntu
-    distro_series: jammy
-    hwe_kernel: ga-22.04
+    zone: default
 """
 
 
