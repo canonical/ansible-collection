@@ -17,8 +17,8 @@ short_description: Create, update and delete VM host of allowed type (LXD and vi
 description:
   - If I(state) value is C(absent) the selected VM host will be deleted.
   - If I(state) value is C(present), and I(machine) is provided, new VM host with the name I(vm_host_name) will be created from the machine.
-  - If I(state) value is C(present), and I(vm_host_name) is found, an existing VM host will be updated.
-  - If I(state) value is C(present), and I(vm_host_name) is not found, new VM host with the name I(vm_host_name) will be created.
+  - If I(state) value is C(present), I(machine) is not provided and I(vm_host_name) is found, an existing VM host will be updated.
+  - If I(state) value is C(present), I(machine) is not provided and I(vm_host_name) is not found, new VM host with the name I(vm_host_name) will be created.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -34,14 +34,13 @@ options:
     description:
       - The name of an VM host to be created, updated or deleted.
       - If I(state) value is C(absent), existing VM host will be deleted.
-      - If I(state) value is C(present), and I(vm_host_name) is not provided or not found, a new VM host will be created.
+      - If I(state) value is C(present), and I(vm_host_name) is not not found, a new VM host will be created.
       - If I(state) value is C(present), and I(vm_host_name) is found, an existing VM host will be updated.
-      - This is computed if it's not set.
     required: True
     type: str
   machine:
     description:
-      - The name of registered ready MAAS machine to be deployed and registered as a LXD VM host in MAAS.
+      - The name of registered ready MAAS machine to be deployed and registered as a VM host in MAAS.
       - Relevant only if I(state) value is C(present).
       - This option conflicts with I(power_parameters).
       - If machine is not found the task will FAIL.
@@ -49,15 +48,15 @@ options:
   power_parameters:
     description:
       - Power parameters used for creating new VM host or updating existing VM host.
-      - If creating new VM host required parameters are I(type) and I(power_address).
-        If I(type) value is C(virsh) the parameters I(power_user) and I(power_pass) are also required. # CHECK IF THIS IS REALLY TRUE
+      - If creating new VM host required parameters are I(power_type) and I(power_address).
+        If I(power_type) value is C(virsh) the parameters I(power_user) and I(power_pass) are also required.
+      - This option conflicts with I(machine).
     type: dict
     suboptions:
       power_type:
         description:
           - The new VM host type.
-          - This option conflicts with I(hostname).
-          - This option is used only when creating new VM host. To change the type, the VM host must be deleted and re-added.
+          - This option is used only when creating new VM host. To change the I(power_type), the VM host must be deleted and re-added.
         choices: [ lxd, virsh ]
         type: str
       power_address:
@@ -129,9 +128,7 @@ canonical.maas.vm_host:
   default_macvlan_mode: bridge
   zone: my-zone
   pool: my-pool
-  tags:
-    - pod-console-logging
-    - my-tag
+  tags: my-tag, my-tag2
 
 name: Register VIRSH host
 canonical.maas.vm_host:
@@ -147,9 +144,7 @@ canonical.maas.vm_host:
   default_macvlan_mode: bridge
   zone: my-zone
   pool: my-pool
-  tags:
-    - pod-console-logging
-    - my-tag
+  tags: my-tag, my-tag2
 
 name: Register known allready allocated machine
 canonical.maas.vm_host:
@@ -173,8 +168,7 @@ canonical.maas.vm_host:
   default_macvlan_mode: bridge
   zone: new-zone
   pool: new-pool
-  tags:
-    - new-tag
+  tags: new-tag, new-tag2
 
 name: Remove VM host
 canonical.maas.vm_host:
@@ -304,12 +298,10 @@ def data_for_update_vm_host(module, vm_host_obj):
     return data
 
 
-def data_for_deploy_machine_as_vm_host(module):
+def data_for_deploy_machine_as_vm_host(machine):
     data = {
-        "install_kwm": module.params["power_parameters"]["power_type"]
-        == "virsh",  # True for virsh, False for lxd
-        "register_vmhost": module.params["power_parameters"]["power_type"]
-        == "lxd",  # True for lxd, False for virsh
+        "install_kwm": machine.power_type == "virsh",  # True for virsh, False for lxd
+        "register_vmhost": machine.power_type == "lxd",  # True for lxd, False for virsh
     }
     return data
 
@@ -318,7 +310,7 @@ def deploy_machine_as_vm_host(module, client):
     machine = Machine.get_by_name(
         module, client, must_exist=True, name_field_ansible="machine"
     )  # Replace with fqdn
-    data = data_for_deploy_machine_as_vm_host(module)
+    data = data_for_deploy_machine_as_vm_host(machine)
     machine.deploy(client, data, timeout=30)
     try:
         Machine.wait_for_state(machine.id, client, False, "Deployed")
