@@ -251,32 +251,7 @@ from ..module_utils.machine import Machine
 from ..module_utils.vmhost import VMHost
 
 
-def deploy_machine_as_vm_host(module, client):
-    machine = Machine.get_by_name(
-        module, client, must_exist=True, name_field_ansible="machine"
-    )  # Replace with fqdn
-    data = {
-        "install_rackd": True,
-        "install_kwm": True,
-        "register_vmhost": True,
-    }
-    machine.deploy(client, data, timeout=30)
-    try:
-        Machine.wait_for_state(machine.id, client, False, "Deployed")
-    except errors.MachineNotFound:  # when machine is deployed, machine is gone
-        pass
-    vm_host_obj = VMHost.get_by_name(
-        module, client, must_exist=True, name_field_ansible="vm_host_name"
-    )
-    vm_host_dict = vm_host_obj.get(client)
-    return (
-        True,
-        vm_host_dict,
-        dict(before={}, after=vm_host_dict),
-    )
-
-
-def create_vm_host(module, client: Client):
+def data_for_create_vm_host(module):
     data = {}
     data["type"] = module.params["power_parameters"]["power_type"]
     data["power_address"] = module.params["power_parameters"]["power_address"]
@@ -292,27 +267,10 @@ def create_vm_host(module, client: Client):
         data["pool"] = module.params["pool"]
     if module.params["vm_host_name"]:
         data["name"] = module.params["vm_host_name"]
-
-    vm_host_obj, vm_host_dict = VMHost.create(client, data)
-
-    data = {}
-    if module.params["cpu_over_commit_ratio"]:
-        data["cpu_over_commit_ratio"] = module.params["cpu_over_commit_ratio"]
-    if module.params["memory_over_commit_ratio"]:
-        data["memory_over_commit_ratio"] = module.params["memory_over_commit_ratio"]
-    if module.params["default_macvlan_mode"]:
-        data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
-    if data:
-        vm_host_dict = vm_host_obj.update(client, data)
-
-    return (
-        True,
-        vm_host_dict,
-        dict(before={}, after=vm_host_dict),
-    )
+    return data
 
 
-def update_vm_host(module, client: Client, vm_host_obj):
+def data_for_update_vm_host(module, vm_host_obj):
     data = {}
     if module.params["power_parameters"]:
         if module.params["power_parameters"]["power_address"]:
@@ -343,7 +301,62 @@ def update_vm_host(module, client: Client, vm_host_obj):
     if module.params["default_macvlan_mode"]:
         if vm_host_obj.default_macvlan_mode != module.params["default_macvlan_mode"]:
             data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
+    return data
 
+
+def data_for_deploy_machine_as_vm_host(module):
+    data = {
+        "install_kwm": module.params["power_parameters"]["power_type"]
+        == "virsh",  # True for virsh, False for lxd
+        "register_vmhost": module.params["power_parameters"]["power_type"]
+        == "lxd",  # True for lxd, False for virsh
+    }
+    return data
+
+
+def deploy_machine_as_vm_host(module, client):
+    machine = Machine.get_by_name(
+        module, client, must_exist=True, name_field_ansible="machine"
+    )  # Replace with fqdn
+    data = data_for_deploy_machine_as_vm_host(module)
+    machine.deploy(client, data, timeout=30)
+    try:
+        Machine.wait_for_state(machine.id, client, False, "Deployed")
+    except errors.MachineNotFound:  # when machine is deployed, machine is gone
+        pass
+    vm_host_obj = VMHost.get_by_name(
+        module, client, must_exist=True, name_field_ansible="vm_host_name"
+    )
+    data = data_for_update_vm_host(module, vm_host_obj)
+    if data:
+        vm_host_dict = vm_host_obj.update(client, data)
+    else:
+        vm_host_dict = vm_host_obj.get(client)
+
+    return (
+        True,
+        vm_host_dict,
+        dict(before={}, after=vm_host_dict),
+    )
+
+
+def create_vm_host(module, client: Client):
+    data = data_for_create_vm_host(module)
+    vm_host_obj, vm_host_dict = VMHost.create(client, data)
+
+    data = data_for_update_vm_host(module, vm_host_obj)
+    if data:
+        vm_host_dict = vm_host_obj.update(client, data)
+
+    return (
+        True,
+        vm_host_dict,
+        dict(before={}, after=vm_host_dict),
+    )
+
+
+def update_vm_host(module, client: Client, vm_host_obj):
+    data = data_for_update_vm_host(module, vm_host_obj)
     vm_host_dict_before = vm_host_obj.get(client)
 
     if data:
