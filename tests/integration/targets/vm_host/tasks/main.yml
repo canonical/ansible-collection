@@ -46,7 +46,7 @@
         - vm_host.record.default_macvlan_mode == "bridge"
         - vm_host.record.zone.name == "default"
         - vm_host.record.pool.name == "default"
-        #- vm_host.record.tags == ["my-tag", "pod-console-logging"] # THIS WILL WORK AFTER MAAS BUG IS RESOLVED
+        - vm_host.record.tags == ["my-tag", "pod-console-logging"]
     
   - name: Update LXD VM host
     canonical.maas.vm_host:
@@ -68,7 +68,7 @@
         - vm_host.record.cpu_over_commit_ratio == 2.0
         - vm_host.record.memory_over_commit_ratio == 3.0
         - vm_host.record.default_macvlan_mode == "passthru"
-        - vm_host.record.tags == ["new-tag", "new-tag2", "my-tag", "pod-console-logging"] # THIS WILL WORK AFTER MAAS BUG IS RESOLVED
+        - vm_host.record.tags == ["new-tag", "new-tag2", "my-tag", "pod-console-logging"]
 
   - name: Update LXD VM host - idempotence
     canonical.maas.vm_host:
@@ -118,7 +118,7 @@
         - vm_host.record.default_macvlan_mode == "bridge"
         - vm_host.record.zone.name == "default"
         - vm_host.record.pool.name == "default"
-         #- vm_host.record.tags == ["my-tag", "pod-console-logging"] # THIS WILL WORK AFTER MAAS BUG IS RESOLVED
+        - vm_host.record.tags == ["my-tag", "pod-console-logging"]
   
   - name: Delete VIRSH host
     canonical.maas.vm_host:
@@ -152,7 +152,7 @@
     canonical.maas.vm_host:
       state: present
       vm_host_name: vm-host-from-machine
-      machine: machine
+      machine: polona
       power_parameters:
         power_type: lxd
       cpu_over_commit_ratio: 1
@@ -163,34 +163,6 @@
         - vm_host is changed
         - vm_host.record.name == "vm_host_from_machine"
         - vm_host.record.type == "lxd"
-        - vm_host.record.cpu_over_commit_ratio == 1.0
-        - vm_host.record.memory_over_commit_ratio == 2.0
-        - vm_host.record.default_macvlan_mode == "bridge"
-
-  - name: Remove VM host
-    canonical.maas.vm_host:
-      state: absent
-      vm_host_name: vm-host-from-machine
-    register: vm_host
-  - ansible.builtin.assert:
-      that:
-        - vm_host is changed
-
-  - name: Register known allready allocated machine as virsh VM host
-    canonical.maas.vm_host:
-      state: present
-      vm_host_name: vm-host-from-machine
-      machine: machine
-      power_parameters:
-        power_type: virsh
-      cpu_over_commit_ratio: 1
-      memory_over_commit_ratio: 2
-      default_macvlan_mode: bridge
-  - ansible.builtin.assert:
-      that:
-        - vm_host is changed
-        - vm_host.record.name == "vm_host_from_machine"
-        - vm_host.record.type == "virsh"
         - vm_host.record.cpu_over_commit_ratio == 1.0
         - vm_host.record.memory_over_commit_ratio == 2.0
         - vm_host.record.default_macvlan_mode == "bridge"

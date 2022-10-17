@@ -71,6 +71,7 @@ class TestGet:
             zone=dict(id=2),
             tag_names=["my_tag"],
             hwe_kernel="my_kernel",
+            power_type="lxd",
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(
@@ -88,6 +89,7 @@ class TestGet:
             tags=["my_tag"],
             hwe_kernel="my_kernel",
             domain=3,
+            power_type="lxd",
         )
 
 

@@ -13,6 +13,7 @@ import pytest
 # from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.modules import vm_host
 from ansible_collections.canonical.maas.plugins.module_utils.vmhost import VMHost
+from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -168,53 +169,17 @@ class TestDataForUpdateVMHost:
 
 
 class TestDataForDeployMachine:
-    def test_for_deploy_machine_as_lxd_vm_host(self, create_module):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    token_key="URCfn6EhdZ",
-                    token_secret="PhXz3ncACvkcK",
-                    client_key="nzW4EBWjyDe",
-                ),
-                vm_host_name="my-vm-host",
-                machine=None,
-                state="present",
-                power_parameters=dict(
-                    power_type="lxd",
-                    power_address=None,
-                    power_user=None,
-                    power_pass=None,
-                ),
-            ),
-        )
-        data = vm_host.data_for_deploy_machine_as_vm_host(module)
+    def test_for_deploy_machine_as_lxd_vm_host(self):
+        machine = Machine(power_type="lxd")
+        data = vm_host.data_for_deploy_machine_as_vm_host(machine)
         assert data == {
             "install_kwm": False,
             "register_vmhost": True,
         }
 
-    def test_for_deploy_machine_as_virsh_vm_host(self, create_module):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    token_key="URCfn6EhdZ",
-                    token_secret="PhXz3ncACvkcK",
-                    client_key="nzW4EBWjyDe",
-                ),
-                vm_host_name="my-vm-host",
-                machine=None,
-                state="present",
-                power_parameters=dict(
-                    power_type="virsh",
-                    power_address=None,
-                    power_user=None,
-                    power_pass=None,
-                ),
-            ),
-        )
-        data = vm_host.data_for_deploy_machine_as_vm_host(module)
+    def test_for_deploy_machine_as_virsh_vm_host(self):
+        machine = Machine(power_type="virsh")
+        data = vm_host.data_for_deploy_machine_as_vm_host(machine)
         assert data == {
             "install_kwm": True,
             "register_vmhost": False,
