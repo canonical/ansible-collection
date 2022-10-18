@@ -64,8 +64,7 @@ options:
         type: str
       tags:
         description: A set of tag names that must be assigned on the MAAS machine to be allocated.
-        type: list
-        elements: str
+        type: str
   deploy_params:
     description:
       - Constraints parameters that can be used to deploy a machine.
@@ -115,53 +114,53 @@ options:
 """
 
 EXAMPLES = r"""
-name: Remove/delete machine
-canonical.maas.instance:
-  hostname: my_instance
-  state: absent
+- name: Remove/delete machine
+  canonical.maas.instance:
+    hostname: my_instance
+    state: absent
 
-name: Release machine
-canonical.maas.instance:
-  hostname: my_instance
-  state: ready
+- name: Release machine
+  canonical.maas.instance:
+    hostname: my_instance
+    state: ready
 
-name: Deploy already commissioned machine
-canonical.maas.instance:
-  hostname: my_instance
-  state: deployed
+- name: Deploy already commissioned machine
+  canonical.maas.instance:
+    hostname: my_instance
+    state: deployed
 
-name: Deploy already commissioned machine with custom settings
-canonical.maas.instance:
-  hostname: my_instance
-  state: deployed
-  deploy_params:
-    osystem: ubuntu
-    distro_series: focal
-    hwe_kernel: my_kernel
-    user_data: my_user_data
+- name: Deploy already commissioned machine with custom settings
+  canonical.maas.instance:
+    hostname: my_instance
+    state: deployed
+    deploy_params:
+      osystem: ubuntu
+      distro_series: focal
+      hwe_kernel: my_kernel
+      user_data: my_user_data
 
-name: Deploy random/new machine with default constraints
-canonical.maas.instance:
-  state: deployed
+- name: Deploy random/new machine with default constraints
+  canonical.maas.instance:
+    state: deployed
 
-name: Deploy random/new machine with custom settings and constraints
-canonical.maas.instance:
-  state: deployed
-  allocate_params:
-    cores: 2
-    memory: 2000
-    zone: my_zone
-    pool: my_pool
-    tags: my_tag
-  network_interfaces:
-    name: my_network
-    subnet_cidr: 10.10.10.0/24
-    ip_address: 10.10.10.190
-  deploy_params:
-    osystem: ubuntu
-    distro_series: jammy
-    hwe_kernel: my_kernel
-    user_data: my_user_data
+- name: Deploy random/new machine with custom settings and constraints
+  canonical.maas.instance:
+    state: deployed
+    allocate_params:
+      cores: 2
+      memory: 2000
+      zone: my-zone
+      pool: my-pool
+      tags: my-tag, my-tag2
+    network_interfaces:
+      name: my_network
+      subnet_cidr: 10.10.10.0/24
+      ip_address: 10.10.10.190
+    deploy_params:
+      osystem: ubuntu
+      distro_series: jammy
+      hwe_kernel: my_kernel
+      user_data: my_user_data
 """
 
 RETURN = r"""
@@ -171,23 +170,34 @@ record:
   returned: success
   type: dict
   sample:
-    id: machine-id
-    hostname: this-machine
-    zone: default
-    pool: default
-    tags: pod-console-logging
-    status: Ready
-    memory: 2048
     cores: 2
-    network_interfaces:
-      - name: this-interface
-        subnet_cidr: 10.0.0.0/24
-    storage_disks:
-      - size_gigabytes: 5
-      - size_gigabytes: 10
-    osystem: ubuntu
-    distro_series: jammy
+    distro_series: focal
+    hostname: new-machine
     hwe_kernel: ga-22.04
+    id: 6h4fn6
+    memory: 2048
+    network_interfaces:
+    - fabric: fabric-1
+      id: 277
+      ip_address: 10.10.10.190
+      name: my-net
+      subnet_cidr: 10.10.10.0/24
+      vlan: untagged
+    osystem: ubuntu
+    pool: default
+    power_type: lxd
+    status: Commissioning
+    storage_disks:
+    - id: 288
+      name: sda
+      size_gigabytes: 3
+    - id: 289
+      name: sdb
+      size_gigabytes: 5
+    tags:
+      - pod-console-logging
+      - my-tag
+    zone: default
 """
 
 
@@ -209,6 +219,8 @@ def allocate(module, client: Client):
             data["zone"] = module.params["allocate_params"]["zone"]
         if module.params["allocate_params"]["pool"]:
             data["pool"] = module.params["allocate_params"]["pool"]
+        if module.params["allocate_params"]["tags"]:
+            data["tags"] = module.params["allocate_params"]["tags"]
     # A function can be written for this in network interface class and also maybe used in Machine.payload_for_compose
     if module.params["network_interfaces"]:
         if (
@@ -228,16 +240,6 @@ def allocate(module, client: Client):
     maas_dict = client.post(
         "/api/2.0/machines/", query={"op": "allocate"}, data=data
     ).json
-    # From MAAS documentation: If multiple tag names are specified, the machine must be tagged with all of them.
-    # To request multiple tags, this parameter must be repeated in the request with each value.
-    if module.params["allocate_params"]:
-        if module.params["allocate_params"]["tags"]:
-            for tag in module.params["allocate_params"]["tags"]:
-                maas_dict = client.post(
-                    "/api/2.0/machines/",
-                    query={"op": "allocate"},
-                    data={"tag_names": tag},
-                ).json
     return Machine.from_maas(maas_dict)
 
 
@@ -367,7 +369,7 @@ def main():
                     memory=dict(type="int"),
                     zone=dict(type="str"),
                     pool=dict(type="str"),
-                    tags=dict(type="list", elements="str"),
+                    tags=dict(type="str"),
                 ),
             ),
             network_interfaces=dict(

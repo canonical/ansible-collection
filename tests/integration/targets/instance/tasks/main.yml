@@ -162,15 +162,21 @@
     canonical.maas.instance:
       state: deployed
       allocate_params:
-        cores: 2
+        cores: 1
         memory: 2000
-      network_interfaces:
-        name: my_network
-        subnet_cidr: 10.10.10.0/24
-        ip_address: 10.10.10.190
+        tags: virtual, pod-console-logging
+        zone: default
+        pool: default
+      # TO BE ABLE TO TEST THIS, THIS NETWORK NEEDS TO BE CREATED
+      # network_interfaces:
+      #   name: my_network
+      #   subnet_cidr: 10.10.10.0/24
+      #   ip_address: 10.10.10.190
       deploy_params:
         osystem: ubuntu
         distro_series: jammy
+        # hwe_kernel: my_kernel
+        # user_data: my_user_data
     register: machine
   - ansible.builtin.assert:
       that:
@@ -181,9 +187,9 @@
         - machine.record.distro_series == "jammy"
         - machine.record.status == "Deployed"
         - machine.record.network_interfaces | length == 1
-        - machine.record.network_interfaces[0].name == "my_network"
-        - machine.record.network_interfaces[0].subnet_cidr == "10.10.10.0/24"
-        - machine.record.network_interfaces[0].ip_address == "10.10.10.190"
+        # - machine.record.network_interfaces[0].name == "my_network"
+        # - machine.record.network_interfaces[0].subnet_cidr == "10.10.10.0/24"
+        # - machine.record.network_interfaces[0].ip_address == "10.10.10.190"
   
   - name: Release machine (ephemeral machine is deleted)
     canonical.maas.instance:

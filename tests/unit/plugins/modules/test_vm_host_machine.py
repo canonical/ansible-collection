@@ -236,6 +236,7 @@ class TestEnsureReady:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            power_type="lxd",
         )
 
     @staticmethod
@@ -272,6 +273,7 @@ class TestEnsureReady:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            power_type="lxd",
         )
 
     def test_ensure_ready_without_storaga_and_net_interfaces(
@@ -293,6 +295,7 @@ class TestEnsureReady:
             "pool": 1,
             "tags": ["my_tag"],
             "hwe_kernel": "ga-22.04",
+            "power_type": "lxd",
         }
         task = {
             "system_id": "1234",
