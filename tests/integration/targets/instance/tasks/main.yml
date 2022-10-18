@@ -45,7 +45,7 @@
         - machine.record.osystem == "ubuntu"
         - machine.record.distro_series == "focal"
         - machine.record.status == "Deployed"
-    
+
   - name: Deploy machine - idempotence
     canonical.maas.instance:
       hostname: instance-test
@@ -60,7 +60,7 @@
         - machine.record.osystem == "ubuntu"
         - machine.record.distro_series == "focal"
         - machine.record.status == "Deployed"
-  
+
   - name: Release machine
     canonical.maas.instance:
       hostname: instance-test
@@ -73,7 +73,7 @@
         - machine.record.memory == 2048
         - machine.record.cores == 2
         - machine.record.status == "Ready"
-  
+
   - name: Release machine - idempotence
     canonical.maas.instance:
       hostname: instance-test
@@ -86,7 +86,7 @@
         - machine.record.memory == 2048
         - machine.record.cores == 2
         - machine.record.status == "Ready"
-  
+
   - name: Deploy machine with another OS
     canonical.maas.instance:
       hostname: instance-test
@@ -117,7 +117,7 @@
         - machine.record.memory == 2048
         - machine.record.cores == 2
         - machine.record.status == "Ready"
-  
+
   - name: Delete machine
     canonical.maas.instance:
       hostname: instance-test
@@ -126,7 +126,7 @@
   - ansible.builtin.assert:
       that:
         - machine is changed
-  
+
   - name: Delete machine - idempotence
     canonical.maas.instance:
       hostname: instance-test
@@ -148,7 +148,7 @@
         - machine.record.osystem == "ubuntu"
         - machine.record.distro_series == "focal"
         - machine.record.status == "Deployed"
-  
+
   - name: Release machine (ephemeral machine is deleted)
     canonical.maas.instance:
       hostname: "{{ machine.record.hostname }}"
@@ -190,7 +190,7 @@
         # - machine.record.network_interfaces[0].name == "my_network"
         # - machine.record.network_interfaces[0].subnet_cidr == "10.10.10.0/24"
         # - machine.record.network_interfaces[0].ip_address == "10.10.10.190"
-  
+
   - name: Release machine (ephemeral machine is deleted)
     canonical.maas.instance:
       hostname: "{{ machine.record.hostname }}"

@@ -1,4 +1,4 @@
-- name: test query machines
+- name: Test query machines
   hosts: localhost
   tasks:
   - name: List machines
@@ -10,5 +10,5 @@
         customer_key: nzW4EBWjyDe5B5szja
     register: machines
 
-  - debug:
+  - ansible.builtin.debug:
       var: machines

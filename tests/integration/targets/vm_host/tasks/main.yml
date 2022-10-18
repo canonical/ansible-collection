@@ -16,7 +16,7 @@
       - lxd-test-updated
       - new-virsh
       - vm-host-from-machine
-  
+
   - name: Machine cleanup
     canonical.maas.instance:
       hostname: machine
@@ -47,12 +47,12 @@
         - vm_host.record.zone.name == "default"
         - vm_host.record.pool.name == "default"
         - vm_host.record.tags == ["my-tag", "pod-console-logging"]
-    
+
   - name: Update LXD VM host
     canonical.maas.vm_host:
       state: present
       vm_host_name: lxd-test
-      power_parameters: 
+      power_parameters:
         power_address: 172.16.117.70:8444
       new_vm_host_name: lxd-test-updated
       cpu_over_commit_ratio: 2
@@ -82,7 +82,7 @@
   - ansible.builtin.assert:
       that:
         - vm_host is not changed
-  
+
   - name: Delete LXD host
     canonical.maas.vm_host:
       vm_host_name: lxd-test-updated
@@ -119,7 +119,7 @@
         - vm_host.record.zone.name == "default"
         - vm_host.record.pool.name == "default"
         - vm_host.record.tags == ["my-tag", "pod-console-logging"]
-  
+
   - name: Delete VIRSH host
     canonical.maas.vm_host:
       hostname: new-virsh
@@ -128,11 +128,11 @@
   - ansible.builtin.assert:
       that:
         - vm_host is changed
-  
+
   - name: Create virtual machine with two disks and a network interface.
     canonical.maas.vm_host_machine:
       hostname: machine
-      vm_host: crisp-skunk  # 
+      vm_host: crisp-skunk  #
       cores: 1
       memory: 2000
       network_interfaces:
