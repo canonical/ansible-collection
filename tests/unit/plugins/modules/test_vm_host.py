@@ -30,7 +30,7 @@ class TestMain:
                 customer_key="nzW4EBWjyDe",
             ),
             vm_host_name="my-vm-host",
-            machine="my-machine",
+            machine_fqdn="my-machine.maas",
             state="present",
             power_parameters=dict(
                 power_type="virsh",

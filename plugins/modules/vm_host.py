@@ -16,9 +16,10 @@ author:
 short_description: Create, update and delete VM host of allowed type (LXD and virsh).
 description:
   - If I(state) value is C(absent) the selected VM host will be deleted.
-  - If I(state) value is C(present), and I(machine) is provided, new VM host with the name I(vm_host_name) will be created from the machine.
-  - If I(state) value is C(present), I(machine) is not provided and I(vm_host_name) is found, an existing VM host will be updated.
-  - If I(state) value is C(present), I(machine) is not provided and I(vm_host_name) is not found, new VM host with the name I(vm_host_name) will be created.
+  - If I(state) value is C(present), and I(machine_fqdn) is provided, new VM host with the name I(vm_host_name) will be created from the machine.
+  - If I(state) value is C(present), I(machine_fqdn) is not provided and I(vm_host_name) is found, an existing VM host will be updated.
+  - If I(state) value is C(present), I(machine_fqdn) is not provided and I(vm_host_name) is not found,
+    new VM host with the name I(vm_host_name) will be created.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -38,9 +39,9 @@ options:
       - If I(state) value is C(present), and I(vm_host_name) is found, an existing VM host will be updated.
     required: True
     type: str
-  machine:
+  machine_fqdn:
     description:
-      - The name of registered ready MAAS machine to be deployed and registered as a VM host in MAAS.
+      - The fully qualified domain name of registered ready MAAS machine to be deployed and registered as a VM host in MAAS.
       - Relevant only if I(state) value is C(present).
       - This option conflicts with I(power_parameters).
       - If machine is not found the task will FAIL.
@@ -50,7 +51,7 @@ options:
       - Power parameters used for creating new VM host or updating existing VM host.
       - If creating new VM host required parameters are I(power_type) and I(power_address).
         If I(power_type) value is C(virsh) the parameters I(power_user) and I(power_pass) are also required.
-      - This option conflicts with I(machine).
+      - This option conflicts with I(machine_fqdn).
     type: dict
     suboptions:
       power_type:
@@ -150,7 +151,7 @@ EXAMPLES = r"""
   canonical.maas.vm_host:
     state: present
     vm_host_name: new-vm-host-name
-    machine: my_machine
+    machine_fqdn: my_machine.maas
     cpu_over_commit_ratio: 1
     memory_over_commit_ratio: 2
     default_macvlan_mode: bridge
@@ -307,8 +308,8 @@ def data_for_deploy_machine_as_vm_host(machine):
 
 
 def deploy_machine_as_vm_host(module, client):
-    machine = Machine.get_by_name(
-        module, client, must_exist=True, name_field_ansible="machine"
+    machine = Machine.get_by_fqdn(
+        module, client, must_exist=True, name_field_ansible="machine_fqdn"
     )  # Replace with fqdn
     data = data_for_deploy_machine_as_vm_host(machine)
     machine.deploy(client, data, timeout=30)
@@ -379,7 +380,7 @@ def delete_vm_host(module, client: Client):
 
 def run(module, client: Client):
     if module.params["state"] == "present":
-        if module.params["machine"]:
+        if module.params["machine_fqdn"]:
             return deploy_machine_as_vm_host(module, client)
         vm_host_obj = VMHost.get_by_name(
             module, client, must_exist=False, name_field_ansible="vm_host_name"
@@ -397,7 +398,7 @@ def main():
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             vm_host_name=dict(type="str", required=True),
-            machine=dict(type="str"),
+            machine_fqdn=dict(type="str"),
             state=dict(type="str", required=True, choices=["present", "absent"]),
             power_parameters=dict(
                 type="dict",

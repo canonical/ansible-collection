@@ -9,9 +9,10 @@
   block:
     - name: Delete machine
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test.maas
         state: absent
 
+    # TODO: Add/Update after vm_host_machine module is updated with fqdn
     - name: Create virtual machine with two disks and a network interface.
       canonical.maas.vm_host_machine:
         hostname: instance-test
@@ -28,17 +29,19 @@
         that:
           - initial_machine is changed
           - initial_machine.record.hostname == "instance-test"
+          - initial_machine.record.fqdn == "instance-test.maas"
           - initial_machine.record.memory == 2000
           - initial_machine.record.cores == 2
 
     - name: Deploy machine
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test.maas
         state: deployed
       register: machine
     - ansible.builtin.assert:
         that:
           - machine is changed
+          - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 2048
           - machine.record.cores == 2
@@ -48,12 +51,13 @@
 
     - name: Deploy machine - idempotence
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test.maas
         state: deployed
       register: machine
     - ansible.builtin.assert:
         that:
           - machine is not changed
+          - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 2048
           - machine.record.cores == 2
@@ -63,12 +67,13 @@
 
     - name: Release machine
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test.maas
         state: ready
       register: machine
     - ansible.builtin.assert:
         that:
           - machine is changed
+          - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 2048
           - machine.record.cores == 2
@@ -76,12 +81,13 @@
 
     - name: Release machine - idempotence
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test.maas
         state: ready
       register: machine
     - ansible.builtin.assert:
         that:
           - machine is not changed
+          - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 2048
           - machine.record.cores == 2
@@ -89,7 +95,7 @@
 
     - name: Deploy machine with another OS
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test.maas
         state: deployed
         deploy_params:
           osystem: ubuntu
@@ -98,6 +104,7 @@
     - ansible.builtin.assert:
         that:
           - machine is changed
+          - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 2048
           - machine.record.cores == 2
@@ -107,12 +114,13 @@
 
     - name: Release machine
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test.maas
         state: ready
       register: machine
     - ansible.builtin.assert:
         that:
           - machine is changed
+          - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 2048
           - machine.record.cores == 2
@@ -120,7 +128,7 @@
 
     - name: Delete machine
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test.maas
         state: absent
       register: machine
     - ansible.builtin.assert:
@@ -129,7 +137,7 @@
 
     - name: Delete machine - idempotence
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test.maas
         state: absent
       register: machine
     - ansible.builtin.assert:
@@ -151,7 +159,7 @@
 
     - name: Release machine (ephemeral machine is deleted)
       canonical.maas.instance:
-        hostname: "{{ machine.record.hostname }}"
+        fqdn: "{{ machine.record.fqdn }}"
         state: ready
       register: machine
     - ansible.builtin.assert:
@@ -193,7 +201,7 @@
 
     - name: Release machine (ephemeral machine is deleted)
       canonical.maas.instance:
-        hostname: "{{ machine.record.hostname }}"
+        fqdn: "{{ machine.record.fqdn }}"
         state: ready
       register: machine
     - ansible.builtin.assert:

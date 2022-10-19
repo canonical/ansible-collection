@@ -222,6 +222,7 @@ class TestEnsureReady:
     @staticmethod
     def _get_empty_machine_dict():
         return dict(
+            fqdn="machine_1.maas",
             hostname="machine_1",
             cpu_count=2,
             memory=5000,
@@ -242,6 +243,7 @@ class TestEnsureReady:
     @staticmethod
     def _get_machine_dict():
         return dict(
+            fqdn="machine_2.maas",
             hostname="machine_2",
             cpu_count=2,
             memory=5000,

@@ -24,6 +24,7 @@ class Machine(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
+        fqdn=None,
         hostname=None,  # Machine name.
         id=None,
         memory=None,
@@ -41,6 +42,7 @@ class Machine(MaasValueMapper):
         hwe_kernel=None,
         power_type=None,
     ):
+        self.fqdn = fqdn
         self.hostname = hostname
         self.id = id
         self.memory = memory
@@ -68,6 +70,24 @@ class Machine(MaasValueMapper):
             module,
             name_field_ansible,
             ansible_maas_map={name_field_ansible: "hostname"},
+        )
+        maas_dict = rest_client.get_record(
+            "/api/2.0/machines/",
+            query,
+            must_exist=must_exist,
+        )
+        if maas_dict:
+            machine_from_maas = cls.from_maas(maas_dict)
+            return machine_from_maas
+
+    @classmethod
+    def get_by_fqdn(cls, module, client, must_exist=False, name_field_ansible="fqdn"):
+        # Returns machine object or None
+        rest_client = RestClient(client=client)
+        query = get_query(
+            module,
+            name_field_ansible,
+            ansible_maas_map={name_field_ansible: "fqdn"},
         )
         maas_dict = rest_client.get_record(
             "/api/2.0/machines/",
@@ -126,6 +146,7 @@ class Machine(MaasValueMapper):
     def from_maas(cls, maas_dict):
         obj = cls()
         try:
+            obj.fqdn = maas_dict["fqdn"]
             obj.hostname = maas_dict["hostname"]
             obj.id = maas_dict["system_id"]
             obj.memory = maas_dict["memory"]
@@ -178,6 +199,7 @@ class Machine(MaasValueMapper):
 
     def to_ansible(self):
         return dict(
+            fqdn=self.fqdn,
             hostname=self.hostname,
             id=self.id,
             zone=self.zone,
@@ -228,6 +250,7 @@ class Machine(MaasValueMapper):
         """One Machine is equal to another if it has ALL attributes exactly the same"""
         return all(
             (
+                self.fqdn == other.fqdn,
                 self.hostname == other.hostname,
                 self.id == other.id,
                 self.pool == other.pool,

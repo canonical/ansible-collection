@@ -19,7 +19,7 @@
 
     - name: Machine cleanup
       canonical.maas.instance:
-        hostname: machine
+        fqdn: machine.maas
         state: absent
 
     - name: Register LXD VM host
@@ -122,17 +122,18 @@
 
     - name: Delete VIRSH host
       canonical.maas.vm_host:
-        hostname: new-virsh
+        vm_host_name: new-virsh
         state: absent
       register: vm_host
     - ansible.builtin.assert:
         that:
           - vm_host is changed
 
+    # TODO: update this after vm_host_module is updated
     - name: Create virtual machine with two disks and a network interface.
       canonical.maas.vm_host_machine:
         hostname: machine
-        vm_host: crisp-skunk  #
+        vm_host: crisp-skunk
         cores: 1
         memory: 2000
         network_interfaces:
@@ -140,19 +141,20 @@
           subnet_cidr: "10.10.10.0/24"
         storage_disks:
           - size_gigabytes: 8
-      register: initial_machine
+      register: machine
     - ansible.builtin.assert:
         that:
-          - initial_machine is changed
-          - initial_machine.record.hostname == "machine"
-          - initial_machine.record.memory == 2000
-          - initial_machine.record.cores == 1
+          - machine is changed
+          - machine.record.hostname == "machine"
+          - machine.record.fqdn == "machine.maas"
+          - machine.record.memory == 2000
+          - machine.record.cores == 1
 
     - name: Register known allready allocated machine as lxd VM host
       canonical.maas.vm_host:
         state: present
         vm_host_name: vm-host-from-machine
-        machine: polona
+        machine_fqdn: machine.maas
         power_parameters:
           power_type: lxd
         cpu_over_commit_ratio: 1
@@ -178,5 +180,5 @@
 
     - name: Delete machine
       canonical.maas.instance:
-        hostname: machine
+        fqdn: machine.maas
         state: absent
