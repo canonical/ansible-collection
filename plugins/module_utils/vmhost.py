@@ -96,6 +96,7 @@ class VMHost(MaasValueMapper):
         vm_host_maas_dict = client.post(
             "/api/2.0/vm-hosts/",
             data=payload,
+            timeout=60,  # Sometimes we get timeout error thus changing toimeout from 20s to 60s
         ).json
         vm_host = cls.from_maas(vm_host_maas_dict)
         return vm_host, vm_host_maas_dict
@@ -104,4 +105,5 @@ class VMHost(MaasValueMapper):
         return client.put(
             f"/api/2.0/vm-hosts/{self.id}/",
             data=payload,
+            timeout=60,  # Sometimes we get timeout error thus changing toimeout from 20s to 60s
         ).json
