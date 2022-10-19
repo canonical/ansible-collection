@@ -16,9 +16,9 @@ author:
 short_description: Deploy, release or delete machines.
 description:
   - If I(state) value is C(deployed) the selected machine will be deployed.
-    If I(hostname) is not provided, a random machine with I(allocate_params),
+    If I(fqdn) is not provided, a random machine with I(allocate_params),
     I(deploy_params) and I(network_interface) parameters will be allocated and deployed.
-    If I(hostname) is not provided and no parameters are given, a random machine will be allocated and deployed using the defaults.
+    If I(fqdn) is not provided and no parameters are given, a random machine will be allocated and deployed using the defaults.
   - If I(state) value is C(ready) the selected machine will be released.
   - If I(state) value is C(absent) the selected machine will be deleted.
 version_added: 1.0.0
@@ -26,9 +26,9 @@ extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
 options:
-  hostname:
+  fqdn:
     description:
-      - Name of the machine to be deleted, deployed or released.
+      - Fully qualified domain name of the machine to be deleted, deployed or released.
       - Serves as unique identifier of the machine.
       - If machine is not found the task will FAIL.
     type: str
@@ -43,7 +43,7 @@ options:
       - Constraints parameters that can be used to allocate a machine with certain characteristics.
       - All of the constraints are optional and when multiple constraints are provided, they are combined using 'AND' semantics.
       - If no parameters are given, a random machine will be allocated using the defaults.
-      - Relevant only if I(state) value is C(deployed) and I(hostname) is not provided.
+      - Relevant only if I(state) value is C(deployed) and I(fqdn) is not provided.
     type: dict
     suboptions:
       cores:
@@ -70,7 +70,7 @@ options:
       - Constraints parameters that can be used to deploy a machine.
       - All of the constraints are optional and when multiple constraints are provided, they are combined using 'AND' semantics.
       - If no parameters are given, machine previously allocated will be deployed using the defaults.
-      - Relevant only if I(state) value is C(deployed) and I(hostname) is not provided.
+      - Relevant only if I(state) value is C(deployed) and I(fqdn) is not provided.
       - If machine is already in deployed state, I(deploy_params) will be ignored. Machine needs to be released first for I(deploy_params) to apply
     type: dict
     suboptions:
@@ -116,22 +116,22 @@ options:
 EXAMPLES = r"""
 - name: Remove/delete machine
   canonical.maas.instance:
-    hostname: my_instance
+    fqdn: my_instance.maas
     state: absent
 
 - name: Release machine
   canonical.maas.instance:
-    hostname: my_instance
+    fqdn: my_instance.maas
     state: ready
 
 - name: Deploy already commissioned machine
   canonical.maas.instance:
-    hostname: my_instance
+    fqdn: my_instance.maas
     state: deployed
 
 - name: Deploy already commissioned machine with custom settings
   canonical.maas.instance:
-    hostname: my_instance
+    fqdn: my_instance.maas
     state: deployed
     deploy_params:
       osystem: ubuntu
@@ -172,6 +172,7 @@ record:
   sample:
     cores: 2
     distro_series: focal
+    fqdn: new-machine.maas
     hostname: new-machine
     hwe_kernel: ga-22.04
     id: 6h4fn6
@@ -244,7 +245,7 @@ def allocate(module, client: Client):
 
 
 def delete(module, client: Client):
-    machine = Machine.get_by_name(module, client, must_exist=False)
+    machine = Machine.get_by_fqdn(module, client, must_exist=False)
     if machine:
         machine.delete(client)
         return True, dict(), dict(before=machine.to_ansible(), after={})
@@ -252,7 +253,7 @@ def delete(module, client: Client):
 
 
 def release(module, client: Client):
-    machine = Machine.get_by_name(module, client, must_exist=True)
+    machine = Machine.get_by_fqdn(module, client, must_exist=True)
     if machine.status == "Ready":
         return (
             False,
@@ -293,8 +294,8 @@ def release(module, client: Client):
 
 
 def deploy(module, client: Client):
-    if module.params["hostname"]:
-        machine = Machine.get_by_name(module, client, must_exist=True)
+    if module.params["fqdn"]:
+        machine = Machine.get_by_fqdn(module, client, must_exist=True)
     else:
         # allocate random machine
         # If there is no machine to allocate, new is created and can be deployed. If we release it, it is automatically deleted (ephemeral)
@@ -348,7 +349,7 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            hostname=dict(type="str"),
+            fqdn=dict(type="str"),
             state=dict(
                 type="str", required=True, choices=["ready", "deployed", "absent"]
             ),
@@ -382,8 +383,8 @@ def main():
             ),
         ),
         required_if=[
-            ("state", "absent", ("hostname",), False),
-            ("state", "ready", ("hostname",), False),
+            ("state", "absent", ("fqdn",), False),
+            ("state", "ready", ("fqdn",), False),
         ],
     )
 

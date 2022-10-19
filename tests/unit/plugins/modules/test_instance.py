@@ -73,14 +73,14 @@ class TestDelete:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="absent",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
-            hostname="my_instance",
+            fqdn="my_instance.maas",
             id=123456,
         )
 
@@ -100,12 +100,12 @@ class TestDelete:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="absent",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = None
 
         changed = instance.delete(module, client)[0]
@@ -123,12 +123,12 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             status="Ready",
         )
@@ -146,12 +146,12 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Commissioning",
@@ -175,12 +175,12 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status=status,
@@ -205,12 +205,12 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Deployed",
@@ -237,7 +237,7 @@ class TestDeploy:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname=None,
+                fqdn=None,
                 state="ready",
                 deploy_params={
                     "osystem": "ubuntu",
@@ -282,7 +282,7 @@ class TestDeploy:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
                     "osystem": "ubuntu",
@@ -294,7 +294,7 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             status="Deployed",
         )
@@ -312,7 +312,7 @@ class TestDeploy:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
                     "osystem": "ubuntu",
@@ -324,7 +324,7 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Commissioning",
@@ -358,7 +358,7 @@ class TestDeploy:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
                     "osystem": "ubuntu",
@@ -370,7 +370,7 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status=status,
@@ -405,7 +405,7 @@ class TestDeploy:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
                     "osystem": "ubuntu",
@@ -417,7 +417,7 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Ready",
@@ -452,7 +452,7 @@ class TestMain:
                 token_secret="PhXz3ncACvkcK",
                 customer_key="nzW4EBWjyDe",
             ),
-            hostname=None,
+            fqdn=None,
             state="ready",
             allocate_params={
                 "memory": 2000,
