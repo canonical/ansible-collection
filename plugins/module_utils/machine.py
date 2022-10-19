@@ -299,3 +299,8 @@ class Machine(MaasValueMapper):
         return client.post(
             f"/api/2.0/machines/{self.id}", query={"op": "commission"}
         ).json
+
+    @classmethod
+    def create(cls, client, payload):
+        maas_dict = client.post("/api/2.0/machines/", data=payload).json
+        return cls.from_maas(maas_dict)
