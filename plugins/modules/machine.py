@@ -29,7 +29,7 @@ options:
     choices: [ present, absent ]
     type: str
     required: True
-  power_type
+  power_type:
     description:
       - A power management type (e.g. ipmi).
       - In case of adding new machine to the system, this parameters is required.
@@ -84,9 +84,6 @@ options:
       - Only used when deploying Ubuntu.
       - This is computed if it's not set.
     type: str
-
-
-
 """
 
 EXAMPLES = r"""
@@ -94,10 +91,43 @@ EXAMPLES = r"""
   canonical.maas.machine:
     state: present
     power_type: lxd
+    power_parameters:  # depends on selected power_type
+      power_address: ...
+      instance_name: ...
+      project: ...
+      password: ...
+      certificate: ...
+      key: ...
+    pxe_mac_address: 00:00:00:00:00:00
+    architecture: amd64/generic
+    hostname: new-machine
+    domain: maas
+    pool: my-pool
+    zone: my-zone
+    min_hwe_kernel: hw-20.04-edge
+
+
+- name: Update existing machine
+  canonical.maas.machine:
+    state: present
+    fqdn: new-machine.maas
+    power_type: virsh
     power_parameters:
       power_address: ...
+      power_pass: ...
       power_id: ...
-    pxe_mac_address: ...
+    pxe_mac_address: 00:00:00:00:00:01
+    architecture: i386/generic
+    hostname: updated-machine
+    domain: new-domain
+    pool: new-pool
+    zone: new-zone
+    min_hwe_kernel: ga-20.04
+
+- name: Delete machine
+  canonical.maas.machine:
+    state: absent
+    fqdn: my-machine
 """
 
 RETURN = r"""
@@ -149,7 +179,7 @@ from ..module_utils.client import Client
 from ..module_utils.machine import Machine
 
 
-def add_machine(module, client: Client):
+def data_for_add_machine(module):
     data = {}
     try:
         data["power_type"] = module.params["power_type"]  # required
@@ -172,9 +202,12 @@ def add_machine(module, client: Client):
         data["pool"] = module.params["pool"]
     if module.params["min_hwe_kernel"]:
         data["min_hwe_kernel"] = module.params["min_hwe_kernel"]
+    return data
 
+
+def add_machine(module, client: Client):
+    data = data_for_add_machine(module)
     machine = Machine.create(client, data)
-
     return (
         True,
         machine.to_ansible(),
@@ -182,8 +215,7 @@ def add_machine(module, client: Client):
     )
 
 
-def update_machine(module, client: Client):
-    machine = Machine.get_by_fqdn(module, client, must_exist=True)
+def data_for_update_machine(module, machine):
     data = {}
     if module.params["power_type"]:
         if machine.power_type != module.params["power_type"]:
@@ -212,7 +244,12 @@ def update_machine(module, client: Client):
     if module.params["min_hwe_kernel"]:
         if machine.hwe_kernel != module.params["min_hwe_kernel"]:
             data["min_hwe_kernel"] = module.params["min_hwe_kernel"]
+    return data
 
+
+def update_machine(module, client: Client):
+    machine = Machine.get_by_fqdn(module, client, must_exist=True)
+    data = data_for_update_machine(module, machine)
     if data:
         updated_machine_maas_dict = machine.update(client, data)
         machine_after = Machine.from_maas(updated_machine_maas_dict)
@@ -256,6 +293,7 @@ def main():
                 choices=["present", "absent"],
                 required=True,
             ),
+            fqdn=dict(type="str"),
             power_type=dict(
                 type="str",
                 choices=[
@@ -292,6 +330,9 @@ def main():
             min_hwe_kernel=dict(type="str"),
             architecture=dict(type="str"),
         ),
+        required_if=[
+            ("state", "absent", ("fqdn",), False),
+        ],
     )
 
     try:
