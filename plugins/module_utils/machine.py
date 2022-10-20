@@ -5,6 +5,7 @@
 
 
 from __future__ import absolute_import, division, print_function
+from platform import architecture
 
 __metaclass__ = type
 
@@ -41,6 +42,7 @@ class Machine(MaasValueMapper):
         distro_series=None,
         hwe_kernel=None,
         power_type=None,
+        architecture=None,
     ):
         self.fqdn = fqdn
         self.hostname = hostname
@@ -59,6 +61,7 @@ class Machine(MaasValueMapper):
         self.distro_series = distro_series
         self.hwe_kernel = hwe_kernel
         self.power_type = power_type
+        self.architecture = architecture
 
     @classmethod
     def get_by_name(
@@ -167,6 +170,8 @@ class Machine(MaasValueMapper):
             obj.distro_series = maas_dict["distro_series"]
             obj.hwe_kernel = maas_dict["hwe_kernel"]
             obj.power_type = maas_dict["power_type"]
+            obj.architecture = maas_dict["architecture"]
+
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -217,6 +222,7 @@ class Machine(MaasValueMapper):
             distro_series=self.distro_series,
             hwe_kernel=self.hwe_kernel,
             power_type=self.power_type,
+            architecture=self.architecture,
         )
 
     def payload_for_compose(self, module):
