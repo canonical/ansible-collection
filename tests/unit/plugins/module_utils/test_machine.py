@@ -4,6 +4,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
+from platform import architecture
 
 __metaclass__ = type
 
@@ -74,6 +75,7 @@ class TestGet:
             tag_names=["my_tag"],
             hwe_kernel="my_kernel",
             power_type="lxd",
+            architecture="amd64",
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(
@@ -93,6 +95,7 @@ class TestGet:
             hwe_kernel="my_kernel",
             domain=3,
             power_type="lxd",
+            architecture="amd64",
         )
 
     def test_get_by_fqdn(self, create_module, mocker, client):
@@ -137,6 +140,7 @@ class TestGet:
             tag_names=["my_tag"],
             hwe_kernel="my_kernel",
             power_type="lxd",
+            architecture="amd64",
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(
@@ -156,6 +160,7 @@ class TestGet:
             hwe_kernel="my_kernel",
             domain=3,
             power_type="lxd",
+            architecture="amd64",
         )
 
 

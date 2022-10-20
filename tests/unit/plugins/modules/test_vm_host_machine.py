@@ -238,6 +238,7 @@ class TestEnsureReady:
             distro_series="jammy",
             hwe_kernel="ga-22.04",
             power_type="lxd",
+            architecture="amd64",
         )
 
     @staticmethod
@@ -276,6 +277,7 @@ class TestEnsureReady:
             distro_series="jammy",
             hwe_kernel="ga-22.04",
             power_type="lxd",
+            architecture="amd64",
         )
 
     def test_ensure_ready_without_storaga_and_net_interfaces(
