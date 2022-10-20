@@ -34,11 +34,16 @@ options:
       - See U(https://maas.io/docs/api#power-types) section for a list of available power parameters for each power type.
     type: dict
     required: true
-  pxe_parameters:
+  pxe_mac_address:
     description:
       - The MAC address of the machine's PXE boot NIC.
     type: str
     required: true
+  arhitecture:
+    description:
+      - The architecture type of the machine (for example, "i386/generic" or "amd64/generic").
+      - Defaults to amd64/generic.
+    type: str
   hostname:
     description:
       - Name of the machine to be added # also updated??.
@@ -65,11 +70,7 @@ options:
       - Only used when deploying Ubuntu.
       - This is computed if it's not set.
     type: str
-  arhitecture:
-    description:
-      - The architecture type of the machine.
-      - Defaults to amd64/generic.
-    type: str
+
 
   # state:
   #   description:
@@ -141,7 +142,10 @@ def create_machine(module, client: Client):
     data = {}
     data["power_type"] = module.params["power_type"]
     data["power_parameters"] = json.dumps(module.params["power_parameters"])
-    data["pxe_parameters"] = module.params["pxe_parameters"]
+    data["mac_addresses "] = module.params["pxe_mac_address"]
+    data["arhitecture"] = "amd64/generic"  # Default
+    if module.params["arhitecture"]:
+        data["arhitecture"] = module.params["arhitecture"]
     if module.params["hostname"]:
         data["hostname"] = module.params["hostname"]
     if module.params["domain"]:
@@ -152,11 +156,9 @@ def create_machine(module, client: Client):
         data["pool"] = module.params["pool"]
     if module.params["min_hwe_kernel"]:
         data["min_hwe_kernel"] = module.params["min_hwe_kernel"]
-    if module.params["arhitecture"]:
-        data["arhitecture"] = module.params["arhitecture"]
 
     machine = Machine.create(client, data)
-    machine = Machine.wait_for_state(machine.id, client, False, "Ready")
+    # machine = Machine.wait_for_state(machine.id, client, False, "Ready")
 
     return (
         True,
@@ -203,7 +205,7 @@ def main():
                 ],
             ),
             power_parameters=dict(type="dict", required=True),
-            pxe_parameters=dict(type="str", required=True),
+            pxe_mac_address=dict(type="str", required=True),
             hostname=dict(type="str"),
             domain=dict(type="str"),
             zone=dict(type="str"),
