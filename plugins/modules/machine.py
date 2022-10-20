@@ -39,7 +39,7 @@ options:
       - The MAC address of the machine's PXE boot NIC.
     type: str
     required: true
-  arhitecture:
+  architecture:
     description:
       - The architecture type of the machine (for example, "i386/generic" or "amd64/generic").
       - Defaults to amd64/generic.
@@ -98,6 +98,7 @@ record:
   returned: success
   type: dict
   sample:
+    architecture: amd64/generic
     cores: 2
     distro_series: focal
     fqdn: new-machine.maas
@@ -109,6 +110,7 @@ record:
     - fabric: fabric-1
       id: 277
       ip_address: 10.10.10.190
+      mac_address: 00:00:00:00:00:01
       name: my-net
       subnet_cidr: 10.10.10.0/24
       vlan: untagged
@@ -143,9 +145,9 @@ def create_machine(module, client: Client):
     data["power_type"] = module.params["power_type"]
     data["power_parameters"] = json.dumps(module.params["power_parameters"])
     data["mac_addresses "] = module.params["pxe_mac_address"]
-    data["arhitecture"] = "amd64/generic"  # Default
-    if module.params["arhitecture"]:
-        data["arhitecture"] = module.params["arhitecture"]
+    data["architecture"] = "amd64/generic"  # Default
+    if module.params["architecture"]:
+        data["architecture"] = module.params["architecture"]
     if module.params["hostname"]:
         data["hostname"] = module.params["hostname"]
     if module.params["domain"]:
@@ -158,7 +160,6 @@ def create_machine(module, client: Client):
         data["min_hwe_kernel"] = module.params["min_hwe_kernel"]
 
     machine = Machine.create(client, data)
-    # machine = Machine.wait_for_state(machine.id, client, False, "Ready")
 
     return (
         True,
@@ -211,7 +212,7 @@ def main():
             zone=dict(type="str"),
             pool=dict(type="str"),
             min_hwe_kernel=dict(type="str"),
-            arhitecture=dict(type="str"),
+            architecture=dict(type="str"),
         ),
     )
 
