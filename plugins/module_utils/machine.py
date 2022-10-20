@@ -309,3 +309,6 @@ class Machine(MaasValueMapper):
     def create(cls, client, payload):
         maas_dict = client.post("/api/2.0/machines/", data=payload).json
         return cls.from_maas(maas_dict)
+
+    def update(self, client, payload):
+        return client.put(f"/api/2.0/machines/{self.id}/", data=payload).json
