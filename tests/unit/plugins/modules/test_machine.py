@@ -113,30 +113,27 @@ class TestDataForAddMachine:
         )
 
     @pytest.mark.parametrize(
-        "power_type, power_parameters, pxe_mac_address, error",
+        "power_type, power_parameters, pxe_mac_address",
         [
             (
                 "virsh",
                 '{"power_address": "0.0.0.0", "power_user": "user", "power_pass": "pass"}',
                 None,
-                "pxe_mac_address",
             ),
             (
                 None,
                 '{"power_address": "0.0.0.0", "power_user": "user", "power_pass": "pass"}',
                 "00:00:00:00:00:01",
-                "power_type",
             ),
             (
                 "virsh",
                 None,
                 "00:00:00:00:00:01",
-                "power_parameters",
             ),
         ],
     )
     def test_data_for_add_machine_missing_params(
-        self, create_module, power_type, power_parameters, pxe_mac_address, error
+        self, create_module, power_type, power_parameters, pxe_mac_address
     ):
         module = create_module(
             params=dict(
@@ -163,7 +160,9 @@ class TestDataForAddMachine:
         with pytest.raises(errors.MissingValueAnsible) as exc:
             machine.data_for_add_machine(module)
 
-        assert f"Missing value - {error}" in str(exc.value)
+        assert "Missing value - power_type, power_parameters or pxe_mac_address" in str(
+            exc.value
+        )
 
 
 class TestDataForUpdateMachine:
@@ -199,7 +198,7 @@ class TestDataForUpdateMachine:
             domain="my-domain",
             pool="my-pool",
             zone="my-zone",
-            hwe_kernel="ga-20.04-edge",
+            min_hwe_kernel="ga-20.04-edge",
         )
         data = machine.data_for_update_machine(module, old_machine)
 

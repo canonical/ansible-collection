@@ -288,7 +288,7 @@ class TestDeploy:
                     "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
-                    "hwe_kernel": "my_kernel",
+                    "min_hwe_kernel": "my_kernel",
                     "user_data": "my_data",
                 },
             ),
