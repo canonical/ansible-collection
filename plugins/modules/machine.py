@@ -46,6 +46,7 @@ options:
     description:
       - The MAC address of the machine's PXE boot NIC.
       - In case of adding new machine to the system, this parameters is required.
+      - Relevant only in case of adding new machine.
     type: str
   architecture:
     description:
@@ -181,14 +182,15 @@ from ..module_utils.machine import Machine
 
 def data_for_add_machine(module):
     data = {}
-    try:
-        data["power_type"] = module.params["power_type"]  # required
-        data["power_parameters"] = json.dumps(
-            module.params["power_parameters"]
-        )  # required
-        data["mac_addresses "] = module.params["pxe_mac_address"]  # required
-    except Exception as e:
-        raise errors.MissingValueAnsible(e)
+    if not module.params["power_type"]:
+        raise errors.MissingValueAnsible("power_type")
+    if not module.params["power_parameters"]:
+        raise errors.MissingValueAnsible("power_parameters")
+    if not module.params["pxe_mac_address"]:
+        raise errors.MissingValueAnsible("pxe_mac_address")
+    data["power_type"] = module.params["power_type"]  # required
+    data["power_parameters"] = json.dumps(module.params["power_parameters"])  # required
+    data["mac_addresses"] = module.params["pxe_mac_address"]  # required
     data["architecture"] = "amd64/generic"  # default
     if module.params["architecture"]:
         data["architecture"] = module.params["architecture"]
@@ -223,9 +225,6 @@ def data_for_update_machine(module, machine):
     if module.params["power_parameters"]:
         # Here we will not check for changes because some parameteres aren't returned
         data["power_parameters"] = json.dumps(module.params["power_parameters"])
-    if module.params["pxe_mac_addresses"]:
-        if machine.network_interfaces.mac_address != module.params["pxe_mac_address"]:
-            data["mac_addresses "] = module.params["pxe_mac_address"]
     if module.params["architecture"]:
         if machine.architecture != module.params["architecture"]:
             data["architecture"] = module.params["architecture"]
@@ -332,7 +331,7 @@ def main():
         ),
         required_if=[
             ("state", "absent", ("fqdn",), False),
-        ],
+        ],  # dodaj še required if če je state=present in ni podan fqdn
     )
 
     try:
