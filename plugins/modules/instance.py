@@ -170,17 +170,20 @@ record:
   returned: success
   type: dict
   sample:
+    architecture: amd64/generic
     cores: 2
     distro_series: focal
     fqdn: new-machine.maas
     hostname: new-machine
-    hwe_kernel: ga-22.04
+    hwe_kernel: hwe-22.04
     id: 6h4fn6
     memory: 2048
+    min_hwe_kernel: ga-22.04
     network_interfaces:
     - fabric: fabric-1
       id: 277
       ip_address: 10.10.10.190
+      mac_address: 00:00:00:00:00:01
       name: my-net
       subnet_cidr: 10.10.10.0/24
       vlan: untagged
