@@ -30,7 +30,7 @@
         pool: default
         zone: default
         min_hwe_kernel: hwe-20.04
-      ignore_errors: True
+      ignore_errors: true
       register: machine
     - ansible.builtin.assert:
         that:
@@ -51,7 +51,7 @@
         pool: default
         zone: default
         min_hwe_kernel: hwe-20.04
-      ignore_errors: True   # Here we get error: "Unexpected response - 503 b'No rack controllers can access the BMC of node machine-test'"
+      ignore_errors: true   # Here we get error: "Unexpected response - 503 b'No rack controllers can access the BMC of node machine-test'"
     #   register: machine
     # - ansible.builtin.assert:
     #     that:
@@ -62,9 +62,6 @@
     #       - machine.record.architecture == "amd64/generic"
     #       - machine.record.min_hwe_kernel == "hwe-20.04"
 
-    
-
-
     - name: Update existing machine
       canonical.maas.machine:
         state: present
@@ -74,7 +71,8 @@
           power_address: 172.16.117.70:8443
           power_pass: pass
           power_id: virsh_vm_id
-        # architecture: i386/generic # "Unexpected response - 400 b'{\"architecture\": [\"\\'i386/generic\\' is not a valid architecture.  It should be one of: \\'amd64/generic\\'.\"]}'"
+        # architecture: i386/generic
+        # "Unexpected response - 400 b'{\"architecture\": [\"\\'i386/generic\\' is not a valid architecture.  It should be one of: \\'amd64/generic\\'.\"]}'"
         hostname: updated-machine
         # domain: new-domain  # domain, pool and zone needs to be added first to test this
         # pool: new-pool
@@ -88,7 +86,7 @@
           - machine.record.power_type == "virsh"
           - machine.record.architecture == "amd64/generic"
           - machine.record.min_hwe_kernel == "ga-20.04"
-    
+
     - name: Update existing machine - idempotence
       canonical.maas.machine:
         state: present
