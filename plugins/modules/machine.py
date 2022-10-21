@@ -117,7 +117,6 @@ EXAMPLES = r"""
       power_address: ...
       power_pass: ...
       power_id: ...
-    pxe_mac_address: 00:00:00:00:00:01
     architecture: i386/generic
     hostname: updated-machine
     domain: new-domain
@@ -143,9 +142,10 @@ record:
     distro_series: focal
     fqdn: new-machine.maas
     hostname: new-machine
-    hwe_kernel: ga-22.04
+    hwe_kernel: hwe-22.04
     id: 6h4fn6
     memory: 2048
+    min_hwe_kernel: ga-22.04
     network_interfaces:
     - fabric: fabric-1
       id: 277
@@ -182,12 +182,14 @@ from ..module_utils.machine import Machine
 
 def data_for_add_machine(module):
     data = {}
-    if not module.params["power_type"]:
-        raise errors.MissingValueAnsible("power_type")
-    if not module.params["power_parameters"]:
-        raise errors.MissingValueAnsible("power_parameters")
-    if not module.params["pxe_mac_address"]:
-        raise errors.MissingValueAnsible("pxe_mac_address")
+    if (
+        not module.params["power_type"]
+        or not module.params["power_parameters"]
+        or not module.params["pxe_mac_address"]
+    ):
+        raise errors.MissingValueAnsible(
+            "power_type, power_parameters or pxe_mac_address"
+        )
     data["power_type"] = module.params["power_type"]  # required
     data["power_parameters"] = json.dumps(module.params["power_parameters"])  # required
     data["mac_addresses"] = module.params["pxe_mac_address"]  # required
@@ -225,6 +227,7 @@ def data_for_update_machine(module, machine):
     if module.params["power_parameters"]:
         # Here we will not check for changes because some parameteres aren't returned
         data["power_parameters"] = json.dumps(module.params["power_parameters"])
+    # pxe_mac_address can't be updated
     if module.params["architecture"]:
         if machine.architecture != module.params["architecture"]:
             data["architecture"] = module.params["architecture"]
@@ -241,7 +244,7 @@ def data_for_update_machine(module, machine):
         if machine.pool != module.params["pool"]:
             data["pool"] = module.params["pool"]
     if module.params["min_hwe_kernel"]:
-        if machine.hwe_kernel != module.params["min_hwe_kernel"]:
+        if machine.min_hwe_kernel != module.params["min_hwe_kernel"]:
             data["min_hwe_kernel"] = module.params["min_hwe_kernel"]
     return data
 
@@ -331,7 +334,7 @@ def main():
         ),
         required_if=[
             ("state", "absent", ("fqdn",), False),
-        ],  # dodaj še required if če je state=present in ni podan fqdn
+        ],
     )
 
     try:
