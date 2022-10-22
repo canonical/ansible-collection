@@ -46,12 +46,12 @@ options:
       - Relevant only if I(state) value is C(deployed) and I(fqdn) is not provided.
     type: dict
     suboptions:
-      cores:
+      min_cpu_count:
         description:
           - The minimum number of CPUs a returned machine must have.
           - A machine with additional CPUs may be allocated if there is no exact match, or if the I(memory) constraint is not also specified.
         type: int
-      memory:
+      min_memory:
         description:
           - The minimum amount of memory (expressed in MB) the returned machine must have.
           - A machine with additional memory may be allocated if there is no exact match, or the I(cores) constraint is not also specified.
@@ -147,8 +147,8 @@ EXAMPLES = r"""
   canonical.maas.instance:
     state: deployed
     allocate_params:
-      cores: 2
-      memory: 2000
+      min_cpu_count: 2
+      min_memory: 2000
       zone: my-zone
       pool: my-pool
       tags: my-tag, my-tag2
@@ -215,17 +215,16 @@ from ..module_utils.machine import Machine
 def allocate(module, client: Client):
     data = {}
     if module.params["allocate_params"]:
-        if module.params["allocate_params"]["cores"]:
-            data["cpu_count"] = module.params["allocate_params"]["cores"]
-        if module.params["allocate_params"]["memory"]:
-            data["mem"] = module.params["allocate_params"]["memory"]
+        if module.params["allocate_params"]["min_cpu_count"]:
+            data["cpu_count"] = module.params["allocate_params"]["min_cpu_count"]
+        if module.params["allocate_params"]["min_memory"]:
+            data["mem"] = module.params["allocate_params"]["min_memory"]
         if module.params["allocate_params"]["zone"]:
             data["zone"] = module.params["allocate_params"]["zone"]
         if module.params["allocate_params"]["pool"]:
             data["pool"] = module.params["allocate_params"]["pool"]
         if module.params["allocate_params"]["tags"]:
             data["tags"] = module.params["allocate_params"]["tags"]
-    # A function can be written for this in network interface class and also maybe used in Machine.payload_for_compose
     if module.params["network_interfaces"]:
         if (
             module.params["network_interfaces"]["name"]
@@ -239,8 +238,6 @@ def allocate(module, client: Client):
             else:
                 network_interface = f"{name}:subnet_cidr={subnet_cidr}"
             data["interfaces"] = network_interface
-    # here an error can occur: 409 No machine matching the given constraints could be found.
-    # instance can't be allocated if commissioning, the only action allowed is abort
     maas_dict = client.post(
         "/api/2.0/machines/", query={"op": "allocate"}, data=data
     ).json
@@ -369,8 +366,8 @@ def main():
             allocate_params=dict(
                 type="dict",
                 options=dict(
-                    cores=dict(type="int"),
-                    memory=dict(type="int"),
+                    min_cpu_count=dict(type="int"),
+                    min_memory=dict(type="int"),
                     zone=dict(type="str"),
                     pool=dict(type="str"),
                     tags=dict(type="str"),
