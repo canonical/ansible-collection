@@ -617,7 +617,6 @@ class TestEsnureAbsent:
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
         results = vm_nic_physical.ensure_absent(module, client, machine_obj)
-        print(results)
         assert results == expected
 
     def test_ensure_absent_when_no_changes_nic(self, create_module, client, mocker):
