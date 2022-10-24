@@ -36,16 +36,40 @@ EXAMPLES = r"""
 
 RETURN = r"""
 record:
-    changed: false
-    failed: false
-    records:
-    - authoritative: true
-      id: 0
-      is_default: true
-      name: maas
-      ttl: null
+  description:
+    - List of all dns records.
+  returned: success
+  type: list
+  sample:
+    - address_ttl: null
+      fqdn: maas.maas
+      id: -1
+      ip_addresses: null
+      resource_records:
+      - dnsdata_id: null
+        dnsresource_id: null
+        node_type: 4
+        rrdata: 10.157.248.49
+        rrtype: A
+        system_id: kwxmgm
+        ttl: null
+        user_id: null
+      resource_uri: /MAAS/api/2.0/dnsresources/-1/
+    - address_ttl: null
+      fqdn: lxdbr0.maas
+      id: -1
+      ip_addresses: null
+      resource_records:
+      - dnsdata_id: null
+        dnsresource_id: null
+        node_type: 4
+        rrdata: 10.10.10.1
+        rrtype: A
+        system_id: kwxmgm
+        ttl: null
+        user_id: 1
+      resource_uri: /MAAS/api/2.0/dnsresources/-1/
 """
-
 
 from ansible.module_utils.basic import AnsibleModule
 

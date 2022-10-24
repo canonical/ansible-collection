@@ -35,9 +35,11 @@ EXAMPLES = r"""
 
 RETURN = r"""
 record:
-    changed: false
-    failed: false
-    records:
+  description:
+    - List of all domains.
+  returned: success
+  type: list
+  sample:
     - authoritative: true
       id: 0
       is_default: true

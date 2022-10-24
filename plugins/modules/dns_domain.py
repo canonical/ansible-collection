@@ -61,6 +61,16 @@ EXAMPLES = r"""
 
 RETURN = r"""
 record:
+  description:
+    - Added domain.
+  returned: success
+  type: dict
+  sample:
+    authoritative: true
+    id: 0
+    is_default: true
+    name: maas
+    ttl: null
 """
 
 from ansible.module_utils.basic import AnsibleModule
