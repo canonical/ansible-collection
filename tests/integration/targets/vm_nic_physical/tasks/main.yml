@@ -16,7 +16,8 @@
 # ----------------------------------Setup----------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test.
       canonical.maas.vm_host_machine:
-        fqdn: integration-test-nic
+        hostname: integration-test-nic
+        vm_host: sunny-raptor
         cores: 2
         memory: 2000
         network_interfaces:
@@ -30,8 +31,7 @@
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
-        hostname: "{{ machine.record.hostname }}"
-        vm_host: sunny-raptor
+        fqdn: "{{ machine.record.hostname }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -49,7 +49,8 @@
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test-nic. (Idempotence)
       canonical.maas.vm_host_machine:
-        fqdn: integration-test-nic
+        hostname: integration-test-nic
+        vm_host: sunny-raptor
         cores: 2
         memory: 2000
         network_interfaces:
@@ -63,8 +64,7 @@
 
     - name: Get info from created machine. (Idempotence)
       canonical.maas.machine_info:
-        hostname: "{{ machine.record.hostname }}"
-        vm_host: sunny-raptor
+        fqdn: "{{ machine.record.hostname }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -95,8 +95,7 @@
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
-        hostname: integration-test-nic
-        vm_host: sunny-raptor
+        fqdn: integration-test-nic
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -126,8 +125,7 @@
 
     - name: Get info from created machine. (Idempotence)
       canonical.maas.machine_info:
-        hostname: integration-test-nic
-        vm_host: sunny-raptor
+        fqdn: integration-test-nic
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -157,8 +155,7 @@
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
-        hostname: integration-test-nic
-        vm_host: sunny-raptor
+        fqdn: integration-test-nic
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -188,8 +185,7 @@
 
     - name: Get info from created machine. (Idempotence)
       canonical.maas.machine_info:
-        hostname: integration-test-nic
-        vm_host: sunny-raptor
+        fqdn: integration-test-nic
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -218,8 +214,7 @@
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
-        hostname: integration-test-nic
-        vm_host: sunny-raptor
+        fqdn: integration-test-nic
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -247,8 +242,7 @@
 
     - name: Get info from created machine. (Idempotence)
       canonical.maas.machine_info:
-        hostname: integration-test-nic
-        vm_host: sunny-raptor
+        fqdn: integration-test-nic
       register: machine_info
     - ansible.builtin.assert:
         that:

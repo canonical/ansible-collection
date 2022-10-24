@@ -39,11 +39,7 @@ class NetworkInterface(MaasValueMapper):
         self.tags = tags
         self.ip_address = ip_address
         self.fabric = fabric
-        self.vlan = vlan
         self.label_name = label_name
-        self.mac_address = mac_address
-        self.mtu = mtu
-        self.tags = tags
 
     def __eq__(self, other):
         return self.to_ansible() == other.to_ansible()
@@ -57,9 +53,8 @@ class NetworkInterface(MaasValueMapper):
         obj.fabric = network_interface_dict.get("fabric")
         obj.vlan = network_interface_dict.get("vlan")
         obj.label_name = network_interface_dict.get("label_name")
-        obj.mac_address = network_interface_dict.get("mac_address", None)
-        obj.vlan = network_interface_dict.get("vlan", None)
-        obj.mtu = network_interface_dict.get("mtu", None)
+        obj.mac_address = network_interface_dict.get("mac_address")
+        obj.mtu = network_interface_dict.get("mtu")
         obj.tags = network_interface_dict.get("tags", [])
         return obj
 

@@ -9,7 +9,7 @@
   block:
     - name: Delete machine
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test
         state: absent
 
     - name: Create virtual machine with two disks and a network interface.
@@ -33,7 +33,7 @@
 
     - name: Deploy machine
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test
         state: deployed
       register: machine
     - ansible.builtin.assert:
@@ -48,7 +48,7 @@
 
     - name: Deploy machine - idempotence
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test
         state: deployed
       register: machine
     - ansible.builtin.assert:
@@ -63,7 +63,7 @@
 
     - name: Release machine
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test
         state: ready
       register: machine
     - ansible.builtin.assert:
@@ -76,7 +76,7 @@
 
     - name: Release machine - idempotence
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test
         state: ready
       register: machine
     - ansible.builtin.assert:
@@ -89,7 +89,7 @@
 
     - name: Deploy machine with another OS
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test
         state: deployed
         deploy_params:
           osystem: ubuntu
@@ -107,7 +107,7 @@
 
     - name: Release machine
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test
         state: ready
       register: machine
     - ansible.builtin.assert:
@@ -120,7 +120,7 @@
 
     - name: Delete machine
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test
         state: absent
       register: machine
     - ansible.builtin.assert:
@@ -129,7 +129,7 @@
 
     - name: Delete machine - idempotence
       canonical.maas.instance:
-        hostname: instance-test
+        fqdn: instance-test
         state: absent
       register: machine
     - ansible.builtin.assert:
@@ -151,7 +151,7 @@
 
     - name: Release machine (ephemeral machine is deleted)
       canonical.maas.instance:
-        hostname: "{{ machine.record.hostname }}"
+        fqdn: "{{ machine.record.hostname }}"
         state: ready
       register: machine
     - ansible.builtin.assert:
