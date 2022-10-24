@@ -19,6 +19,7 @@ from ansible_collections.canonical.maas.plugins.module_utils.network_interface i
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
 )
+from ansible_collections.canonical.maas.plugins.module_utils import errors
 
 
 pytestmark = pytest.mark.skipif(
@@ -44,10 +45,41 @@ class TestMapper:
         )
 
     @staticmethod
+    def _get_net_interface_discovered():
+        return dict(
+            name="test_net_int",
+            id=123,
+            system_id=1234,
+            mac_address="this-mac",
+            tags=[],
+            effective_mtu=1500,
+            discovered=[
+                dict(
+                    subnet=dict(cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1"))
+                )
+            ],
+        )
+
+    @staticmethod
+    def _get_net_interface_api_missing():
+        return dict(
+            name="test_net_int",
+            id=123,
+            system_id=1234,
+            mac_address="this-mac",
+            tags=[],
+            discovered=[
+                dict(
+                    subnet=dict(cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1"))
+                )
+            ],
+        )
+
+    @staticmethod
     def _get_net_interface_from_ansible():
         return dict(name="test_net", subnet_cidr="ip")
 
-    def test_from_maas(self):
+    def test_from_maas_links(self):
         maas_net_interface_dict = self._get_net_interface()
         net_interface = NetworkInterface(
             maas_net_interface_dict["name"],
@@ -62,6 +94,30 @@ class TestMapper:
             and results.machine_id == net_interface.machine_id
             and results.subnet_cidr == net_interface.subnet_cidr
         )
+
+    def test_from_maas_discovered(self):
+        maas_net_interface_dict = self._get_net_interface_discovered()
+        net_interface = NetworkInterface(
+            maas_net_interface_dict["name"],
+            maas_net_interface_dict["id"],
+            maas_net_interface_dict["discovered"][0]["subnet"]["cidr"],
+            maas_net_interface_dict["system_id"],
+        )
+        results = NetworkInterface.from_maas(maas_net_interface_dict)
+        assert (
+            results.name == net_interface.name
+            and results.id == net_interface.id
+            and results.machine_id == net_interface.machine_id
+            and results.subnet_cidr == net_interface.subnet_cidr
+        )
+
+    def test_from_maas_api_key_missing(self):
+        maas_net_interface_dict = self._get_net_interface_api_missing()
+        with pytest.raises(
+            errors.MissingValueMAAS,
+            match="Missing value from MAAS API - 'effective_mtu'",
+        ):
+            NetworkInterface.from_maas(maas_net_interface_dict)
 
     def test_from_ansible(self):
         net_interface_dict = self._get_net_interface_from_ansible()
@@ -177,6 +233,22 @@ class TestNeedsUpdate:
         other_nic_dict = self.get_nic()
         other_nic_obj = NetworkInterface.from_maas(other_nic_dict)
         results = other_nic_obj.needs_update(new_nic_obj)
+        assert results is False
+
+    def test_eq_when_is_same(self):
+        nic_dict = self.get_nic()
+        other_nic_dic = self.get_nic_other()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        other_nic_obj = NetworkInterface.from_maas(other_nic_dic)
+        results = nic_obj != other_nic_obj
+        assert results is True
+
+    def test_eq_when_is_different(self):
+        nic_dict = self.get_nic()
+        other_nic_dic = self.get_nic_other()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        other_nic_obj = NetworkInterface.from_maas(other_nic_dic)
+        results = nic_obj == other_nic_obj
         assert results is False
 
 
