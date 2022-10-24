@@ -12,6 +12,8 @@ from ..module_utils.utils import MaasValueMapper
 from ..module_utils import errors
 from ..module_utils.utils import is_superset, filter_dict
 
+__metaclass__ = type
+
 
 class NetworkInterface(MaasValueMapper):
     def __init__(
