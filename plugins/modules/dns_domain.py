@@ -14,9 +14,9 @@ module: dns_domain
 
 author:
   - Jure Medvesek (@juremedvesek)
-short_description: List DNS domains.
+short_description: Edit DNS domains.
 description:
-  - Plugin returns information about available DNS domains.
+  - Plugin provides a resource to manage MAAS DNS domains.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -30,18 +30,18 @@ options:
       - absent
     required: true
   name:
-    description: Domain name
+    description: The name of the DNS domain.
     type: str
     required: true
   authoritative:
     type: bool
-    description: ""
+    description: Boolean value indicating if the DNS domain is authoritative. Defaults to false
   ttl:
     type: int
-    description: Time to live. If not set, default value will be used.
+    description: The default TTL for the DNS domain.
   is_default:
     type: bool
-    description: Should this domain be set as defult.
+    description: Boolean value indicating if the new DNS domain will be set as the default in the MAAS environment. Defaults to false.
 """
 
 EXAMPLES = r"""
