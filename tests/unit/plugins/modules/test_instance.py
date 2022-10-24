@@ -30,8 +30,8 @@ class TestAllocate:
                 hostname="my_instance",
                 state="ready",
                 allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
+                    "min_memory": 2000,
+                    "min_cpu_count": 1,
                     "zone": "my_zone",
                     "pool": "my_pool",
                     "tags": "my_tag",
@@ -455,8 +455,8 @@ class TestMain:
             fqdn=None,
             state="ready",
             allocate_params={
-                "memory": 2000,
-                "cores": 1,
+                "min_memory": 2000,
+                "min_cpu_count": 1,
                 "zone": "my_zone",
                 "pool": "my_pool",
                 "tags": None,

@@ -12,7 +12,6 @@
         fqdn: instance-test.maas
         state: absent
 
-    # TODO: Add/Update after vm_host_machine module is updated with fqdn
     - name: Create virtual machine with two disks and a network interface.
       canonical.maas.vm_host_machine:
         hostname: instance-test
@@ -170,11 +169,12 @@
       canonical.maas.instance:
         state: deployed
         allocate_params:
-          cores: 1
-          memory: 2000
+          min_cpu_count: 1
+          min_memory: 2000
           tags: virtual, pod-console-logging
-          zone: default
+          zone: default # TO USE DIFFERENT ZONE OR POOL IT NEEDS TO BE CREATED FIRST
           pool: default
+          hostname: new-machine
         # TO BE ABLE TO TEST THIS, THIS NETWORK NEEDS TO BE CREATED
         # network_interfaces:
         #   name: my_network
@@ -182,7 +182,7 @@
         #   ip_address: 10.10.10.190
         deploy_params:
           osystem: ubuntu
-          distro_series: jammy
+          distro_series: focal # b'{\"distro_series\": [\"\\'jammy\\' is not a valid distro_series.  It should be one of: \\'\\', \\'ubuntu/focal\\'.\"]}'"
           # hwe_kernel: my_kernel
           # user_data: my_user_data
       register: machine
@@ -192,9 +192,10 @@
           - machine.record.memory == 2048
           - machine.record.cores == 3
           - machine.record.osystem == "ubuntu"
-          - machine.record.distro_series == "jammy"
+          - machine.record.distro_series == "focal"
           - machine.record.status == "Deployed"
           - machine.record.network_interfaces | length == 1
+          - machine.record.tags == ["virtual", "pod-console-logging"]
           # - machine.record.network_interfaces[0].name == "my_network"
           # - machine.record.network_interfaces[0].subnet_cidr == "10.10.10.0/24"
           # - machine.record.network_interfaces[0].ip_address == "10.10.10.190"
@@ -212,8 +213,8 @@
       canonical.maas.instance:
         state: deployed
         allocate_params:
-          cores: 20
-          memory: 2000
+          min_cpu_count: 20
+          min_memory: 2000
       register: machine
       ignore_errors: true
     - ansible.builtin.assert:
