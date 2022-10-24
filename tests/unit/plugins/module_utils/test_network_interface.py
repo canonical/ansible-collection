@@ -5,6 +5,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
+
 __metaclass__ = type
 
 import sys
@@ -13,6 +15,9 @@ import pytest
 
 from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
     NetworkInterface,
+)
+from ansible_collections.canonical.maas.plugins.module_utils.client import (
+    Response,
 )
 
 
@@ -130,25 +135,128 @@ class TestMapper:
 
 
 class TestNeedsUpdate:
-    def test_needs_update_when_update_is_needed(self):
-        pass
+    @staticmethod
+    def get_nic():
+        return dict(
+            name="this-nic",
+            id=123,
+            mac_address="this-mac",
+            system_id=123,
+            tags=["tag1", "tag2"],
+            effective_mtu=1500,
+            ip_address="this-ip",
+            subnet_cidr="this-subnet",
+            vlan=None,
+        )
+
+    @staticmethod
+    def get_nic_other():
+        return dict(
+            name="this-nic",
+            id=123,
+            mac_address="this-mac-2",
+            system_id=123,
+            tags=["tag1", "tag2", "tag3"],
+            effective_mtu=1700,
+            ip_address="this-ip",
+            subnet_cidr="this-subnet",
+            vlan=None,
+        )
+
+    def test_needs_update_when_update_is_needed(self, mocker):
+        new_nic_dict = self.get_nic()
+        new_nic_obj = NetworkInterface.from_maas(new_nic_dict)
+        other_nic_dict = self.get_nic_other()
+        other_nic_obj = NetworkInterface.from_maas(other_nic_dict)
+        results = other_nic_obj.needs_update(new_nic_obj)
+        assert results is True
 
     def test_needs_update_when_update_is_not_needed(self):
-        pass
+        new_nic_dict = self.get_nic()
+        new_nic_obj = NetworkInterface.from_maas(new_nic_dict)
+        other_nic_dict = self.get_nic()
+        other_nic_obj = NetworkInterface.from_maas(other_nic_dict)
+        results = other_nic_obj.needs_update(new_nic_obj)
+        assert results is False
 
 
 class TestSendRequestAndPayload:
-    def test_nic_send_update_request(self):
-        pass
+    @staticmethod
+    def get_nic():
+        return dict(
+            name="this-nic",
+            id=123,
+            mac_address="this-mac",
+            system_id=123,
+            tags=["tag1", "tag2"],
+            effective_mtu=1500,
+            ip_address="this-ip",
+            subnet_cidr="this-subnet",
+            vlan=None,
+        )
+
+    @staticmethod
+    def get_machine():
+        return dict(
+            fqdn="this-machine-fqdn",
+            hostname="this-machine",
+            cpu_count=2,
+            memory=5000,
+            system_id="123",
+            interface_set=None,
+            blockdevice_set=None,
+            domain=dict(id=1),
+            zone=dict(id=1),
+            pool=dict(id=1),
+            tag_names=["my_tag"],
+            status_name="New",
+            osystem="ubuntu",
+            distro_series="jammy",
+            hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-power-type",
+            architecture="this-architecture",
+        )
+
+    def test_nic_send_update_request(self, client):
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        machine_dict = self.get_machine()
+        machine_obj = Machine.from_maas(machine_dict)
+        payload = nic_obj.payload_for_update()
+        client.put.return_value = Response(200, '{"system_id": 123, "machine_id": 123}')
+        results = nic_obj.send_update_request(client, machine_obj, payload, nic_obj.id)
+        assert results == {"system_id": 123, "machine_id": 123}
 
     def test_nic_payload_for_update(self):
-        pass
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        results = nic_obj.payload_for_update()
+        assert results == nic_obj.to_maas()
 
-    def test_nic_send_create_request(self):
-        pass
+    def test_nic_send_create_request(self, client):
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        machine_dict = self.get_machine()
+        machine_obj = Machine.from_maas(machine_dict)
+        payload = nic_obj.payload_for_create()
+        client.post.return_value = Response(
+            200, '{"system_id": 123, "machine_id": 123}'
+        )
+        results = nic_obj.send_create_request(client, machine_obj, payload)
+        assert results == {"system_id": 123, "machine_id": 123}
 
     def test_nic_payload_for_create(self):
-        pass
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        results = nic_obj.payload_for_create()
+        assert results == nic_obj.to_maas()
 
-    def test_nic_send_delete_request(self):
-        pass
+    def test_nic_send_delete_request(self, client):
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        machine_dict = self.get_machine()
+        machine_obj = Machine.from_maas(machine_dict)
+        client.delete.return_value = None
+        results = nic_obj.send_delete_request(client, machine_obj, nic_obj.id)
+        assert results is None
