@@ -222,6 +222,7 @@ class TestEnsureReady:
     @staticmethod
     def _get_empty_machine_dict():
         return dict(
+            fqdn="machine_1.maas",
             hostname="machine_1",
             cpu_count=2,
             memory=5000,
@@ -236,11 +237,15 @@ class TestEnsureReady:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="lxd",
+            architecture="amd64",
         )
 
     @staticmethod
     def _get_machine_dict():
         return dict(
+            fqdn="machine_2.maas",
             hostname="machine_2",
             cpu_count=2,
             memory=5000,
@@ -275,6 +280,9 @@ class TestEnsureReady:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="lxd",
+            architecture="amd64",
         )
 
     def test_ensure_ready_without_storaga_and_net_interfaces(
@@ -296,6 +304,8 @@ class TestEnsureReady:
             "pool": 1,
             "tags": ["my_tag"],
             "hwe_kernel": "ga-22.04",
+            "min_hwe_kernel": "ga-22.04",
+            "power_type": "lxd",
         }
         task = {
             "system_id": "1234",

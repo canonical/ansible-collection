@@ -16,9 +16,9 @@ author:
 short_description: Deploy, release or delete machines.
 description:
   - If I(state) value is C(deployed) the selected machine will be deployed.
-    If I(hostname) is not provided, a random machine with I(allocate_params),
+    If I(fqdn) is not provided, a random machine with I(allocate_params),
     I(deploy_params) and I(network_interface) parameters will be allocated and deployed.
-    If I(hostname) is not provided and no parameters are given, a random machine will be allocated and deployed using the defaults.
+    If I(fqdn) is not provided and no parameters are given, a random machine will be allocated and deployed using the defaults.
   - If I(state) value is C(ready) the selected machine will be released.
   - If I(state) value is C(absent) the selected machine will be deleted.
 version_added: 1.0.0
@@ -26,9 +26,9 @@ extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
 options:
-  hostname:
+  fqdn:
     description:
-      - Name of the machine to be deleted, deployed or released.
+      - Fully qualified domain name of the machine to be deleted, deployed or released.
       - Serves as unique identifier of the machine.
       - If machine is not found the task will FAIL.
     type: str
@@ -43,7 +43,7 @@ options:
       - Constraints parameters that can be used to allocate a machine with certain characteristics.
       - All of the constraints are optional and when multiple constraints are provided, they are combined using 'AND' semantics.
       - If no parameters are given, a random machine will be allocated using the defaults.
-      - Relevant only if I(state) value is C(deployed) and I(hostname) is not provided.
+      - Relevant only if I(state) value is C(deployed) and I(fqdn) is not provided.
     type: dict
     suboptions:
       cores:
@@ -64,14 +64,13 @@ options:
         type: str
       tags:
         description: A set of tag names that must be assigned on the MAAS machine to be allocated.
-        type: list
-        elements: str
+        type: str
   deploy_params:
     description:
       - Constraints parameters that can be used to deploy a machine.
       - All of the constraints are optional and when multiple constraints are provided, they are combined using 'AND' semantics.
       - If no parameters are given, machine previously allocated will be deployed using the defaults.
-      - Relevant only if I(state) value is C(deployed) and I(hostname) is not provided.
+      - Relevant only if I(state) value is C(deployed) and I(fqdn) is not provided.
       - If machine is already in deployed state, I(deploy_params) will be ignored. Machine needs to be released first for I(deploy_params) to apply
     type: dict
     suboptions:
@@ -117,22 +116,22 @@ options:
 EXAMPLES = r"""
 - name: Remove/delete machine
   canonical.maas.instance:
-    hostname: my_instance
+    fqdn: my_instance.maas
     state: absent
 
 - name: Release machine
   canonical.maas.instance:
-    hostname: my_instance
+    fqdn: my_instance.maas
     state: ready
 
 - name: Deploy already commissioned machine
   canonical.maas.instance:
-    hostname: my_instance
+    fqdn: my_instance.maas
     state: deployed
 
 - name: Deploy already commissioned machine with custom settings
   canonical.maas.instance:
-    hostname: my_instance
+    fqdn: my_instance.maas
     state: deployed
     deploy_params:
       osystem: ubuntu
@@ -150,9 +149,9 @@ EXAMPLES = r"""
     allocate_params:
       cores: 2
       memory: 2000
-      zone: my_zone
-      pool: my_pool
-      tags: my_tag
+      zone: my-zone
+      pool: my-pool
+      tags: my-tag, my-tag2
     network_interfaces:
       name: my_network
       subnet_cidr: 10.10.10.0/24
@@ -171,23 +170,38 @@ record:
   returned: success
   type: dict
   sample:
-    id: machine-id
-    hostname: this-machine
-    zone: default
-    pool: default
-    tags: pod-console-logging
-    status: Ready
-    memory: 2048
+    architecture: amd64/generic
     cores: 2
+    distro_series: focal
+    fqdn: new-machine.maas
+    hostname: new-machine
+    hwe_kernel: hwe-22.04
+    id: 6h4fn6
+    memory: 2048
+    min_hwe_kernel: ga-22.04
     network_interfaces:
-      - name: this-interface
-        subnet_cidr: 10.0.0.0/24
-    storage_disks:
-      - size_gigabytes: 5
-      - size_gigabytes: 10
+    - fabric: fabric-1
+      id: 277
+      ip_address: 10.10.10.190
+      mac_address: 00:00:00:00:00:01
+      name: my-net
+      subnet_cidr: 10.10.10.0/24
+      vlan: untagged
     osystem: ubuntu
-    distro_series: jammy
-    hwe_kernel: ga-22.04
+    pool: default
+    power_type: lxd
+    status: Commissioning
+    storage_disks:
+    - id: 288
+      name: sda
+      size_gigabytes: 3
+    - id: 289
+      name: sdb
+      size_gigabytes: 5
+    tags:
+      - pod-console-logging
+      - my-tag
+    zone: default
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -208,6 +222,8 @@ def allocate(module, client: Client):
             data["zone"] = module.params["allocate_params"]["zone"]
         if module.params["allocate_params"]["pool"]:
             data["pool"] = module.params["allocate_params"]["pool"]
+        if module.params["allocate_params"]["tags"]:
+            data["tags"] = module.params["allocate_params"]["tags"]
     # A function can be written for this in network interface class and also maybe used in Machine.payload_for_compose
     if module.params["network_interfaces"]:
         if (
@@ -227,21 +243,11 @@ def allocate(module, client: Client):
     maas_dict = client.post(
         "/api/2.0/machines/", query={"op": "allocate"}, data=data
     ).json
-    # From MAAS documentation: If multiple tag names are specified, the machine must be tagged with all of them.
-    # To request multiple tags, this parameter must be repeated in the request with each value.
-    if module.params["allocate_params"]:
-        if module.params["allocate_params"]["tags"]:
-            for tag in module.params["allocate_params"]["tags"]:
-                maas_dict = client.post(
-                    "/api/2.0/machines/",
-                    query={"op": "allocate"},
-                    data={"tag_names": tag},
-                ).json
     return Machine.from_maas(maas_dict)
 
 
 def delete(module, client: Client):
-    machine = Machine.get_by_name(module, client, must_exist=False)
+    machine = Machine.get_by_fqdn(module, client, must_exist=False)
     if machine:
         machine.delete(client)
         return True, dict(), dict(before=machine.to_ansible(), after={})
@@ -249,7 +255,7 @@ def delete(module, client: Client):
 
 
 def release(module, client: Client):
-    machine = Machine.get_by_name(module, client, must_exist=True)
+    machine = Machine.get_by_fqdn(module, client, must_exist=True)
     if machine.status == "Ready":
         return (
             False,
@@ -290,8 +296,8 @@ def release(module, client: Client):
 
 
 def deploy(module, client: Client):
-    if module.params["hostname"]:
-        machine = Machine.get_by_name(module, client, must_exist=True)
+    if module.params["fqdn"]:
+        machine = Machine.get_by_fqdn(module, client, must_exist=True)
     else:
         # allocate random machine
         # If there is no machine to allocate, new is created and can be deployed. If we release it, it is automatically deleted (ephemeral)
@@ -345,7 +351,7 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            hostname=dict(type="str"),
+            fqdn=dict(type="str"),
             state=dict(
                 type="str", required=True, choices=["ready", "deployed", "absent"]
             ),
@@ -366,7 +372,7 @@ def main():
                     memory=dict(type="int"),
                     zone=dict(type="str"),
                     pool=dict(type="str"),
-                    tags=dict(type="list", elements="str"),
+                    tags=dict(type="str"),
                 ),
             ),
             network_interfaces=dict(
@@ -379,8 +385,8 @@ def main():
             ),
         ),
         required_if=[
-            ("state", "absent", ("hostname",), False),
-            ("state", "ready", ("hostname",), False),
+            ("state", "absent", ("fqdn",), False),
+            ("state", "ready", ("fqdn",), False),
         ],
     )
 

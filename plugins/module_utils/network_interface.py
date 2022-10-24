@@ -41,6 +41,7 @@ class NetworkInterface(MaasValueMapper):
         self.fabric = fabric
         self.vlan = vlan
         self.label_name = label_name
+        self.mac_address = mac_address
 
     def __eq__(self, other):
         return self.to_ansible() == other.to_ansible()
@@ -72,21 +73,24 @@ class NetworkInterface(MaasValueMapper):
             obj.mtu = maas_dict["effective_mtu"]
             if maas_dict.get("discovered"):  # Auto assigned IP
                 obj.ip_address = maas_dict["discovered"][0].get("ip_address")
+                obj.ip_address = maas_dict["discovered"][0].get("mac_address")
                 obj.subnet_cidr = maas_dict["discovered"][0]["subnet"].get("cidr")
                 obj.vlan = maas_dict["discovered"][0]["subnet"]["vlan"].get("name")
                 obj.fabric = maas_dict["discovered"][0]["subnet"]["vlan"].get("fabric")
             elif maas_dict.get("links") and len(maas_dict["links"]) > 0:  # Static IP
                 obj.ip_address = maas_dict["links"][0].get("ip_address")
+                obj.ip_address = maas_dict["links"][0].get("mac_address")
                 obj.subnet_cidr = maas_dict["links"][0]["subnet"].get("cidr")
                 obj.vlan = maas_dict["links"][0]["subnet"]["vlan"].get("name")
                 obj.fabric = maas_dict["links"][0]["subnet"]["vlan"].get("fabric")
             else:  # interface auto generated
                 obj.ip_address = maas_dict.get("ip_address")
+                obj.mac_address = maas_dict.get("mac_address")
                 obj.subnet_cidr = maas_dict.get("cidr")
-                obj.vlan = maas_dict["vlan"].get("name") if maas_dict["vlan"] else None
-                obj.fabric = (
-                    maas_dict["vlan"].get("fabric") if maas_dict["vlan"] else None
-                )
+                # "if" added because of: AttributeError: 'NoneType' object has no attribute 'get'
+                if maas_dict["vlan"]:
+                    obj.vlan = maas_dict["vlan"].get("name")
+                    obj.fabric = maas_dict["vlan"].get("fabric")
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj

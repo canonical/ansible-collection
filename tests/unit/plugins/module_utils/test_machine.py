@@ -11,6 +11,7 @@ import sys
 
 import pytest
 
+import json
 from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
@@ -40,6 +41,7 @@ class TestGet:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
+                fqdn="my_instance.maas",
                 hostname="my_instance",
                 state="absent",
                 allocate_params={
@@ -56,6 +58,7 @@ class TestGet:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
         ).return_value = dict(
+            fqdn="my_instance.maas",
             hostname="my_instance",
             system_id="system_id",
             memory=2000,
@@ -70,9 +73,13 @@ class TestGet:
             zone=dict(id=2),
             tag_names=["my_tag"],
             hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
+            power_type="lxd",
+            architecture="amd64",
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(
+            fqdn="my_instance.maas",
             hostname="my_instance",
             id="system_id",
             pool=1,
@@ -86,7 +93,77 @@ class TestGet:
             distro_series="jammy",
             tags=["my_tag"],
             hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
             domain=3,
+            power_type="lxd",
+            architecture="amd64",
+        )
+
+    def test_get_by_fqdn(self, create_module, mocker, client):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    client_key="nzW4EBWjyDe",
+                ),
+                fqdn="my_instance.maas",
+                hostname="my_instance",
+                state="absent",
+                allocate_params={
+                    "memory": 2000,
+                    "cpu": 1,
+                },
+                deploy_params={
+                    "osystem": "ubuntu",
+                    "distro_series": "jammy",
+                },
+            ),
+        )
+
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
+        ).return_value = dict(
+            fqdn="my_instance.maas",
+            hostname="my_instance",
+            system_id="system_id",
+            memory=2000,
+            cpu_count=2,
+            interface_set=None,
+            blockdevice_set=None,
+            status_name="Ready",
+            osystem="ubuntu",
+            distro_series="jammy",
+            domain=dict(id=3),
+            pool=dict(id=1),
+            zone=dict(id=2),
+            tag_names=["my_tag"],
+            hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
+            power_type="lxd",
+            architecture="amd64",
+        )
+
+        assert Machine.get_by_name(module, client, True) == Machine(
+            fqdn="my_instance.maas",
+            hostname="my_instance",
+            id="system_id",
+            pool=1,
+            zone=2,
+            memory=2000,
+            cores=2,
+            network_interfaces=[],
+            disks=[],
+            status="Ready",
+            osystem="ubuntu",
+            distro_series="jammy",
+            tags=["my_tag"],
+            hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
+            domain=3,
+            power_type="lxd",
+            architecture="amd64",
         )
 
 
@@ -148,12 +225,21 @@ class TestPayloadForCompose:
 class TestWaitForState:
     def test_wait_for_state(self, client, mocker):
         system_id = "system_id"
+
+        client.get.return_value = Response(
+            200,
+            json.dumps(
+                dict(
+                    hostname="my_instance",
+                    system_id="system_id",
+                    status_name="Commissioning",
+                ),
+            ),
+        )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_id"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
         ).return_value = Machine(
-            hostname="my_instance",
-            id="system_id",
-            status="Commissioning",
+            id="system_id", hostname="my_instance", status="Commissioning"
         )
 
         machine = Machine.wait_for_state(

@@ -136,8 +136,9 @@ record:
   type: dict
   sample:
     cores: 2
-    distro_series: ''
-    hostname: new-machine-3
+    distro_series: focal
+    hostname: new-machine
+    hwe_kernel: ga-22.04
     id: 6h4fn6
     memory: 2048
     network_interfaces:
@@ -147,7 +148,9 @@ record:
       name: my-net
       subnet_cidr: 10.10.10.0/24
       vlan: untagged
-    osystem: ''
+    osystem: ubuntu
+    pool: default
+    power_type: lxd
     status: Commissioning
     storage_disks:
     - id: 288
@@ -156,6 +159,10 @@ record:
     - id: 289
       name: sdb
       size_gigabytes: 5
+    tags:
+      - pod-console-logging
+      - my-tag
+    zone: default
 """
 
 from ansible.module_utils.basic import AnsibleModule
