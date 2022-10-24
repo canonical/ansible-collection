@@ -21,18 +21,22 @@ class NetworkInterface(MaasValueMapper):
         id=None,
         subnet_cidr=None,
         machine_id=None,
-        ip_address=None,
-        fabric=None,
-        vlan=None,
-        label_name=None,
         mac_address=None,
+        vlan=None,
         mtu=None,
         tags=None,
+        ip_address=None,
+        fabric=None,
+        label_name=None,
     ):
         self.name = name
         self.id = id
         self.subnet_cidr = subnet_cidr
         self.machine_id = machine_id
+        self.mac_address = mac_address
+        self.vlan = vlan
+        self.mtu = mtu
+        self.tags = tags
         self.ip_address = ip_address
         self.fabric = fabric
         self.vlan = vlan
@@ -40,6 +44,9 @@ class NetworkInterface(MaasValueMapper):
         self.mac_address = mac_address
         self.mtu = mtu
         self.tags = tags
+
+    def __eq__(self, other):
+        return self.to_ansible() == other.to_ansible()
 
     def __eq__(self, other):
         return self.to_ansible() == other.to_ansible()
@@ -90,7 +97,6 @@ class NetworkInterface(MaasValueMapper):
                 if maas_dict["vlan"]:
                     obj.vlan = maas_dict["vlan"].get("name")
                     obj.fabric = maas_dict["vlan"].get("fabric")
-            obj.machine_id = maas_dict["system_id"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj

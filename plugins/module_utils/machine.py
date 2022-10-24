@@ -255,6 +255,12 @@ class Machine(MaasValueMapper):
             payload["storage"] = ",".join([f"label:{disk['size']}" for disk in tmp])
         return payload
 
+    def find_nic_by_mac(self, mac):
+        # returns nic object or None
+        for nic_obj in self.network_interfaces:
+            if mac == nic_obj.mac_address:
+                return nic_obj
+
     def __eq__(self, other):
         """One Machine is equal to another if it has ALL attributes exactly the same"""
         return all(

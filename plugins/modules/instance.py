@@ -204,7 +204,6 @@ record:
     zone: default
 """
 
-
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
