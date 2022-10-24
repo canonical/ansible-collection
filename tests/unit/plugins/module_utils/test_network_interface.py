@@ -108,7 +108,7 @@ class TestMapper:
             ip_address="this-ip",
             fabric="this-fabric",
             vlan="this-vlan",
-            mac="this-mac",
+            mac_address="this-mac",
             mtu=1500,
             tags=None,
         )
@@ -124,9 +124,9 @@ class TestMapper:
             "this-ip",
             "this-fabric",
             "this-label",
-            "this-mac-address",
         )
         results = net_interface_obj.to_ansible()
+        print(results)
         assert results == expected
 
 

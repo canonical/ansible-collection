@@ -88,7 +88,6 @@ class NetworkInterface(MaasValueMapper):
                 obj.fabric = maas_dict["links"][0]["subnet"]["vlan"].get("fabric")
             else:  # interface auto generated
                 obj.ip_address = maas_dict.get("ip_address")
-                obj.mac_address = maas_dict.get("mac_address")
                 obj.subnet_cidr = maas_dict.get("cidr")
                 # "if" added because of: AttributeError: 'NoneType' object has no attribute 'get'
                 if maas_dict["vlan"]:

@@ -78,6 +78,7 @@ class TestRun:
     @staticmethod
     def get_machine_state_new():
         return dict(
+            fqdn="this-machine-fqdn",
             hostname="this-machine",
             cpu_count=2,
             memory=5000,
@@ -92,11 +93,15 @@ class TestRun:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-powertype",
+            architecture="this-architecture",
         )
 
     @staticmethod
     def get_machine_state_allocating():
         return dict(
+            fqdn="this-machine-fqdn",
             hostname="this-machine",
             cpu_count=2,
             memory=5000,
@@ -111,11 +116,15 @@ class TestRun:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-powertype",
+            architecture="this-architecture",
         )
 
     @staticmethod
     def get_machine_state_ready():
         return dict(
+            fqdn="this-machine-fqdn",
             hostname="this-machine",
             cpu_count=2,
             memory=5000,
@@ -130,6 +139,9 @@ class TestRun:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-pwoertype",
+            architecture="this-architecture",
         )
 
     def test_run_with_present_with_machine_wrong_state(
@@ -251,6 +263,7 @@ class TestEnsurePresent:
     @staticmethod
     def get_machine_state_new():
         return dict(
+            fqdn="this-machine-fqdn",
             hostname="this-machine",
             cpu_count=2,
             memory=5000,
@@ -265,11 +278,15 @@ class TestEnsurePresent:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-powertype",
+            architecture="this-architecture",
         )
 
     @staticmethod
     def get_machine_updated():
         return dict(
+            fqdn="this-machine-fqdn",
             hostname="this-machine",
             cpu_count=2,
             memory=5000,
@@ -296,6 +313,9 @@ class TestEnsurePresent:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-powertype",
+            architecture="this-architecture",
         )
 
     @staticmethod
@@ -467,6 +487,7 @@ class TestEsnureAbsent:
     @staticmethod
     def get_machine_state_new():
         return dict(
+            fqdn="this-machine-fqdn",
             hostname="this-machine",
             cpu_count=2,
             memory=5000,
@@ -481,11 +502,15 @@ class TestEsnureAbsent:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-power-type",
+            architecture="this-architecture"
         )
 
     @staticmethod
     def get_machine_updated():
         return dict(
+            fqdn = "this-machine-fqdn",
             hostname="this-machine",
             cpu_count=2,
             memory=5000,
@@ -512,6 +537,37 @@ class TestEsnureAbsent:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-powertype",
+            architecture="this-architecture",
+        )
+
+    @staticmethod
+    def get_nic():
+        return dict(
+            name="this-nic",
+            id=123,
+            mac_address="this-mac",
+            system_id=123,
+            tags=["tag1", "tag2"],
+            effective_mtu=1500,
+            ip_address="this-ip",
+            subnet_cidr="this-subnet",
+            vlan=None,
+        )
+    
+    @staticmethod
+    def get_nic_existing():
+        return dict(
+            name="this-nic",
+            id=123,
+            mac_address="this-mac",
+            system_id=123,
+            tags=["tag1", "tag2"],
+            effective_mtu=1500,
+            ip_address="this-ip",
+            subnet_cidr="this-subnet",
+            vlan=None,
         )
 
     def test_ensure_absent_when_delete_existing_nic(
@@ -549,7 +605,7 @@ class TestEsnureAbsent:
         ).return_value = nic_obj
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
-        ).side_effect = [existing_nic_obj, nic_obj]
+        ).side_effect = [existing_nic_obj, None]
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.needs_update"
         ).return_value = True
@@ -562,7 +618,8 @@ class TestEsnureAbsent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
         ).return_value = updated_machine_obj
-        results = vm_nic_physical.ensure_present(module, client, machine_obj)
+        results = vm_nic_physical.ensure_absent(module, client, machine_obj)
+        print(results)
         assert results == expected
 
     def test_ensure_absent_when_no_changes_nic(self, create_module, client, mocker):
