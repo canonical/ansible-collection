@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: dns_domain_info
+module: dns_domain
 
 author:
   - Jure Medvesek (@juremedvesek)
@@ -21,7 +21,27 @@ version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
-options: {}
+options:
+  state:
+    description: Should domain be present or absent.
+    type: str
+    choices:
+      - present
+      - absent
+    required: true
+  name:
+    description: Domain name
+    type: str
+    required: true
+  authoritative:
+    type: bool
+    description: ""
+  ttl:
+    type: int
+    description: Time to live. If not set, default value will be used.
+  is_default:
+    type: bool
+    description: Should this domain be set as defult.
 """
 
 EXAMPLES = r"""
@@ -128,9 +148,7 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            state=dict(
-                type="str", required=True, choices=["present", "absent"]
-            ),
+            state=dict(type="str", required=True, choices=["present", "absent"]),
             name=dict(type="str", required=True),
             ttl=dict(type="int", required=False),
             authoritative=dict(type="bool", required=False),
