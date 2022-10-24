@@ -212,11 +212,11 @@ class TestEnsureReady:
             name="test_name",
             id="1234",
             cpu_over_commit_ratio=1,
-            memory_over_commit_ratio=2,
-            default_macvlan_mode="bridge",
-            pool="my-pool",
-            zone="my-zone",
-            tags="my-tag",
+            memory_over_commit_ratio=1,
+            default_macvlan_mode="default",
+            tags=None,
+            zone=1,
+            pool=1,
         )
 
     @staticmethod
@@ -256,6 +256,9 @@ class TestEnsureReady:
             tag_names=["my_tag"],
             interface_set=[
                 {
+                    "mac_address": "this-mac",
+                    "tags": [],
+                    "effective_mtu": 1500,
                     "id": "123",
                     "name": "this_name",
                     "links": [

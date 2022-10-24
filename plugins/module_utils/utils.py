@@ -66,10 +66,10 @@ def filter_dict(input, *field_names):
     return output
 
 
-def is_superset(superset, candidate):
-    if not candidate:
+def is_superset(superset, subset):
+    if not subset:
         return True
-    for k, v in candidate.items():
+    for k, v in subset.items():
         if k in superset and superset[k] == v:
             continue
         return False

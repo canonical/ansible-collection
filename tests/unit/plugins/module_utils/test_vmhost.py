@@ -27,12 +27,12 @@ class TestSendComposeRequest:
         return dict(
             name="test_name",
             id="1234",
-            cpu_over_commit_ratio=1,
-            memory_over_commit_ratio=2,
-            default_macvlan_mode="bridge",
-            pool="my-pool",
-            zone="my-zone",
-            tags="my-tag",
+            cpu_over_commit_ratio=3,
+            memory_over_commit_ratio=3,
+            default_macvlan_mode="default",
+            tags=None,
+            zone=1,
+            pool=1,
         )
 
     def test_send_compose_request(self, client, mocker):
@@ -53,12 +53,12 @@ class TestMapper:
         return dict(
             name="test_host",
             id=123,
-            cpu_over_commit_ratio=1,
+            cpu_over_commit_ratio=3,
             memory_over_commit_ratio=2,
-            default_macvlan_mode="bridge",
-            pool="my-pool",
-            zone="my-zone",
-            tags="my-tag",
+            default_macvlan_mode="default",
+            tags=[],
+            zone=1,
+            pool=1,
         )
 
     def test_from_maas(self):
