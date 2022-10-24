@@ -575,8 +575,6 @@ class TestEsnureAbsent:
         machine_obj = Machine.from_maas(machine_dict)
         updated_machine_dict = self.get_machine_state_new()
         updated_machine_obj = Machine.from_maas(updated_machine_dict)
-        nic_dict = self.get_nic()
-        nic_obj = NetworkInterface.from_maas(nic_dict)
         existing_nic_dict = self.get_nic_existing()
         existing_nic_obj = NetworkInterface.from_maas(existing_nic_dict)
         expected = (
@@ -599,20 +597,8 @@ class TestEsnureAbsent:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
-        ).return_value = nic_obj
-        mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
         ).side_effect = [existing_nic_obj, None]
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.needs_update"
-        ).return_value = True
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_update_request"
-        ).return_value = None
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_update"
-        ).return_value = None
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
@@ -643,5 +629,38 @@ class TestEsnureAbsent:
         results = vm_nic_physical.ensure_absent(module, client, machine_obj)
         assert results == expected
 
-    def test_ensure_absent_when_delete_existing_nic_but_no_changes(self):
-        pass
+    def test_ensure_absent_when_delete_existing_nic_but_no_changes(
+        self, create_module, client, mocker
+    ):
+        machine_dict = self.get_machine_state_new()
+        machine_obj = Machine.from_maas(machine_dict)
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    client_key="client key",
+                    token_key="token key",
+                    token_secret="token secret",
+                ),
+                state="absent",
+                vm_host="this-host",
+                hostname="this-machine",
+                mac_address="this-mac",
+            )
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
+        ).return_value = nic_obj
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_delete_request"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
+        ).return_value = machine_obj
+        with pytest.raises(
+            errors.MaasError,
+            match=f"Delete network interface task failed with mac: {nic_obj.mac_address}",
+        ):
+            vm_nic_physical.ensure_absent(module, client, machine_obj)
