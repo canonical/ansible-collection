@@ -21,12 +21,11 @@ extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
 options:
-  vm_host:
-    description: Name of the host.
-    type: str
-    required: True
-  hostname:
-    description: Name of the virtual machine.
+  fqdn:
+    description:
+      - Fully qualified domain name of the machine to be deleted, deployed or released.
+      - Serves as unique identifier of the machine.
+      - If machine is not found the task will FAIL.
     type: str
     required: True
   mac_address:
@@ -140,7 +139,7 @@ def ensure_present(module, client, machine_obj):
         )
     else:
         return is_changed(before, after), after, dict(before=before, after=after)
-    updated_machine_obj = Machine.get_by_name_and_host(module, client, must_exist=True)
+    updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
     after = updated_machine_obj.find_nic_by_mac(new_nic_obj.mac_address).to_ansible()
     return is_changed(before, after), after, dict(before=before, after=after)
 
@@ -153,9 +152,7 @@ def ensure_absent(module, client, machine_obj):
         before = nic_to_delete_obj.to_ansible()
         nic_to_delete_obj.send_delete_request(client, machine_obj, nic_to_delete_obj.id)
         # Check if nic was actually deleted, if not failed = True in playbook.
-        updated_machine_obj = Machine.get_by_name_and_host(
-            module, client, must_exist=True
-        )
+        updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
         if updated_machine_obj.find_nic_by_mac(nic_to_delete_obj.mac_address):
             raise errors.MaasError(
                 f"Delete network interface task failed with mac: {nic_to_delete_obj.mac_address}"
@@ -165,7 +162,7 @@ def ensure_absent(module, client, machine_obj):
 
 def run(module, client):
     # Machine needs to be allocated, broken or ready.
-    machine_obj = Machine.get_by_name_and_host(module, client, must_exist=True)
+    machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
     if machine_obj.status not in [
         MachineTaskState.ready,
         MachineTaskState.allocated,
@@ -202,11 +199,7 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            vm_host=dict(
-                type="str",
-                required=True,
-            ),
-            hostname=dict(
+            fqdn=dict(
                 type="str",
                 required=True,
             ),

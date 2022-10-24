@@ -16,8 +16,7 @@
 # ----------------------------------Setup----------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test.
       canonical.maas.vm_host_machine:
-        vm_host: sunny-raptor # TODO: find a better way, maybe create host first?
-        hostname: integration-test-nic
+        fqdn: integration-test-nic
         cores: 2
         memory: 2000
         network_interfaces:
@@ -50,8 +49,7 @@
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test-nic. (Idempotence)
       canonical.maas.vm_host_machine:
-        vm_host: sunny-raptor #
-        hostname: integration-test-nic
+        fqdn: integration-test-nic
         cores: 2
         memory: 2000
         network_interfaces:
@@ -84,8 +82,7 @@
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Create new_nic on machine with name integration-test.
       canonical.maas.vm_nic_physical:
-        vm_host: sunny-raptor # TODO: find a better way, maybe create host first?
-        hostname: integration-test-nic
+        fqdn: integration-test-nic
         state: present
         mac_address: '00:16:3e:ae:78:75'
         name: new_nic
@@ -116,8 +113,7 @@
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create new_nic on machine with name integration-test. (Idempotence)
       canonical.maas.vm_nic_physical:
-        vm_host: sunny-raptor # TODO: find a better way, maybe create host first?
-        hostname: integration-test-nic
+        fqdn: integration-test-nic
         state: present
         mac_address: '00:16:3e:ae:78:75'
         name: new_nic
@@ -148,8 +144,7 @@
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Update new_nic on machine with name integration-test.
       canonical.maas.vm_nic_physical:
-        vm_host: sunny-raptor # TODO: find a better way, maybe create host first?
-        hostname: integration-test-nic
+        fqdn: integration-test-nic
         state: present
         mac_address: '00:16:3e:ae:78:75'
         name: new_nic
@@ -180,8 +175,7 @@
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Update new_nic on machine with name integration-test. (Idempotence)
       canonical.maas.vm_nic_physical:
-        vm_host: sunny-raptor # TODO: find a better way, maybe create host first?
-        hostname: integration-test-nic
+        fqdn: integration-test-nic
         state: present
         mac_address: '00:16:3e:ae:78:75'
         name: new_nic
@@ -212,8 +206,7 @@
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Delete new_nic on machine with name integration-test.
       canonical.maas.vm_nic_physical:
-        vm_host: sunny-raptor # TODO: find a better way, maybe create host first?
-        hostname: integration-test-nic
+        fqdn: integration-test-nic
         state: absent
         mac_address: '00:16:3e:ae:78:75'
         name: new_nic
@@ -242,8 +235,7 @@
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Delete new_nic on machine with name integration-test. (Idempotence)
       canonical.maas.vm_nic_physical:
-        vm_host: sunny-raptor # TODO: find a better way, maybe create host first?
-        hostname: integration-test-nic
+        fqdn: integration-test-nic
         state: absent
         mac_address: '00:16:3e:ae:78:75'
         name: new_nic

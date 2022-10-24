@@ -33,8 +33,7 @@ class TestMain:
                 token_key="token key",
                 token_secret="token secret",
             ),
-            vm_host="this_host",
-            hostname="this-machine",
+            fqdn="this-machine-fqdn",
             mac_address="this-mac",
             state="present",
         )
@@ -55,8 +54,7 @@ class TestMain:
                 token_key="token key",
                 token_secret="token secret",
             ),
-            vm_host="this_host",
-            hostname="this-machine",
+            fqdn="this-machine-fqdn",
             mac_address="this-mac",
             state="present",
             vlan="this-vlan",
@@ -164,7 +162,7 @@ class TestRun:
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         with pytest.raises(
             errors.MaasError,
@@ -193,7 +191,7 @@ class TestRun:
         machine_dict = self.get_machine_state_allocating()
         machine_obj = Machine.from_maas(machine_dict)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.wait_for_state"
@@ -223,7 +221,7 @@ class TestRun:
         machine_dict = self.get_machine_state_ready()
         machine_obj = Machine.from_maas(machine_dict)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.modules.vm_nic_physical.ensure_present"
@@ -250,7 +248,7 @@ class TestRun:
         machine_dict = self.get_machine_state_ready()
         machine_obj = Machine.from_maas(machine_dict)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.modules.vm_nic_physical.ensure_absent"
@@ -385,7 +383,7 @@ class TestEnsurePresent:
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_create"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
         results = vm_nic_physical.ensure_present(module, client, machine_obj)
         assert results == expected
@@ -437,7 +435,7 @@ class TestEnsurePresent:
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_update"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
         results = vm_nic_physical.ensure_present(module, client, machine_obj)
         assert results == expected
@@ -504,13 +502,13 @@ class TestEsnureAbsent:
             hwe_kernel="ga-22.04",
             min_hwe_kernel="ga-22.04",
             power_type="this-power-type",
-            architecture="this-architecture"
+            architecture="this-architecture",
         )
 
     @staticmethod
     def get_machine_updated():
         return dict(
-            fqdn = "this-machine-fqdn",
+            fqdn="this-machine-fqdn",
             hostname="this-machine",
             cpu_count=2,
             memory=5000,
@@ -555,7 +553,7 @@ class TestEsnureAbsent:
             subnet_cidr="this-subnet",
             vlan=None,
         )
-    
+
     @staticmethod
     def get_nic_existing():
         return dict(
@@ -616,7 +614,7 @@ class TestEsnureAbsent:
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_update"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
         results = vm_nic_physical.ensure_absent(module, client, machine_obj)
         print(results)
