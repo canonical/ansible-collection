@@ -1,0 +1,126 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+    - name: Delete machine-test
+      canonical.maas.machine:
+        fqdn: machine-test.maas
+        state: absent
+
+    - name: Delete updated-machine
+      canonical.maas.machine:
+        fqdn: updated-machine.maas
+        state: absent
+
+    - name: Add machine - missing parameter
+      canonical.maas.machine:
+        state: present
+        power_parameters:
+          power_address: 172.16.117.70:8443
+          instance_name: machine-test-instance-name
+        pxe_mac_address: 00:00:00:00:00:01
+        hostname: machine-test
+        architecture: amd64/generic
+        domain: maas
+        pool: default
+        zone: default
+        min_hwe_kernel: hwe-20.04
+      ignore_errors: true
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is failed
+          - "'Missing value - power_type, power_parameters or pxe_mac_address' in machine.msg"
+
+    - name: Add machine.
+      canonical.maas.machine:
+        state: present
+        power_type: lxd
+        power_parameters:
+          power_address: 172.16.117.70:8443
+          instance_name: machine-test-instance-name
+        pxe_mac_address: 00:00:00:00:00:01
+        hostname: machine-test
+        architecture: amd64/generic
+        domain: maas
+        pool: default
+        zone: default
+        min_hwe_kernel: hwe-20.04
+      ignore_errors: true   # Here we get error: "Unexpected response - 503 b'No rack controllers can access the BMC of node machine-test'"
+    #   register: machine
+    # - ansible.builtin.assert:
+    #     that:
+    #       - machine is changed
+    #       - machine.record.hostname == "machine-test"
+    #       - machine.record.power_type == "lxd"
+    #       - machine.record.network_interfaces.0.mac_address == "00:00:00:00:00:01"
+    #       - machine.record.architecture == "amd64/generic"
+    #       - machine.record.min_hwe_kernel == "hwe-20.04"
+
+    - name: Update existing machine
+      canonical.maas.machine:
+        state: present
+        fqdn: machine-test.maas
+        power_type: virsh
+        power_parameters:
+          power_address: 172.16.117.70:8443
+          power_pass: pass
+          power_id: virsh_vm_id
+        # architecture: i386/generic
+        # "Unexpected response - 400 b'{\"architecture\": [\"\\'i386/generic\\' is not a valid architecture.  It should be one of: \\'amd64/generic\\'.\"]}'"
+        hostname: updated-machine
+        # domain: new-domain  # domain, pool and zone needs to be added first to test this
+        # pool: new-pool
+        # zone: new-zone
+        min_hwe_kernel: ga-20.04
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.hostname == "updated-machine"
+          - machine.record.power_type == "virsh"
+          - machine.record.architecture == "amd64/generic"
+          - machine.record.min_hwe_kernel == "ga-20.04"
+
+    - name: Update existing machine - idempotence
+      canonical.maas.machine:
+        state: present
+        fqdn: updated-machine.maas
+        # updating power_type and power_parameters will never be idempoten because we can't read all the values
+        architecture: amd64/generic
+        hostname: updated-machine
+        # domain: new-domain
+        # pool: new-pool
+        # zone: new-zone
+        min_hwe_kernel: ga-20.04
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is not changed
+          - machine.record.hostname == "updated-machine"
+          - machine.record.power_type == "virsh"
+          - machine.record.architecture == "amd64/generic"
+          - machine.record.min_hwe_kernel == "ga-20.04"
+
+    - name: Delete machine
+      canonical.maas.instance:
+        fqdn: updated-machine.maas
+        state: absent
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+
+    - name: Delete machine - idempotence
+      canonical.maas.instance:
+        fqdn: updated-machine.maas
+        state: absent
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is not changed

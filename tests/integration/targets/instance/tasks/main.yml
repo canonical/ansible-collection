@@ -7,203 +7,364 @@
 
 
   block:
-  - name: Delete machine
-    canonical.maas.instance:
-      hostname: instance-test
-      state: absent
+    - name: Delete machine
+      canonical.maas.instance:
+        fqdn: instance-test
+        state: absent
 
-  - name: Create virtual machine with two disks and a network interface.
-    canonical.maas.vm_host_machine:
-      hostname: instance-test
-      vm_host: sunny-raptor
-      cores: 2
-      memory: 2000
-      network_interfaces:
-        label_name: my_first
-        subnet_cidr: "10.10.10.0/24"
-      storage_disks:
-        - size_gigabytes: 8
-    register: initial_machine
-  - ansible.builtin.assert:
-      that:
-        - initial_machine is changed
-        - initial_machine.record.hostname == "instance-test"
-        - initial_machine.record.memory == 2000
-        - initial_machine.record.cores == 2
-
-  - name: Deploy machine
-    canonical.maas.instance:
-      hostname: instance-test
-      state: deployed
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is changed
-        - machine.record.hostname == "instance-test"
-        - machine.record.memory == 2048
-        - machine.record.cores == 2
-        - machine.record.osystem == "ubuntu"
-        - machine.record.distro_series == "focal"
-        - machine.record.status == "Deployed"
-    
-  - name: Deploy machine - idempotence
-    canonical.maas.instance:
-      hostname: instance-test
-      state: deployed
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is not changed
-        - machine.record.hostname == "instance-test"
-        - machine.record.memory == 2048
-        - machine.record.cores == 2
-        - machine.record.osystem == "ubuntu"
-        - machine.record.distro_series == "focal"
-        - machine.record.status == "Deployed"
-  
-  - name: Release machine
-    canonical.maas.instance:
-      hostname: instance-test
-      state: ready
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is changed
-        - machine.record.hostname == "instance-test"
-        - machine.record.memory == 2048
-        - machine.record.cores == 2
-        - machine.record.status == "Ready"
-  
-  - name: Release machine - idempotence
-    canonical.maas.instance:
-      hostname: instance-test
-      state: ready
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is not changed
-        - machine.record.hostname == "instance-test"
-        - machine.record.memory == 2048
-        - machine.record.cores == 2
-        - machine.record.status == "Ready"
-  
-  - name: Deploy machine with another OS
-    canonical.maas.instance:
-      hostname: instance-test
-      state: deployed
-      deploy_params:
-        osystem: ubuntu
-        distro_series: jammy
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is changed
-        - machine.record.hostname == "instance-test"
-        - machine.record.memory == 2048
-        - machine.record.cores == 2
-        - machine.record.osystem == "ubuntu"
-        - machine.record.distro_series == "jammy"
-        - machine.record.status == "Deployed"
-
-  - name: Release machine
-    canonical.maas.instance:
-      hostname: instance-test
-      state: ready
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is changed
-        - machine.record.hostname == "instance-test"
-        - machine.record.memory == 2048
-        - machine.record.cores == 2
-        - machine.record.status == "Ready"
-  
-  - name: Delete machine
-    canonical.maas.instance:
-      hostname: instance-test
-      state: absent
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is changed
-  
-  - name: Delete machine - idempotence
-    canonical.maas.instance:
-      hostname: instance-test
-      state: absent
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is not changed
-
-  - name: Deploy new machine with default OS and allocation constraints
-    canonical.maas.instance:
-      state: deployed
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is changed
-        - machine.record.memory == 2048
-        - machine.record.cores == 1
-        - machine.record.osystem == "ubuntu"
-        - machine.record.distro_series == "focal"
-        - machine.record.status == "Deployed"
-  
-  - name: Release machine (ephemeral machine is deleted)
-    canonical.maas.instance:
-      hostname: "{{ machine.record.hostname }}"
-      state: ready
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is changed
-
-  - name: Deploy new machine with custom OS and allocation constraints
-    canonical.maas.instance:
-      state: deployed
-      allocate_params:
+    - name: Create virtual machine with two disks and a network interface.
+      canonical.maas.vm_host_machine:
+        hostname: instance-test
+        vm_host: sunny-raptor
         cores: 2
         memory: 2000
-      network_interfaces:
-        name: my_network
-        subnet_cidr: 10.10.10.0/24
-        ip_address: 10.10.10.190
-      deploy_params:
-        osystem: ubuntu
-        distro_series: jammy
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is changed
-        - machine.record.memory == 2048
-        - machine.record.cores == 3
-        - machine.record.osystem == "ubuntu"
-        - machine.record.distro_series == "jammy"
-        - machine.record.status == "Deployed"
-        - machine.record.network_interfaces | length == 1
-        - machine.record.network_interfaces[0].name == "my_network"
-        - machine.record.network_interfaces[0].subnet_cidr == "10.10.10.0/24"
-        - machine.record.network_interfaces[0].ip_address == "10.10.10.190"
-  
-  - name: Release machine (ephemeral machine is deleted)
-    canonical.maas.instance:
-      hostname: "{{ machine.record.hostname }}"
-      state: ready
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is changed
+        network_interfaces:
+          label_name: my_first
+          subnet_cidr: "10.10.10.0/24"
+        storage_disks:
+          - size_gigabytes: 8
+      register: initial_machine
+    - ansible.builtin.assert:
+        that:
+          - initial_machine is changed
+          - initial_machine.record.hostname == "instance-test"
+          - initial_machine.record.memory == 2000
+          - initial_machine.record.cores == 2
 
-  - name: Deploy new machine with constraints that can't be meet
-    canonical.maas.instance:
-      state: deployed
-      allocate_params:
-        cores: 20
-        memory: 2000
-    register: machine
-    ignore_errors: true
-  - ansible.builtin.assert:
-      that:
-        - machine is failed
-        - machine is not changed
-        - "'No available machine matches constraints' in machine.msg"
+    - name: Deploy machine
+      canonical.maas.instance:
+        fqdn: instance-test
+        state: deployed
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.osystem == "ubuntu"
+          - machine.record.distro_series == "focal"
+          - machine.record.status == "Deployed"
+
+    - name: Deploy machine - idempotence
+      canonical.maas.instance:
+        fqdn: instance-test
+        state: deployed
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is not changed
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.osystem == "ubuntu"
+          - machine.record.distro_series == "focal"
+          - machine.record.status == "Deployed"
+
+    - name: Release machine
+      canonical.maas.instance:
+        fqdn: instance-test
+        state: ready
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.status == "Ready"
+
+    - name: Release machine - idempotence
+      canonical.maas.instance:
+        fqdn: instance-test
+        state: ready
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is not changed
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.status == "Ready"
+
+    - name: Deploy machine with another OS
+      canonical.maas.instance:
+        fqdn: instance-test
+        state: deployed
+        deploy_params:
+          osystem: ubuntu
+          distro_series: jammy
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.osystem == "ubuntu"
+          - machine.record.distro_series == "jammy"
+          - machine.record.status == "Deployed"
+
+    - name: Release machine
+      canonical.maas.instance:
+        fqdn: instance-test
+        state: ready
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.status == "Ready"
+
+    - name: Delete machine
+      canonical.maas.instance:
+        fqdn: instance-test
+        state: absent
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+
+    - name: Delete machine - idempotence
+      canonical.maas.instance:
+        fqdn: instance-test
+        state: absent
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is not changed
+
+    - name: Deploy new machine with default OS and allocation constraints
+      canonical.maas.instance:
+        state: deployed
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.memory == 2048
+          - machine.record.cores == 1
+          - machine.record.osystem == "ubuntu"
+          - machine.record.distro_series == "focal"
+          - machine.record.status == "Deployed"
+
+    - name: Release machine (ephemeral machine is deleted)
+      canonical.maas.instance:
+        fqdn: "{{ machine.record.hostname }}"
+        state: ready
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+
+    - name: Deploy new machine with custom OS and allocation constraints
+      canonical.maas.instance:
+        state: deployed
+        allocate_params:
+          cores: 3
+          memory: 2000
+          network_interfaces:
+            label_name: my_first
+            subnet_cidr: "10.10.10.0/24"
+          storage_disks:
+            - size_gigabytes: 8
+        register: initial_machine
+    - ansible.builtin.assert:
+        that:
+          - initial_machine is changed
+          - initial_machine.record.hostname == "instance-test"
+          - initial_machine.record.fqdn == "instance-test.maas"
+          - initial_machine.record.memory == 2000
+          - initial_machine.record.cores == 2
+
+    - name: Deploy machine
+      canonical.maas.instance:
+        fqdn: instance-test.maas
+        state: deployed
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.osystem == "ubuntu"
+          - machine.record.distro_series == "focal"
+          - machine.record.status == "Deployed"
+
+    - name: Deploy machine - idempotence
+      canonical.maas.instance:
+        fqdn: instance-test.maas
+        state: deployed
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is not changed
+          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.osystem == "ubuntu"
+          - machine.record.distro_series == "focal"
+          - machine.record.status == "Deployed"
+
+    - name: Release machine
+      canonical.maas.instance:
+        fqdn: instance-test.maas
+        state: ready
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.status == "Ready"
+
+    - name: Release machine - idempotence
+      canonical.maas.instance:
+        fqdn: instance-test.maas
+        state: ready
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is not changed
+          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.status == "Ready"
+
+    - name: Deploy machine with another OS
+      canonical.maas.instance:
+        fqdn: instance-test.maas
+        state: deployed
+        deploy_params:
+          osystem: ubuntu
+          distro_series: jammy
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.osystem == "ubuntu"
+          - machine.record.distro_series == "jammy"
+          - machine.record.status == "Deployed"
+
+    - name: Release machine
+      canonical.maas.instance:
+        fqdn: instance-test.maas
+        state: ready
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.hostname == "instance-test"
+          - machine.record.memory == 2048
+          - machine.record.cores == 2
+          - machine.record.status == "Ready"
+
+    - name: Delete machine
+      canonical.maas.instance:
+        fqdn: instance-test.maas
+        state: absent
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+
+    - name: Delete machine - idempotence
+      canonical.maas.instance:
+        fqdn: instance-test.maas
+        state: absent
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is not changed
+
+    - name: Deploy new machine with default OS and allocation constraints
+      canonical.maas.instance:
+        state: deployed
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.memory == 2048
+          - machine.record.cores == 1
+          - machine.record.osystem == "ubuntu"
+          - machine.record.distro_series == "focal"
+          - machine.record.status == "Deployed"
+
+    - name: Release machine (ephemeral machine is deleted)
+      canonical.maas.instance:
+        fqdn: "{{ machine.record.fqdn }}"
+        state: ready
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+
+    - name: Deploy new machine with custom OS and allocation constraints
+      canonical.maas.instance:
+        state: deployed
+        allocate_params:
+          min_cpu_count: 1
+          min_memory: 2000
+          tags: virtual, pod-console-logging
+          zone: default # TO USE DIFFERENT ZONE OR POOL IT NEEDS TO BE CREATED FIRST
+          pool: default
+          hostname: new-machine
+        # TO BE ABLE TO TEST THIS, THIS NETWORK NEEDS TO BE CREATED
+        # network_interfaces:
+        #   name: my_network
+        #   subnet_cidr: 10.10.10.0/24
+        #   ip_address: 10.10.10.190
+        deploy_params:
+          osystem: ubuntu
+          distro_series: focal # b'{\"distro_series\": [\"\\'jammy\\' is not a valid distro_series.  It should be one of: \\'\\', \\'ubuntu/focal\\'.\"]}'"
+          # hwe_kernel: my_kernel
+          # user_data: my_user_data
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+          - machine.record.memory == 2048
+          - machine.record.cores == 3
+          - machine.record.osystem == "ubuntu"
+          - machine.record.distro_series == "focal"
+          - machine.record.status == "Deployed"
+          - machine.record.network_interfaces | length == 1
+          - machine.record.tags == ["virtual", "pod-console-logging"]
+          # - machine.record.network_interfaces[0].name == "my_network"
+          # - machine.record.network_interfaces[0].subnet_cidr == "10.10.10.0/24"
+          # - machine.record.network_interfaces[0].ip_address == "10.10.10.190"
+
+    - name: Release machine (ephemeral machine is deleted)
+      canonical.maas.instance:
+        fqdn: "{{ machine.record.fqdn }}"
+        state: ready
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is changed
+
+    - name: Deploy new machine with constraints that can't be meet
+      canonical.maas.instance:
+        state: deployed
+        allocate_params:
+          min_cpu_count: 20
+          min_memory: 2000
+      register: machine
+      ignore_errors: true
+    - ansible.builtin.assert:
+        that:
+          - machine is failed
+          - machine is not changed
+          - "'No available machine matches constraints' in machine.msg"

@@ -17,30 +17,6 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-class TestWaitForState:
-    def test_wait_for_state(self, client, mocker):
-        system_id = "system_id"
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_id"
-        ).return_value = Machine(
-            hostname="my_instance",
-            id=123,
-            memory=2000,
-            cores=2,
-            network_interfaces=[],
-            disks=[],
-            status="Commissioning",
-            osystem="ubuntu",
-            distro_series="jammy",
-        )
-
-        machine = instance.wait_for_state(
-            system_id, client, False, "Ready", "Commissioning"
-        )
-
-        assert machine.status == "Commissioning"
-
-
 class TestAllocate:
     def test_allocate(self, client, create_module, mocker):
         module = create_module(
@@ -54,11 +30,11 @@ class TestAllocate:
                 hostname="my_instance",
                 state="ready",
                 allocate_params={
-                    "memory": 2000,
-                    "cores": 1,
+                    "min_memory": 2000,
+                    "min_cpu_count": 1,
                     "zone": "my_zone",
                     "pool": "my_pool",
-                    "tags": None,
+                    "tags": "my_tag",
                 },
                 network_interfaces={
                     "name": "my_network",
@@ -81,58 +57,9 @@ class TestAllocate:
                 "mem": 2000,
                 "zone": "my_zone",
                 "pool": "my_pool",
+                "tags": "my_tag",
                 "interfaces": "my_network:subnet_cidr=10.10.10.10/24,ip=10.10.10.190",
             },
-        )
-
-    def test_allocate_tags(self, client, create_module, mocker):
-        module = create_module(
-            params=dict(
-                instance=dict(
-                    host="https://0.0.0.0",
-                    token_key="URCfn6EhdZ",
-                    token_secret="PhXz3ncACvkcK",
-                    client_key="nzW4EBWjyDe",
-                ),
-                hostname="my_instance",
-                state="ready",
-                allocate_params={
-                    "memory": None,
-                    "cores": None,
-                    "zone": None,
-                    "pool": None,
-                    "tags": ["my_tag"],
-                },
-                network_interfaces=None,
-            ),
-        )
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.from_maas"
-        )
-
-        instance.allocate(module, client)
-
-        client.post.assert_called_with(
-            "/api/2.0/machines/",
-            query={"op": "allocate"},
-            data={
-                "tag_names": "my_tag",
-            },
-        )
-
-
-class TestCommission:
-    def test_commission(self, client, mocker):
-        system_id = "system_id"
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.from_maas"
-        )
-
-        instance.commission(system_id, client)
-
-        client.post.assert_called_with(
-            "/api/2.0/machines/system_id",
-            query={"op": "commission"},
         )
 
 
@@ -146,22 +73,15 @@ class TestDelete:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="absent",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
-            hostname="my_instance",
+            fqdn="my_instance.maas",
             id=123456,
-            memory=2000,
-            cores=2,
-            network_interfaces=[],
-            disks=[],
-            status="Commissioning",
-            osystem="ubuntu",
-            distro_series="jammy",
         )
 
         changed = instance.delete(module, client)[0]
@@ -180,12 +100,12 @@ class TestDelete:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="absent",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = None
 
         changed = instance.delete(module, client)[0]
@@ -203,12 +123,12 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             status="Ready",
         )
@@ -226,19 +146,19 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Commissioning",
         )
 
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.release(module, client)
@@ -255,21 +175,21 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status=status,
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.commission"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.commission"
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.release(module, client)
@@ -285,18 +205,18 @@ class TestRelease:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Deployed",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         changed = instance.release(module, client)[0]
@@ -317,7 +237,7 @@ class TestDeploy:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname=None,
+                fqdn=None,
                 state="ready",
                 deploy_params={
                     "osystem": "ubuntu",
@@ -335,7 +255,7 @@ class TestDeploy:
             status="Allocated",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -362,19 +282,19 @@ class TestDeploy:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
                     "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
-                    "hwe_kernel": "my_kernel",
+                    "min_hwe_kernel": "my_kernel",
                     "user_data": "my_data",
                 },
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             status="Deployed",
         )
@@ -392,7 +312,7 @@ class TestDeploy:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
                     "osystem": "ubuntu",
@@ -404,13 +324,13 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Commissioning",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -438,7 +358,7 @@ class TestDeploy:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
                     "osystem": "ubuntu",
@@ -450,16 +370,16 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status=status,
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.commission"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.commission"
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -485,7 +405,7 @@ class TestDeploy:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
-                hostname="my_instance",
+                fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
                     "osystem": "ubuntu",
@@ -497,13 +417,13 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_name"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Ready",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.wait_for_state"
+            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -526,21 +446,32 @@ class TestMain:
     # in module diff needs to be added for this to work
     def test_all_params(self, run_main):
         params = dict(
-            instance=dict(
+            cluster_instance=dict(
                 host="https://0.0.0.0",
                 token_key="URCfn6EhdZ",
                 token_secret="PhXz3ncACvkcK",
-                client_key="nzW4EBWjyDe",
+                customer_key="nzW4EBWjyDe",
             ),
-            hostname=None,
+            fqdn=None,
             state="ready",
             allocate_params={
-                "memory": 2000,
-                "cores": 1,
+                "min_memory": 2000,
+                "min_cpu_count": 1,
+                "zone": "my_zone",
+                "pool": "my_pool",
+                "tags": None,
+            },
+            network_interfaces={
+                "name": "my_network",
+                "subnet_cidr": "10.10.10.10/24",
+                "ip_address": "10.10.10.190",
             },
             deploy_params={
                 "osystem": "ubuntu",
                 "distro_series": "jammy",
+                "timeout": 30,
+                "hwe_kernel": "my_kernel",
+                "user_data": "my_data",
             },
         )
 
@@ -550,11 +481,11 @@ class TestMain:
 
     def test_minimal_set_of_params(self, run_main):
         params = dict(
-            instance=dict(
+            cluster_instance=dict(
                 host="https://0.0.0.0",
                 token_key="URCfn6EhdZ",
                 token_secret="PhXz3ncACvkcK",
-                client_key="nzW4EBWjyDe",
+                customer_key="nzW4EBWjyDe",
             ),
             state="deployed",
         )
@@ -570,7 +501,7 @@ class TestMain:
                 host="https://0.0.0.0",
                 token_key="URCfn6EhdZ",
                 token_secret="PhXz3ncACvkcK",
-                client_key="nzW4EBWjyDe",
+                customer_key="nzW4EBWjyDe",
             ),
             state=state,
         )

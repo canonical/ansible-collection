@@ -24,9 +24,9 @@ pytestmark = pytest.mark.skipif(
 class TestMain:
     def test_minimal_set_of_params(self, run_main):
         params = dict(
-            instance=dict(
+            cluster_instance=dict(
                 host="https://my.host.name",
-                client_key="client key",
+                customer_key="client key",
                 token_key="token key",
                 token_secret="token secret",
             ),
@@ -43,9 +43,9 @@ class TestMain:
 
     def test_maximum_set_of_params(self, run_main):
         params = dict(
-            instance=dict(
+            cluster_instance=dict(
                 host="https://my.host.name",
-                client_key="client key",
+                customer_key="client key",
                 token_key="token key",
                 token_secret="token secret",
             ),
@@ -73,7 +73,16 @@ class TestMain:
 class TestRun:
     @staticmethod
     def _get_empty_host_dict():
-        return dict(name="test_name", id="1234")
+        return dict(
+            name="test_name",
+            id="1234",
+            cpu_over_commit_ratio=1,
+            memory_over_commit_ratio=2,
+            default_macvlan_mode="bridge",
+            pool="my-pool",
+            zone="my-zone",
+            tags="my-tag",
+        )
 
     def test_run_when_state_ready_and_net_interface_and_storage(
         self, create_module, client, mocker
@@ -199,11 +208,21 @@ class TestPrepareNetworkData:
 class TestEnsureReady:
     @staticmethod
     def _get_empty_host_dict():
-        return dict(name="test_name", id="1234")
+        return dict(
+            name="test_name",
+            id="1234",
+            cpu_over_commit_ratio=1,
+            memory_over_commit_ratio=1,
+            default_macvlan_mode="default",
+            tags=None,
+            zone=1,
+            pool=1,
+        )
 
     @staticmethod
     def _get_empty_machine_dict():
         return dict(
+            fqdn="machine_1.maas",
             hostname="machine_1",
             cpu_count=2,
             memory=5000,
@@ -218,11 +237,15 @@ class TestEnsureReady:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="lxd",
+            architecture="amd64",
         )
 
     @staticmethod
     def _get_machine_dict():
         return dict(
+            fqdn="machine_2.maas",
             hostname="machine_2",
             cpu_count=2,
             memory=5000,
@@ -233,6 +256,9 @@ class TestEnsureReady:
             tag_names=["my_tag"],
             interface_set=[
                 {
+                    "mac_address": "this-mac",
+                    "tags": [],
+                    "effective_mtu": 1500,
                     "id": "123",
                     "name": "this_name",
                     "links": [
@@ -254,6 +280,9 @@ class TestEnsureReady:
             osystem="ubuntu",
             distro_series="jammy",
             hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="lxd",
+            architecture="amd64",
         )
 
     def test_ensure_ready_without_storaga_and_net_interfaces(
@@ -275,6 +304,8 @@ class TestEnsureReady:
             "pool": 1,
             "tags": ["my_tag"],
             "hwe_kernel": "ga-22.04",
+            "min_hwe_kernel": "ga-22.04",
+            "power_type": "lxd",
         }
         task = {
             "system_id": "1234",
