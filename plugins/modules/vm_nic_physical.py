@@ -60,8 +60,7 @@ EXAMPLES = r"""
       token_key: token-key
       token_secret: token-secret
       customer_key: customer-key
-    vm_host: sunny-raptor
-    hostname: calm-guinea
+    fqdn: calm-guinea
     state: present
     mac_address: '00:16:3e:ae:78:75'
     vlan: vlan-5
@@ -82,8 +81,7 @@ EXAMPLES = r"""
       token_key: token-key
       token_secret: token-secret
       customer_key: customer-key
-    vm_host: sunny-raptor
-    hostname: calm-guinea
+    fqdn: calm-guinea
     state: absent
     mac_address: '00:16:3e:ae:78:75'
   register: nic_info
