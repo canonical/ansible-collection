@@ -73,7 +73,9 @@ class TestGet:
             zone=dict(id=2),
             tag_names=["my_tag"],
             hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
             power_type="lxd",
+            architecture="amd64",
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(
@@ -91,8 +93,10 @@ class TestGet:
             distro_series="jammy",
             tags=["my_tag"],
             hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
             domain=3,
             power_type="lxd",
+            architecture="amd64",
         )
 
     def test_get_by_fqdn(self, create_module, mocker, client):
@@ -136,7 +140,9 @@ class TestGet:
             zone=dict(id=2),
             tag_names=["my_tag"],
             hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
             power_type="lxd",
+            architecture="amd64",
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(
@@ -154,8 +160,10 @@ class TestGet:
             distro_series="jammy",
             tags=["my_tag"],
             hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
             domain=3,
             power_type="lxd",
+            architecture="amd64",
         )
 
 

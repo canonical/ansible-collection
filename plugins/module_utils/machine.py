@@ -40,7 +40,9 @@ class Machine(MaasValueMapper):
         osystem=None,
         distro_series=None,
         hwe_kernel=None,
+        min_hwe_kernel=None,
         power_type=None,
+        architecture=None,
     ):
         self.fqdn = fqdn
         self.hostname = hostname
@@ -57,8 +59,10 @@ class Machine(MaasValueMapper):
         self.status = status
         self.osystem = osystem
         self.distro_series = distro_series
+        self.min_hwe_kernel = min_hwe_kernel
         self.hwe_kernel = hwe_kernel
         self.power_type = power_type
+        self.architecture = architecture
 
     @classmethod
     def get_by_name(
@@ -166,7 +170,10 @@ class Machine(MaasValueMapper):
             obj.osystem = maas_dict["osystem"]
             obj.distro_series = maas_dict["distro_series"]
             obj.hwe_kernel = maas_dict["hwe_kernel"]
+            obj.min_hwe_kernel = maas_dict["min_hwe_kernel"]
             obj.power_type = maas_dict["power_type"]
+            obj.architecture = maas_dict["architecture"]
+
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -216,7 +223,9 @@ class Machine(MaasValueMapper):
             osystem=self.osystem,
             distro_series=self.distro_series,
             hwe_kernel=self.hwe_kernel,
+            min_hwe_kernel=self.min_hwe_kernel,
             power_type=self.power_type,
+            architecture=self.architecture,
         )
 
     def payload_for_compose(self, module):
@@ -299,3 +308,11 @@ class Machine(MaasValueMapper):
         return client.post(
             f"/api/2.0/machines/{self.id}", query={"op": "commission"}
         ).json
+
+    @classmethod
+    def create(cls, client, payload):
+        maas_dict = client.post("/api/2.0/machines/", data=payload).json
+        return cls.from_maas(maas_dict)
+
+    def update(self, client, payload):
+        return client.put(f"/api/2.0/machines/{self.id}/", data=payload).json

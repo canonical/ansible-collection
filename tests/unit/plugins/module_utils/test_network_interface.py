@@ -100,6 +100,7 @@ class TestMapper:
             ip_address="this-ip",
             fabric="this-fabric",
             vlan="this-vlan",
+            mac_address="this-mac-address",
         )
         net_interface_obj = NetworkInterface(
             net_interface_dict["name"],
@@ -110,6 +111,7 @@ class TestMapper:
             "this-fabric",
             "this-vlan",
             "this-label",
+            "this-mac-address",
         )
         results = net_interface_obj.to_ansible()
         assert results == expected
