@@ -88,17 +88,11 @@ def clean_data(data: dict):
 
 
 def get_match(items, key, value):
-    for item in items.json:
-        if item.get(key) == value:
-            return item
-    return None
+    return next((item for item in items if item.get(key) == value), None)
 
 
 def must_update(old_data, new_data):
-    for key, value in new_data.items():
-        if old_data.get(key) != value:
-            return True
-    return False
+    return any(old_data.get(key) != value for key, value in new_data.items())
 
 
 def ensure_present(module, client: Client):
@@ -114,7 +108,7 @@ def ensure_present(module, client: Client):
     cleaned_data = clean_data(data)
 
     # find a match on server, if none, create new object
-    items = client.get(ENDPOINT)
+    items = client.get(ENDPOINT).json
     item = get_match(items, "name", domain_name)
     if not item:
         return client.post(ENDPOINT, cleaned_data), True
