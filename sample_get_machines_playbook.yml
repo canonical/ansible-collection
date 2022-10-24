@@ -1,4 +1,4 @@
-- name: test query machines
+- name: Test query machines
   hosts: localhost
   tasks:
   - name: List machines
@@ -8,9 +8,8 @@
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
         customer_key: nzW4EBWjyDe5B5szja
-      #hostname: solid-fish # Use this field to filter results by name.
-      #vm_host sunny-raptor # Use this field to filter by host in combination with name.
+      # fqdn: solid-fish # Use this field to filter results by name.
     register: machines
 
-  - debug:
+  - ansible.builtin.debug:
       var: machines

@@ -22,9 +22,21 @@ class VMHost(MaasValueMapper):
         self,
         name=None,  # Host name.
         id=None,
+        cpu_over_commit_ratio=None,
+        memory_over_commit_ratio=None,
+        default_macvlan_mode=None,
+        pool=None,
+        zone=None,
+        tags=None,
     ):
         self.name = name
         self.id = id
+        self.cpu_over_commit_ratio = cpu_over_commit_ratio
+        self.memory_over_commit_ratio = memory_over_commit_ratio
+        self.default_macvlan_mode = default_macvlan_mode
+        self.pool = pool
+        self.zone = zone
+        self.tags = tags
 
     @classmethod
     def get_by_name(cls, module, client, must_exist=False, name_field_ansible="name"):
@@ -37,8 +49,9 @@ class VMHost(MaasValueMapper):
         maas_dict = rest_client.get_record(
             "/api/2.0/vm-hosts/", query, must_exist=must_exist
         )
-        vmhost_from_maas = cls.from_maas(maas_dict)
-        return vmhost_from_maas
+        if maas_dict:
+            vmhost_from_maas = cls.from_maas(maas_dict)
+            return vmhost_from_maas
 
     @classmethod
     def from_ansible(cls, module):
@@ -46,10 +59,16 @@ class VMHost(MaasValueMapper):
 
     @classmethod
     def from_maas(cls, maas_dict):
-        obj = VMHost()
+        obj = cls()
         try:
             obj.name = maas_dict["name"]
             obj.id = maas_dict["id"]
+            obj.cpu_over_commit_ratio = maas_dict["cpu_over_commit_ratio"]
+            obj.memory_over_commit_ratio = maas_dict["memory_over_commit_ratio"]
+            obj.default_macvlan_mode = maas_dict["default_macvlan_mode"]
+            obj.tags = maas_dict["tags"]
+            obj.zone = maas_dict["zone"]
+            obj.pool = maas_dict["pool"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -65,3 +84,26 @@ class VMHost(MaasValueMapper):
             f"/api/2.0/vm-hosts/{self.id}/", query={"op": "compose"}, data=payload
         ).json
         return results
+
+    def delete(self, client):
+        client.delete(f"/api/2.0/vm-hosts/{self.id}/")
+
+    def get(self, client):
+        return client.get(f"/api/2.0/vm-hosts/{self.id}/").json
+
+    @classmethod
+    def create(cls, client, payload):
+        vm_host_maas_dict = client.post(
+            "/api/2.0/vm-hosts/",
+            data=payload,
+            timeout=60,  # Sometimes we get timeout error thus changing toimeout from 20s to 60s
+        ).json
+        vm_host = cls.from_maas(vm_host_maas_dict)
+        return vm_host, vm_host_maas_dict
+
+    def update(self, client, payload):
+        return client.put(
+            f"/api/2.0/vm-hosts/{self.id}/",
+            data=payload,
+            timeout=60,  # Sometimes we get timeout error thus changing toimeout from 20s to 60s
+        ).json

@@ -8,12 +8,14 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+from time import sleep
 from ..module_utils.utils import (
     get_query,
     MaasValueMapper,
 )
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
+from ..module_utils.client import Client
 from ..module_utils.network_interface import NetworkInterface
 from ..module_utils.disk import Disk
 
@@ -22,6 +24,7 @@ class Machine(MaasValueMapper):
     def __init__(
         # Add more values as needed.
         self,
+        fqdn=None,
         hostname=None,  # Machine name.
         id=None,
         memory=None,
@@ -37,7 +40,11 @@ class Machine(MaasValueMapper):
         osystem=None,
         distro_series=None,
         hwe_kernel=None,
+        min_hwe_kernel=None,
+        power_type=None,
+        architecture=None,
     ):
+        self.fqdn = fqdn
         self.hostname = hostname
         self.id = id
         self.memory = memory
@@ -52,7 +59,10 @@ class Machine(MaasValueMapper):
         self.status = status
         self.osystem = osystem
         self.distro_series = distro_series
+        self.min_hwe_kernel = min_hwe_kernel
         self.hwe_kernel = hwe_kernel
+        self.power_type = power_type
+        self.architecture = architecture
 
     @classmethod
     def get_by_name(
@@ -64,6 +74,24 @@ class Machine(MaasValueMapper):
             module,
             name_field_ansible,
             ansible_maas_map={name_field_ansible: "hostname"},
+        )
+        maas_dict = rest_client.get_record(
+            "/api/2.0/machines/",
+            query,
+            must_exist=must_exist,
+        )
+        if maas_dict:
+            machine_from_maas = cls.from_maas(maas_dict)
+            return machine_from_maas
+
+    @classmethod
+    def get_by_fqdn(cls, module, client, must_exist=False, name_field_ansible="fqdn"):
+        # Returns machine object or None
+        rest_client = RestClient(client=client)
+        query = get_query(
+            module,
+            name_field_ansible,
+            ansible_maas_map={name_field_ansible: "fqdn"},
         )
         maas_dict = rest_client.get_record(
             "/api/2.0/machines/",
@@ -101,7 +129,7 @@ class Machine(MaasValueMapper):
 
     @classmethod
     def from_ansible(cls, module):
-        obj = Machine()
+        obj = cls()
         obj.hostname = module.params.get("hostname")
         obj.cores = module.params.get("cores")
         obj.memory = module.params.get("memory")
@@ -120,8 +148,9 @@ class Machine(MaasValueMapper):
 
     @classmethod
     def from_maas(cls, maas_dict):
-        obj = Machine()
+        obj = cls()
         try:
+            obj.fqdn = maas_dict["fqdn"]
             obj.hostname = maas_dict["hostname"]
             obj.id = maas_dict["system_id"]
             obj.memory = maas_dict["memory"]
@@ -141,6 +170,10 @@ class Machine(MaasValueMapper):
             obj.osystem = maas_dict["osystem"]
             obj.distro_series = maas_dict["distro_series"]
             obj.hwe_kernel = maas_dict["hwe_kernel"]
+            obj.min_hwe_kernel = maas_dict["min_hwe_kernel"]
+            obj.power_type = maas_dict["power_type"]
+            obj.architecture = maas_dict["architecture"]
+
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -173,6 +206,7 @@ class Machine(MaasValueMapper):
 
     def to_ansible(self):
         return dict(
+            fqdn=self.fqdn,
             hostname=self.hostname,
             id=self.id,
             zone=self.zone,
@@ -181,13 +215,17 @@ class Machine(MaasValueMapper):
             memory=self.memory,
             cores=self.cores,
             network_interfaces=[
-                net_interface.to_ansible() for net_interface in self.network_interfaces
+                net_interface.to_ansible()
+                for net_interface in self.network_interfaces or []
             ],
-            storage_disks=[disk.to_ansible() for disk in self.disks],
+            storage_disks=[disk.to_ansible() for disk in self.disks or []],
             status=self.status,
             osystem=self.osystem,
             distro_series=self.distro_series,
             hwe_kernel=self.hwe_kernel,
+            min_hwe_kernel=self.min_hwe_kernel,
+            power_type=self.power_type,
+            architecture=self.architecture,
         )
 
     def payload_for_compose(self, module):
@@ -217,10 +255,17 @@ class Machine(MaasValueMapper):
             payload["storage"] = ",".join([f"label:{disk['size']}" for disk in tmp])
         return payload
 
+    def find_nic_by_mac(self, mac):
+        # returns nic object or None
+        for nic_obj in self.network_interfaces:
+            if mac == nic_obj.mac_address:
+                return nic_obj
+
     def __eq__(self, other):
         """One Machine is equal to another if it has ALL attributes exactly the same"""
         return all(
             (
+                self.fqdn == other.fqdn,
                 self.hostname == other.hostname,
                 self.id == other.id,
                 self.pool == other.pool,
@@ -234,5 +279,49 @@ class Machine(MaasValueMapper):
                 self.osystem == other.osystem,
                 self.distro_series == other.distro_series,
                 self.hwe_kernel == other.hwe_kernel,
+                self.power_type == other.power_type,
             )
         )
+
+    @classmethod
+    def wait_for_state(cls, id, client: Client, check_mode=False, *states):
+        if check_mode:
+            return  # add mocked machine when needed
+        while True:
+            try:
+                maas_dict = client.get(f"/api/2.0/machines/{id}/").json
+                if maas_dict["status_name"] in states:  # IMPLEMENT TIMEOUT?
+                    return cls.from_maas(maas_dict)
+                sleep(3)
+            except errors.MaasError:
+                raise errors.MachineNotFound(id)
+
+    def deploy(self, client, payload, timeout=20):
+        return client.post(
+            f"/api/2.0/machines/{self.id}/",
+            query={"op": "deploy"},
+            data=payload,
+            timeout=timeout,
+        ).json
+
+    def delete(self, client):
+        client.delete(f"/api/2.0/machines/{self.id}/")
+
+    def release(self, client):
+        client.post(f"/api/2.0/machines/{self.id}/", query={"op": "release"}, data={})
+
+    def commission(self, client):
+        return client.post(
+            f"/api/2.0/machines/{self.id}", query={"op": "commission"}
+        ).json
+
+    @classmethod
+    def create(cls, client, payload):
+        maas_dict = client.post("/api/2.0/machines/", data=payload).json
+        return cls.from_maas(maas_dict)
+
+    def update(self, client, payload):
+        return client.put(f"/api/2.0/machines/{self.id}/", data=payload).json
+
+    def find_nic_by_name(self, nic_name):
+        pass

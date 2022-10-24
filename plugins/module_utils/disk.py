@@ -11,6 +11,8 @@ __metaclass__ = type
 from .utils import MaasValueMapper
 from . import errors
 
+__metaclass__ = type
+
 
 class Disk(MaasValueMapper):
     def __init__(

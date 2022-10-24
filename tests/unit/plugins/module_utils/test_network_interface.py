@@ -28,6 +28,9 @@ class TestMapper:
             name="test_net_int",
             id=123,
             system_id=1234,
+            mac_address="this-mac",
+            tags=[],
+            effective_mtu=1500,
             links=[
                 dict(
                     subnet=dict(cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1"))
@@ -73,19 +76,24 @@ class TestMapper:
             name="test_net_int",
             id=123,
             subnet_cidr="ip",
+            mac_address="this-mac",
             ip_address="this-ip",
             fabric="fabric-1",
-            vlan="vlan-1",
+            vlan="this-vlan",
             label_name="this-interface",
+            mtu=1500,
         )
         net_interface_obj = NetworkInterface(
             net_interface_dict["name"],
             net_interface_dict["id"],
             net_interface_dict["links"][0]["subnet"]["cidr"],
             net_interface_dict["system_id"],
+            "this-mac",
+            "this-vlan",
+            1500,
+            [],
             "this-ip",
             net_interface_dict["links"][0]["subnet"]["vlan"]["fabric"],
-            net_interface_dict["links"][0]["subnet"]["vlan"]["name"],
             "this-interface",
         )
         results = net_interface_obj.to_maas()
@@ -100,16 +108,47 @@ class TestMapper:
             ip_address="this-ip",
             fabric="this-fabric",
             vlan="this-vlan",
+            mac_address="this-mac",
+            mtu=1500,
+            tags=None,
         )
         net_interface_obj = NetworkInterface(
             net_interface_dict["name"],
             net_interface_dict["id"],
             net_interface_dict["links"][0]["subnet"]["cidr"],
             net_interface_dict["system_id"],
+            "this-mac",
+            "this-vlan",
+            1500,
+            None,
             "this-ip",
             "this-fabric",
-            "this-vlan",
             "this-label",
         )
         results = net_interface_obj.to_ansible()
         assert results == expected
+
+
+class TestNeedsUpdate:
+    def test_needs_update_when_update_is_needed(self):
+        pass
+
+    def test_needs_update_when_update_is_not_needed(self):
+        pass
+
+
+class TestSendRequestAndPayload:
+    def test_nic_send_update_request(self):
+        pass
+
+    def test_nic_payload_for_update(self):
+        pass
+
+    def test_nic_send_create_request(self):
+        pass
+
+    def test_nic_payload_for_create(self):
+        pass
+
+    def test_nic_send_delete_request(self):
+        pass
