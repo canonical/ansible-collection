@@ -320,4 +320,5 @@ class TestFindNicByMac:
     def test_nic_by_mac_when_nic_not_found(self):
         pass
 
+
 # TODO: test mapper, when more values are added.

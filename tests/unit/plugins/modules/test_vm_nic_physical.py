@@ -13,7 +13,9 @@ import pytest
 
 from ansible_collections.canonical.maas.plugins.modules import vm_nic_physical
 from ansible_collections.canonical.maas.plugins.module_utils import errors
-from ansible_collections.canonical.maas.plugins.module_utils.network_interface import NetworkInterface
+from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
+    NetworkInterface,
+)
 from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 
 
@@ -34,7 +36,7 @@ class TestMain:
             vm_host="this_host",
             hostname="this-machine",
             mac_address="this-mac",
-            state="present"
+            state="present",
         )
 
         success, results = run_main(vm_nic_physical, params)
@@ -70,6 +72,7 @@ class TestMain:
             "record": {},
             "diff": {"before": {}, "after": {}},
         }
+
 
 class TestRun:
     @staticmethod
@@ -129,7 +132,9 @@ class TestRun:
             hwe_kernel="ga-22.04",
         )
 
-    def test_run_with_present_with_machine_wrong_state(self, create_module, client, mocker):
+    def test_run_with_present_with_machine_wrong_state(
+        self, create_module, client, mocker
+    ):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -154,8 +159,10 @@ class TestRun:
             match=f"Machine {machine_obj.hostname} is not in the right state, needs to be in Ready, Allocated or Broken.",
         ):
             vm_nic_physical.run(module, client)
-    
-    def test_run_with_present_with_waiting_on_machine_state(self, create_module, client, mocker):
+
+    def test_run_with_present_with_waiting_on_machine_state(
+        self, create_module, client, mocker
+    ):
         expected = (False, {}, {"before": {}, "after": {}})
         module = create_module(
             params=dict(
@@ -211,7 +218,7 @@ class TestRun:
         ).return_value = (False, {}, {"before": {}, "after": {}})
         results = vm_nic_physical.run(module, client)
         assert results == expected
-    
+
     def test_run_with_absent_ensure_absent(self, create_module, client, mocker):
         expected = (False, {}, {"before": {}, "after": {}})
         module = create_module(
@@ -238,6 +245,7 @@ class TestRun:
         ).return_value = (False, {}, {"before": {}, "after": {}})
         results = vm_nic_physical.run(module, client)
         assert results == expected
+
 
 class TestEnsurePresent:
     @staticmethod
@@ -276,7 +284,7 @@ class TestEnsurePresent:
                     effective_mtu=2000,
                     ip_address="this-ip",
                     cidr="this-cidr",
-                    vlan=dict(name="this-vlan", fabric="this-fabric")
+                    vlan=dict(name="this-vlan", fabric="this-fabric"),
                 )
             ],
             blockdevice_set=None,
@@ -301,7 +309,7 @@ class TestEnsurePresent:
             effective_mtu=2000,
             ip_address="this-ip",
             cidr="this-cidr",
-            vlan=dict(name="this-vlan", fabric="this-fabric")
+            vlan=dict(name="this-vlan", fabric="this-fabric"),
         )
 
     @staticmethod
@@ -315,7 +323,7 @@ class TestEnsurePresent:
             effective_mtu=1500,
             ip_address="this-ip",
             cidr="this-cidr",
-            vlan=dict(name="this-vlan", fabric="this-fabric")
+            vlan=dict(name="this-vlan", fabric="this-fabric"),
         )
 
     def test_ensure_present_when_create_new_nic(self, create_module, client, mocker):
@@ -325,7 +333,11 @@ class TestEnsurePresent:
         updated_machine_obj = Machine.from_maas(updated_machine_dict)
         nic_dict = self.get_nic()
         nic_obj = NetworkInterface.from_maas(nic_dict)
-        expected = (True, nic_obj.to_ansible(), {"before": None, "after": nic_obj.to_ansible()})
+        expected = (
+            True,
+            nic_obj.to_ansible(),
+            {"before": None, "after": nic_obj.to_ansible()},
+        )
         module = create_module(
             params=dict(
                 instance=dict(
@@ -357,8 +369,10 @@ class TestEnsurePresent:
         ).return_value = updated_machine_obj
         results = vm_nic_physical.ensure_present(module, client, machine_obj)
         assert results == expected
-    
-    def test_ensure_present_when_update_existing_nic(self, create_module, client, mocker):
+
+    def test_ensure_present_when_update_existing_nic(
+        self, create_module, client, mocker
+    ):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         updated_machine_dict = self.get_machine_updated()
@@ -367,7 +381,11 @@ class TestEnsurePresent:
         nic_obj = NetworkInterface.from_maas(nic_dict)
         existing_nic_dict = self.get_nic_existing()
         existing_nic_obj = NetworkInterface.from_maas(existing_nic_dict)
-        expected = (True, nic_obj.to_ansible(), {"before": existing_nic_obj.to_ansible(), "after": nic_obj.to_ansible()})
+        expected = (
+            True,
+            nic_obj.to_ansible(),
+            {"before": existing_nic_obj.to_ansible(), "after": nic_obj.to_ansible()},
+        )
         module = create_module(
             params=dict(
                 instance=dict(
@@ -403,7 +421,7 @@ class TestEnsurePresent:
         ).return_value = updated_machine_obj
         results = vm_nic_physical.ensure_present(module, client, machine_obj)
         assert results == expected
-    
+
     def test_ensure_present_when_no_changes_nic(self, create_module, client, mocker):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
@@ -444,6 +462,7 @@ class TestEnsurePresent:
         results = vm_nic_physical.ensure_present(module, client, machine_obj)
         assert results == expected
 
+
 class TestEsnureAbsent:
     @staticmethod
     def get_machine_state_new():
@@ -481,7 +500,7 @@ class TestEsnureAbsent:
                     effective_mtu=2000,
                     ip_address="this-ip",
                     cidr="this-cidr",
-                    vlan=dict(name="this-vlan", fabric="this-fabric")
+                    vlan=dict(name="this-vlan", fabric="this-fabric"),
                 )
             ],
             blockdevice_set=None,
@@ -495,7 +514,9 @@ class TestEsnureAbsent:
             hwe_kernel="ga-22.04",
         )
 
-    def test_ensure_absent_when_delete_existing_nic(self, create_module, client, mocker):
+    def test_ensure_absent_when_delete_existing_nic(
+        self, create_module, client, mocker
+    ):
         machine_dict = self.get_machine_updated()
         machine_obj = Machine.from_maas(machine_dict)
         updated_machine_dict = self.get_machine_state_new()
@@ -504,7 +525,11 @@ class TestEsnureAbsent:
         nic_obj = NetworkInterface.from_maas(nic_dict)
         existing_nic_dict = self.get_nic_existing()
         existing_nic_obj = NetworkInterface.from_maas(existing_nic_dict)
-        expected = (True, None, {"before": existing_nic_obj.to_ansible(), "after": None})
+        expected = (
+            True,
+            None,
+            {"before": existing_nic_obj.to_ansible(), "after": None},
+        )
         module = create_module(
             params=dict(
                 instance=dict(
@@ -539,7 +564,7 @@ class TestEsnureAbsent:
         ).return_value = updated_machine_obj
         results = vm_nic_physical.ensure_present(module, client, machine_obj)
         assert results == expected
-    
+
     def test_ensure_absent_when_no_changes_nic(self, create_module, client, mocker):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)

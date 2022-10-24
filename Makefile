@@ -33,7 +33,7 @@ help:
 
 .PHONY: format
 format:  ## Format python code with black
-	black -t py27 plugins tests/unit
+	black -t py36 plugins tests/unit
 
 .PHONY: clean
 clean:  ## Remove all auto-generated files

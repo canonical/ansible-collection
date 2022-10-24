@@ -134,8 +134,8 @@ class NetworkInterface(MaasValueMapper):
             fabric=self.fabric,
             vlan=self.vlan,
             mac_address=self.mac_address,
-            mtu = self.mtu,
-            tags = self.tags,
+            mtu=self.mtu,
+            tags=self.tags,
         )
 
     def needs_update(self, new_nic):

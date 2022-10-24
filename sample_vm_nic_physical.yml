@@ -12,7 +12,7 @@
       hostname: new-machine-3
       state: present
       mac_address: '00:16:3e:ae:78:75'
-      #vlan: 5
+      # vlan: 5
       name: new_nic
       mtu: 1700
       tags:
