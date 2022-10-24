@@ -135,7 +135,7 @@ class NetworkInterface(MaasValueMapper):
         new_nic_dict = new_nic.to_maas()
         if is_superset(
             self.to_maas(),
-            filter_dict(new_nic_dict, list(new_nic_dict.keys())),
+            filter_dict(new_nic_dict, *list(new_nic_dict.keys())),
         ):
             return False
         return True
