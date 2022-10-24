@@ -575,8 +575,6 @@ class TestEsnureAbsent:
         machine_obj = Machine.from_maas(machine_dict)
         updated_machine_dict = self.get_machine_state_new()
         updated_machine_obj = Machine.from_maas(updated_machine_dict)
-        nic_dict = self.get_nic()
-        nic_obj = NetworkInterface.from_maas(nic_dict)
         existing_nic_dict = self.get_nic_existing()
         existing_nic_obj = NetworkInterface.from_maas(existing_nic_dict)
         expected = (
@@ -631,7 +629,9 @@ class TestEsnureAbsent:
         results = vm_nic_physical.ensure_absent(module, client, machine_obj)
         assert results == expected
 
-    def test_ensure_absent_when_delete_existing_nic_but_no_changes(self, create_module, client, mocker):
+    def test_ensure_absent_when_delete_existing_nic_but_no_changes(
+        self, create_module, client, mocker
+    ):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         nic_dict = self.get_nic()
