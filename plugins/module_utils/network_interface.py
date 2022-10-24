@@ -48,9 +48,6 @@ class NetworkInterface(MaasValueMapper):
     def __eq__(self, other):
         return self.to_ansible() == other.to_ansible()
 
-    def __eq__(self, other):
-        return self.to_ansible() == other.to_ansible()
-
     @classmethod
     def from_ansible(cls, network_interface_dict):
         obj = NetworkInterface()
