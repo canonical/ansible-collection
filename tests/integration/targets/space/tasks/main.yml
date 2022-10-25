@@ -1,0 +1,68 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+    - name: Delete network space
+      canonical.maas.space:
+        name: my-space
+        state: absent
+
+    - name: Delete network space
+      canonical.maas.space:
+        name: my-space-updated
+        state: absent
+
+    - name: Add network space - missing parameter
+      canonical.maas.space:
+        state: present
+      ignore_errors: true
+      register: space
+    - ansible.builtin.assert:
+        that:
+          - space is failed
+          - "'missing required arguments: name' in space.msg"
+    
+    - name: Add network space
+      canonical.maas.space:
+        state: present
+        name: my-space
+        description: description
+      register: space
+    - ansible.builtin.assert:
+        that:
+          - space is changed
+          - space.record.name == "my-space"
+    
+    - name: Update network space
+      canonical.maas.space:
+        state: present
+        name: my-space
+        new_name: my-space-updated
+        description: description  # description isn't returned
+      register: space
+    - ansible.builtin.assert:
+        that:
+          - space is changed
+          - space.record.name == "my-space-updated"
+    
+    - name: Update network space - idempotence
+      canonical.maas.space:
+        state: present
+        name: my-space-updated
+        new_name: my-space-updated
+      # description isn't returned so it can't be compared
+      register: space
+    - ansible.builtin.assert:
+        that:
+          - space is not changed
+          - space.record.name == "my-space-updated"
+
+    - name: Delete network space
+      canonical.maas.space:
+        name: my-space-updated
+        state: absent

@@ -118,7 +118,7 @@ def data_for_update_space(module, space):
 def update_space(module, client: Client, space):
     data = data_for_update_space(module, space)
     if data:
-        updated_space_maas_dict = space.update(client, data, must_exist=False)
+        updated_space_maas_dict = space.update(client, data)
         space_after = Space.from_maas(updated_space_maas_dict)
         return (
             True,
