@@ -93,3 +93,15 @@ class Space(MaasValueMapper):
         ).json
         space = cls.from_maas(space_maas_dict)
         return space
+
+    def __eq__(self, other):
+        """One space is equal to another if it has all attributes exactly the same"""
+        return all(
+            (
+                self.name == other.name,
+                self.id == other.id,
+                self.vlans == other.vlans,
+                self.resource_uri == other.resource_uri,
+                self.subnets == other.subnets,
+            )
+        )
