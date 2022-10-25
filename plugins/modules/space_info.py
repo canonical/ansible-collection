@@ -38,7 +38,7 @@ EXAMPLES = r"""
       customer_key: customer-key
 
 - name: Get info about a specific network space
-  canonical.maas.space:
+  canonical.maas.space_info:
     cluster_instance:
       host: host-ip
       token_key: token-key
