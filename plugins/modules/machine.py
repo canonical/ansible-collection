@@ -61,7 +61,7 @@ options:
     type: str
   hostname:
     description:
-      - Name of the machine to be added. In case of updating the machine, this parameter is used for updating the name if the machine.
+      - Name of the machine to be added. In case of updating the machine, this parameter is used for updating the name of the machine.
       - In case if new machine is added, the name is computed if it's not set.
     type: str
   domain:
