@@ -6,6 +6,10 @@
 
 from __future__ import absolute_import, division, print_function
 
+from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
+    NetworkInterface,
+)
+
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -20,22 +24,26 @@ extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
 options:
-  vm_host:
-    description: Name of the host.
-    type: str
-    required: True
-  hostname:
+  fqdn:
     description:
-      - Name of the virtual machine.
-      - Underscores are not supported.
+      - Fully qualified domain name of the machine to be deleted, deployed or released.
+      - Serves as unique identifier of the machine.
+      - If machine is not found the task will FAIL.
     type: str
     required: True
-  interface_name:
+  network_interface:
     description: Name of the network interface.
     type: str
     required: True
-  subnet:
-    description: The subnet CIDR or ID.
+  state:
+    description: Prefered state of the network interface.
+    choices: [ present, absent ]
+    type: str
+    required: True
+  subnet_cidr:
+    description:
+      - The subnet CIDR for the network interface.
+      - Matches an interface attached to the specified subnet CIDR. (For example, "192.168.0.0/24".)
     type: str
     required: True
   default_gateway:
@@ -63,12 +71,59 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.vmhost import VMHost
+from ..module_utils.state import NicState
 from ..module_utils.machine import Machine
-from ..module_utils.utils import is_changed, required_one_of
+from ..module_utils.utils import is_changed
+
+
+def ensure_present(module, client, machine_obj):
+    before = None
+    after = None
+    existing_nic_obj = machine_obj.find_nic_by_name(module.params["network_interface"])
+    new_nic_obj = NetworkInterface.from_ansible(module.params)
+    if not existing_nic_obj:
+        raise errors.MaasError(
+            f"Network interface with name - {module.params['network_interface']} - not found"
+        )
+    if existing_nic_obj.needs_update(new_nic_obj):
+        before = existing_nic_obj.to_ansible()
+        new_nic_obj.send_link_subnet_request(
+            client,
+            machine_obj,
+            new_nic_obj.payload_for_link_subnet(),
+            existing_nic_obj.id,
+        )
+        updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+        after = updated_machine_obj.find_nic_by_name(new_nic_obj.name).to_ansible()
+    return is_changed(before, after), after, dict(before=before, after=after)
+
+
+def ensure_absent(module, client, machine_obj):
+    before = None
+    after = None
+    nic_to_delete_obj = machine_obj.find_nic_by_name(module.params["network_interface"])
+    if nic_to_delete_obj:
+        nic_to_delete_obj.send_unlink_subnet_request(
+            client,
+            machine_obj,
+            nic_to_delete_obj.payload_for_unlink_subnet(),
+            nic_to_delete_obj.id,
+        )
+        updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+        after = updated_machine_obj.find_nic_by_name(nic_to_delete_obj.name).to_ansible()
+    if after:
+      raise errors.MaasError(
+        f"Delete network interface task failed with name: {nic_to_delete_obj.name}"
+      )
+    return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def run(module, client):
+    machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+    if module.params["state"] == NicState.present:
+        changed, record, diff = ensure_present(module, client, machine_obj)
+    else:
+        changed, record, diff = ensure_absent(module, client, machine_obj)
     return changed, record, diff
 
 
@@ -77,19 +132,20 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            vm_host=dict(
+            fqdn=dict(
                 type="str",
                 required=True,
             ),
-            hostname=dict(
+            network_interface=dict(
                 type="str",
                 required=True,
             ),
-            interface_name=dict(
+            state=dict(
                 type="str",
+                choices=["present", "absent"],
                 required=True,
             ),
-            subnet=dict(
+            subnet_cidr=dict(
                 type="str",
                 required=True,
             ),

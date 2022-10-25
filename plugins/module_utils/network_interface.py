@@ -30,6 +30,9 @@ class NetworkInterface(MaasValueMapper):
         ip_address=None,
         fabric=None,
         label_name=None,
+        mode=None,
+        default_gateway=None,
+        connected=None,
     ):
         self.name = name
         self.id = id
@@ -42,6 +45,9 @@ class NetworkInterface(MaasValueMapper):
         self.ip_address = ip_address
         self.fabric = fabric
         self.label_name = label_name
+        self.mode = mode
+        self.default_gateway = default_gateway
+        self.connected = connected
 
     def __eq__(self, other):
         return self.to_ansible() == other.to_ansible()
@@ -58,6 +64,9 @@ class NetworkInterface(MaasValueMapper):
         obj.mac_address = network_interface_dict.get("mac_address")
         obj.mtu = network_interface_dict.get("mtu")
         obj.tags = network_interface_dict.get("tags", [])
+        obj.subnet_id = network_interface_dict.get("subnet")
+        obj.mode = network_interface_dict.get("mode")
+        obj.default_gateway = network_interface_dict.get("default_gateway")
         return obj
 
     @classmethod
@@ -71,6 +80,7 @@ class NetworkInterface(MaasValueMapper):
             obj.machine_id = maas_dict["system_id"]
             obj.tags = maas_dict["tags"]
             obj.mtu = maas_dict["effective_mtu"]
+            obj.connected = maas_dict.get("link_connected", False)
             if maas_dict.get("discovered"):  # Auto assigned IP
                 obj.ip_address = maas_dict["discovered"][0].get("ip_address")
                 obj.ip_address = maas_dict["discovered"][0].get("mac_address")
@@ -116,6 +126,11 @@ class NetworkInterface(MaasValueMapper):
             to_maas_dict["fabric"] = self.fabric
         if self.label_name:
             to_maas_dict["label_name"] = self.label_name
+        if self.mode:
+            to_maas_dict["mode"] = self.mode
+        if self.default_gateway:
+            to_maas_dict["default_gateway"] = self.default_gateway
+
         return to_maas_dict
 
     def to_ansible(self):
@@ -163,3 +178,31 @@ class NetworkInterface(MaasValueMapper):
     def send_delete_request(self, client, machine_obj, nic_id):
         # DELETE does not return valid json.
         client.delete(f"/api/2.0/nodes/{machine_obj.id}/interfaces/{nic_id}/")
+
+    def payload_for_link_subnet(self):
+        payload = self.to_maas()
+        tmp = payload.pop("subnet_cidr")
+        payload["subnet"] = tmp
+        return payload
+
+    def send_link_subnet_request(self, client, machine_obj, payload, nic_id):
+        results = client.post(
+            f"/api/2.0/nodes/{machine_obj.id}/interfaces/{nic_id}/",
+            query={"op": "link_subnet"},
+            data=payload,
+        ).json
+        return results
+
+    def payload_for_unlink_subnet(self):
+        payload = self.to_maas()
+        tmp = payload.pop("subnet_cidr")
+        payload["subnet"] = tmp
+        return payload
+
+    def send_unlink_subnet_request(self, client, machine_obj, payload, nic_id):
+        results = client.post(
+            f"/api/2.0/nodes/{machine_obj.id}/interfaces/{nic_id}/",
+            query={"op": "unlink_subnet"},
+            data=payload,
+        ).json
+        return results

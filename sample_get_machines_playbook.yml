@@ -5,9 +5,9 @@
     canonical.maas.machine_info:
       cluster_instance:
         host: http://localhost:5240/MAAS
-        token_key: URCfn6EhdZSj9CSDf7
-        token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-        customer_key: nzW4EBWjyDe5B5szja
+        token_key: kDcKvtWX7fXLB7TvB2
+        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+        customer_key: tqDErtYzyzRVdUb9hS
       # fqdn: solid-fish # Use this field to filter results by name.
     register: machines
 
