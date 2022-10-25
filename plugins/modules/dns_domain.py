@@ -114,13 +114,14 @@ def ensure_present(module, client: Client):
         return client.post(ENDPOINT, cleaned_data), True
 
     # check if update is needed at all
+    item_changed = must_update(item, cleaned_data)
     force_update = is_default and not item.get("is_default")
-    if not must_update(item, cleaned_data) and not force_update:
+    if not item_changed and not force_update:
         return item, False
 
     # update object
     id = item.get("id")
-    if must_update(item, cleaned_data):
+    if item_changed:
         response = client.put(f"{ENDPOINT}/{id}/", cleaned_data)
     if force_update:
         response = client.post(f"{ENDPOINT}/{id}/", {}, query={"op", "set_default"})
