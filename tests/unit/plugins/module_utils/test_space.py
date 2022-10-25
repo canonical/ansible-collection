@@ -12,9 +12,6 @@ import sys
 import pytest
 
 from ansible_collections.canonical.maas.plugins.module_utils.space import Space
-from ansible_collections.canonical.maas.plugins.module_utils.client import (
-    Response,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"

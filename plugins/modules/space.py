@@ -15,7 +15,7 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Creates, updates or deletes MAAS network space.
 description:
-  - If I(state) is C(present) and I(name) is not found, creates new network space.
+  - If I(state) is C(present) and I(name) is not present or not found, creates new network space.
   - If I(state) is C(present) and I(name) is found, updates an existing network space.
   - If I(state) is C(absent) selected network space is deleted.
 version_added: 1.0.0
@@ -32,9 +32,8 @@ options:
   name:
     description:
       - Name of the network space to be created, updated or deleted.
-      - Serves as unique identifier of the network space.
+      - Serves as unique identifier of the network space to be updated.
     type: str
-    required: True
   new_name:
     description:
       - New name of the existing network space to be updated.
@@ -72,11 +71,12 @@ record:
   returned: success
   type: dict
   sample:
-    name=None
-    id=None
+    name="my-space"
+    id=7
     vlans=[]
-    resource_uri=None
+    resource_uri="/MAAS/api/2.0/spaces/7/"
     subnets=[]
+    description="my space"
 """
 
 
@@ -89,7 +89,8 @@ from ..module_utils.space import Space
 
 def data_for_create_space(module):
     data = {}
-    data["name"] = module.params["name"]
+    if module.params["name"]:
+        data["name"] = module.params["name"]
     if module.params["description"]:
         data["description"] = module.params["description"]
     return data
@@ -142,10 +143,13 @@ def delete_space(module, client: Client):
 
 def run(module, client: Client):
     if module.params["state"] == "present":
-        space = Space.get_by_name(module, client)
-        if space:
-            return update_space(module, client, space)
-        return create_space(module, client)
+        if not module.params["name"]:
+            return create_space(module, client)
+        else:
+            space = Space.get_by_name(module, client)
+            if space:
+                return update_space(module, client, space)
+            return create_space(module, client)
     if module.params["state"] == "absent":
         return delete_space(module, client)
 
@@ -160,7 +164,7 @@ def main():
                 choices=["present", "absent"],
                 required=True,
             ),
-            name=dict(type="str", required=True),
+            name=dict(type="str"),
             new_name=dict(type="str"),
             description=dict(type="str"),
         ),

@@ -47,7 +47,6 @@ class TestMain:
                 customer_key="nzW4EBWjyDe",
             ),
             state="present",
-            name="my-space",
         )
 
         success, result = run_main(space, params)
@@ -58,7 +57,7 @@ class TestMain:
         success, result = run_main(space)
 
         assert success is False
-        assert "missing required arguments: name, state" in result["msg"]
+        assert "missing required arguments: state" in result["msg"]
 
 
 class TestDataForCreateSpace:
