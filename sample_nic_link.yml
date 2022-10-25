@@ -4,14 +4,16 @@
   - name: Create new link on sunny-raptor host with VM new-machine
     canonical.maas.nic_link:
       cluster_instance:
-        host: http://localhost:5240/MAAS
+        host: http://10.44.240.10:5240/MAAS
         token_key: kDcKvtWX7fXLB7TvB2
         token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
         customer_key: tqDErtYzyzRVdUb9hS
-      fqdn: new-machine.maas
-      state: absent
+      fqdn: new-machine-3.maas
+      state: present
+      mode: AUTO
       network_interface: enp5s0
-      subnet_cidr: 2
+      subnet: 10.10.10.0/24
+      ip_address: 10.10.10.4
     register: nic_info
 
   - debug:

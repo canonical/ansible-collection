@@ -40,7 +40,7 @@ options:
     choices: [ present, absent ]
     type: str
     required: True
-  subnet_cidr:
+  subnet:
     description:
       - The subnet CIDR for the network interface.
       - Matches an interface attached to the specified subnet CIDR. (For example, "192.168.0.0/24".)
@@ -77,6 +77,7 @@ from ..module_utils.utils import is_changed
 
 
 def ensure_present(module, client, machine_obj):
+    # Creates an alias not an actual physical nic.
     before = None
     after = None
     existing_nic_obj = machine_obj.find_nic_by_name(module.params["network_interface"])
@@ -85,16 +86,15 @@ def ensure_present(module, client, machine_obj):
         raise errors.MaasError(
             f"Network interface with name - {module.params['network_interface']} - not found"
         )
-    if existing_nic_obj.needs_update(new_nic_obj):
-        before = existing_nic_obj.to_ansible()
-        new_nic_obj.send_link_subnet_request(
-            client,
-            machine_obj,
-            new_nic_obj.payload_for_link_subnet(),
-            existing_nic_obj.id,
-        )
-        updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
-        after = updated_machine_obj.find_nic_by_name(new_nic_obj.name).to_ansible()
+    before = existing_nic_obj.to_ansible()
+    new_nic_obj.send_link_subnet_request(
+        client,
+        machine_obj,
+        new_nic_obj.payload_for_link_subnet(client),
+        existing_nic_obj.id,
+    )
+    updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+    after = updated_machine_obj.find_nic_by_name(new_nic_obj.name).to_ansible()
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
@@ -106,7 +106,6 @@ def ensure_absent(module, client, machine_obj):
         nic_to_delete_obj.send_unlink_subnet_request(
             client,
             machine_obj,
-            nic_to_delete_obj.payload_for_unlink_subnet(),
             nic_to_delete_obj.id,
         )
         updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
@@ -145,7 +144,7 @@ def main():
                 choices=["present", "absent"],
                 required=True,
             ),
-            subnet_cidr=dict(
+            subnet=dict(
                 type="str",
                 required=True,
             ),
