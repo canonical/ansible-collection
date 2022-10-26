@@ -107,6 +107,9 @@ def ensure_present(module, client: Client):
     }
     cleaned_data = clean_data(data)
 
+    # module.params["name"] not set - creating new item and return
+    # Here name is obligatory, so this case is not reached
+
     # find a match on server, if none, create new object
     items = client.get(ENDPOINT).json
     item = get_match(items, "name", domain_name)
