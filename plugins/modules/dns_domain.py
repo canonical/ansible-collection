@@ -114,21 +114,22 @@ def ensure_present(module, client: Client):
     items = client.get(ENDPOINT).json
     item = get_match(items, "name", domain_name)
     if not item:
-        return client.post(ENDPOINT, cleaned_data), True
+        response_json = client.post(ENDPOINT, cleaned_data).json
+        return True, response_json, dict(before={}, after=response_json)
 
     # check if update is needed at all
     item_changed = must_update(item, cleaned_data)
     force_update = is_default and not item.get("is_default")
     if not item_changed and not force_update:
-        return item, False
+        return False, item, dict(before=item, after=item)
 
     # update object
     id = item.get("id")
     if item_changed:
-        response = client.put(f"{ENDPOINT}/{id}/", cleaned_data)
+        response_json = client.put(f"{ENDPOINT}/{id}/", cleaned_data).json
     if force_update:
-        response = client.post(f"{ENDPOINT}/{id}/", {}, query={"op", "set_default"})
-    return response.json, True
+        response_json = client.post(f"{ENDPOINT}/{id}/", {}, query={"op", "set_default"}).json
+    return True, response_json, dict(before=item, after=response_json)
 
 
 def ensure_absent(module, client: Client):
@@ -137,23 +138,23 @@ def ensure_absent(module, client: Client):
     items = client.get(ENDPOINT)
     match = get_match(items, "name", domain_name)
     if not match:
-        return None, False
+        return False, None, dict(before={}, after={})
 
     client.delete(f"{ENDPOINT}/{id}/")
-    return None, True
+    return True, None, dict(before=match, after={})
 
 
 def run(module, client: Client):
     if module.params["state"] == "present":
-        record, changed = ensure_present(module, client)
+        record, changed, diff = ensure_present(module, client)
     elif module.params["state"] == "absent":
-        record, changed = ensure_absent(module, client)
-    return record, changed
+        record, changed, diff = ensure_absent(module, client)
+    return changed, record, diff
 
 
 def main():
     module = AnsibleModule(
-        supports_check_mode=True,
+        supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             state=dict(type="str", required=True, choices=["present", "absent"]),
@@ -166,8 +167,8 @@ def main():
 
     try:
         client = get_oauth1_client(module.params)
-        record, changed = run(module, client)
-        module.exit_json(changed=changed, record=record)
+        record, changed, diff = run(module, client)
+        module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as ex:
         module.fail_json(msg=str(ex))
 
