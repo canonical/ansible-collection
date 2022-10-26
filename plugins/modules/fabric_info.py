@@ -71,7 +71,7 @@ from ..module_utils.fabric import Fabric
 
 def run(module, client: Client):
     if module.params["name"]:
-        space = Fabric.get_by_name(module, must_exist=True)
+        space = Fabric.get_by_name(module, client, must_exist=True)
         response = [space.get(client)]
     else:
         response = client.get("/api/2.0/fabrics/").json
