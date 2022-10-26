@@ -23,7 +23,7 @@ seealso: []
 options:
   fqdn:
     description:
-      - Fully qualified domain name of the machine to be deleted, deployed or released.
+      - Fully qualified domain name of the specific machine to be listed.
       - Serves as unique identifier of the machine.
       - If machine is not found the task will FAIL.
     type: str
