@@ -71,7 +71,7 @@ from ..module_utils.space import Space
 
 def run(module, client: Client):
     if module.params["name"]:
-        space = Space.get_by_name(module, must_exist=True)
+        space = Space.get_by_name(module, client, must_exist=True)
         response = [space.get(client)]
     else:
         response = client.get("/api/2.0/spaces/").json

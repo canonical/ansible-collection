@@ -7,6 +7,17 @@
 
 
   block:
+    - name: List network spaces
+      canonical.maas.space_info:
+      register: spaces
+    - name: List network space
+      canonical.maas.space_info:
+        name: "{{ spaces.records.0.name }}"
+      register: space
+    - ansible.builtin.assert:
+        that:
+          - space.records.0.name == spaces.records.0.name
+
     - name: Delete network space
       canonical.maas.space:
         name: my-space
