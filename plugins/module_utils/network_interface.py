@@ -57,8 +57,12 @@ class NetworkInterface(MaasValueMapper):
     @classmethod
     def from_ansible(cls, network_interface_dict):
         obj = NetworkInterface()
-        obj.name = network_interface_dict.get("name", network_interface_dict.get("network_interface"))
-        obj.subnet_cidr = network_interface_dict.get("subnet_cidr", network_interface_dict.get("subnet"))
+        obj.name = network_interface_dict.get(
+            "name", network_interface_dict.get("network_interface")
+        )
+        obj.subnet_cidr = network_interface_dict.get(
+            "subnet_cidr", network_interface_dict.get("subnet")
+        )
         obj.ip_address = network_interface_dict.get("ip_address")
         obj.fabric = network_interface_dict.get("fabric")
         obj.vlan = network_interface_dict.get("vlan")
@@ -82,7 +86,7 @@ class NetworkInterface(MaasValueMapper):
             obj.tags = maas_dict["tags"]
             obj.mtu = maas_dict["effective_mtu"]
             obj.connected = maas_dict.get("link_connected", False)
-            obj.linked_subnets = [] # One nic can have multiple linked subnets
+            obj.linked_subnets = []  # One nic can have multiple linked subnets
             for linked_subnet in maas_dict["links"] or []:
                 obj.linked_subnets.append(linked_subnet)
             if maas_dict.get("discovered"):  # Auto assigned IP
@@ -150,15 +154,17 @@ class NetworkInterface(MaasValueMapper):
             tags=self.tags,
         )
 
-    def find_linked_subnet_by_cidr(self, module):
+    def find_linked_alias_by_cidr(self, module):
         for linked_subnet in self.linked_subnets:
-            if linked_subnet["subnet"]["name"] == module.params["subnet"]: # subnet name is cidr from MaaS API.
+            if (
+                linked_subnet["subnet"]["name"] == module.params["subnet"]
+            ):  # subnet name is cidr from MaaS API.
                 return linked_subnet
 
     @staticmethod
     def find_subnet_by_cidr(client, cidr):
         results = client.get(
-            f"/api/2.0/subnets/",
+            "/api/2.0/subnets/",
         ).json
         for subnet in results:
             if subnet["cidr"] == cidr:
@@ -172,6 +178,30 @@ class NetworkInterface(MaasValueMapper):
         ):
             return False
         return True
+
+    @staticmethod
+    def alias_needs_update(client, existing_alias, module):
+        # Gateway can only be changed in STATIC or AUTO mode.
+        # Ip_address can only be changed in STATIC mode.
+        subnet = NetworkInterface.find_subnet_by_cidr(client, module.params["subnet"])
+        if (
+            module.params["mode"]
+            and existing_alias["mode"].lower() != module.params["mode"].lower()
+        ):
+            return True
+        if (
+            module.params["mode"] == "STATIC"
+            and module.params["ip_address"]
+            and existing_alias.get("ip_address") != module.params["ip_address"]
+        ):
+            return True
+        if (
+            (module.params["mode"] == "STATIC" or module.params["mode"] == "AUTO")
+            and module.params["default_gateway"]
+            and existing_alias["gateway_ip"] != subnet["gateway_ip"]
+        ):
+            return True
+        return False
 
     def payload_for_update(self):
         return self.to_maas()
@@ -198,7 +228,7 @@ class NetworkInterface(MaasValueMapper):
         client.delete(f"/api/2.0/nodes/{machine_obj.id}/interfaces/{nic_id}/")
 
     def payload_for_link_subnet(self, client):
-        payload =  self.to_maas()
+        payload = self.to_maas()
         subnet = NetworkInterface.find_subnet_by_cidr(client, payload["subnet_cidr"])
         payload["subnet"] = subnet["id"]
         return payload
@@ -211,9 +241,9 @@ class NetworkInterface(MaasValueMapper):
         ).json
         return results
 
-    def send_unlink_subnet_request(self, client, machine_obj, nic_id, linked_subnet_id):
+    def send_unlink_subnet_request(self, client, machine_obj, linked_subnet_id):
         results = client.post(
-            f"/api/2.0/nodes/{machine_obj.id}/interfaces/{nic_id}/",
+            f"/api/2.0/nodes/{machine_obj.id}/interfaces/{self.id}/",
             query={"op": "unlink_subnet"},
             data={"id": linked_subnet_id},
         ).json

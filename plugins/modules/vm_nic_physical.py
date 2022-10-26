@@ -94,7 +94,7 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Created virtual machine on a specified host.
+    - Crated or deleted network interface.
   returned: success
   type: dict
   sample:
