@@ -58,6 +58,7 @@ class TestMapper:
                     subnet=dict(cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1"))
                 )
             ],
+            links=[],
         )
 
     @staticmethod
@@ -203,6 +204,7 @@ class TestNeedsUpdate:
             ip_address="this-ip",
             subnet_cidr="this-subnet",
             vlan=None,
+            links=[],
         )
 
     @staticmethod
@@ -217,6 +219,7 @@ class TestNeedsUpdate:
             ip_address="this-ip",
             subnet_cidr="this-subnet",
             vlan=None,
+            links=[],
         )
 
     def test_needs_update_when_update_is_needed(self, mocker):
@@ -265,6 +268,7 @@ class TestSendRequestAndPayload:
             ip_address="this-ip",
             subnet_cidr="this-subnet",
             vlan=None,
+            links=[],
         )
 
     @staticmethod

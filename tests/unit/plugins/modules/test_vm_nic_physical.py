@@ -300,6 +300,7 @@ class TestEnsurePresent:
                     ip_address="this-ip",
                     cidr="this-cidr",
                     vlan=dict(name="this-vlan", fabric="this-fabric"),
+                    links=[],
                 )
             ],
             blockdevice_set=None,
@@ -328,6 +329,7 @@ class TestEnsurePresent:
             ip_address="this-ip",
             cidr="this-cidr",
             vlan=dict(name="this-vlan", fabric="this-fabric"),
+            links=[],
         )
 
     @staticmethod
@@ -342,6 +344,7 @@ class TestEnsurePresent:
             ip_address="this-ip",
             cidr="this-cidr",
             vlan=dict(name="this-vlan", fabric="this-fabric"),
+            links=[],
         )
 
     def test_ensure_present_when_create_new_nic(self, create_module, client, mocker):
@@ -524,6 +527,7 @@ class TestEsnureAbsent:
                     ip_address="this-ip",
                     cidr="this-cidr",
                     vlan=dict(name="this-vlan", fabric="this-fabric"),
+                    links=[],
                 )
             ],
             blockdevice_set=None,
@@ -552,6 +556,7 @@ class TestEsnureAbsent:
             ip_address="this-ip",
             subnet_cidr="this-subnet",
             vlan=None,
+            links=[],
         )
 
     @staticmethod
@@ -566,6 +571,7 @@ class TestEsnureAbsent:
             ip_address="this-ip",
             subnet_cidr="this-subnet",
             vlan=None,
+            links=[],
         )
 
     def test_ensure_absent_when_delete_existing_nic(
