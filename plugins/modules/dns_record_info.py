@@ -21,7 +21,11 @@ version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
-options: {}
+options:
+  all:
+    description: Include implicit DNS records created for nodes registered in MAAS if true.
+    type: bool
+    required: false
 """
 
 EXAMPLES = r"""
@@ -78,8 +82,9 @@ from ..module_utils.client import Client
 from ..module_utils.cluster_instance import get_oauth1_client
 
 
-def run(client: Client):
-    response = client.get("/api/2.0/dnsresources/", {"all": True})
+def run(module, client: Client):
+    query = {"all": True} if module.params["all"] else None
+    response = client.get("/api/2.0/dnsresources/", query)
     return response.json
 
 
@@ -88,12 +93,13 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
+            all=dict(type="bool", required=False),
         ),
     )
 
     try:
         client = get_oauth1_client(module.params)
-        records = run(client)
+        records = run(module, client)
         module.exit_json(changed=False, records=records)
     except errors.MaasError as ex:
         module.fail_json(msg=str(ex))

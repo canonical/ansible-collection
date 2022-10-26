@@ -41,7 +41,10 @@ options:
     description: The default TTL for the DNS domain.
   is_default:
     type: bool
-    description: Boolean value indicating if the new DNS domain will be set as the default in the MAAS environment. Defaults to false.
+    description:
+     - Boolean value indicating if the new DNS domain will be set as the default in the MAAS environment.
+     - One is not allow to set it to false. It can be achived bz setting other a defualt
+    choices: [True]
 """
 
 EXAMPLES = r"""
@@ -128,20 +131,23 @@ def ensure_present(module, client: Client):
     if item_changed:
         response_json = client.put(f"{ENDPOINT}/{id}/", cleaned_data).json
     if force_update:
-        response_json = client.post(f"{ENDPOINT}/{id}/", {}, query={"op", "set_default"}).json
+        response_json = client.post(
+            f"{ENDPOINT}/{id}/", {}, query={"op": "set_default"}
+        ).json
     return True, response_json, dict(before=item, after=response_json)
 
 
 def ensure_absent(module, client: Client):
     domain_name = module.params["name"]
 
-    items = client.get(ENDPOINT)
-    match = get_match(items, "name", domain_name)
-    if not match:
+    items = client.get(ENDPOINT).json
+    item = get_match(items, "name", domain_name)
+    if not item:
         return False, None, dict(before={}, after={})
 
+    id = item.get("id")
     client.delete(f"{ENDPOINT}/{id}/")
-    return True, None, dict(before=match, after={})
+    return True, None, dict(before=item, after={})
 
 
 def run(module, client: Client):
@@ -161,7 +167,7 @@ def main():
             name=dict(type="str", required=True),
             ttl=dict(type="int", required=False),
             authoritative=dict(type="bool", required=False),
-            is_default=dict(type="bool", required=False),
+            is_default=dict(type="bool", required=False, choices=[True]),
         ),
     )
 
