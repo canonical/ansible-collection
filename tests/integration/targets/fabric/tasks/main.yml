@@ -17,7 +17,7 @@
     - ansible.builtin.assert:
         that:
           - fabric.records.0.name == fabrics.records.0.name
-    
+
     - name: Delete network fabric
       canonical.maas.fabric:
         name: my-fabric

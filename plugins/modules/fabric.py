@@ -53,7 +53,7 @@ EXAMPLES = r"""
   canonical.maas.fabric:
     state: present
     name: fabric-name
-    class_type: ? # add class type
+    class_type: class_type
     description: My new newtork fabric
 
 - name: Update network fabric
