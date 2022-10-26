@@ -1,0 +1,108 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+    - name: List network fabrics
+      canonical.maas.fabric_info:
+      register: fabrics
+    - name: List network fabrics
+      canonical.maas.fabric_info:
+        name: "{{ fabrics.records.0.name }}"
+      register: fabric
+    - ansible.builtin.assert:
+        that:
+          - fabric.records.0.name == fabrics.records.0.name
+    
+    - name: Delete network fabric
+      canonical.maas.fabric:
+        name: my-fabric
+        state: absent
+
+    - name: Delete network fabric
+      canonical.maas.fabric:
+        name: my-fabric-updated
+        state: absent
+
+    - name: Add network fabric - missing parameter
+      canonical.maas.fabric:
+      ignore_errors: true
+      register: fabric
+    - ansible.builtin.assert:
+        that:
+          - fabric is failed
+          - "'missing required arguments: state' in fabric.msg"
+
+    - name: Add network fabric - without name
+      canonical.maas.fabric:
+        state: present
+        description: my fabric
+        class_type: a
+      register: fabric
+    - ansible.builtin.assert:
+        that:
+          - fabric is changed
+          - fabric.record.class_type == "a"
+          # - fabric.record.description == "my fabric"
+
+    - name: Delete network fabric
+      canonical.maas.fabric:
+        name: "{{ fabric.record.name }}"
+        state: absent
+    - ansible.builtin.assert:
+        that:
+          - fabric is changed
+
+    - name: Add network fabric - with name
+      canonical.maas.fabric:
+        state: present
+        name: my-fabric
+        description: my fabric
+        class_type: a
+      register: fabric
+    - ansible.builtin.assert:
+        that:
+          - fabric is changed
+          - fabric.record.name == "my-fabric"
+          - fabric.record.class_type == "a"
+          # - fabric.record.description == "my fabric"
+
+    - name: Update network fabric
+      canonical.maas.fabric:
+        state: present
+        name: my-fabric
+        new_name: my-fabric-updated
+        description: my fabric updated
+        class_type: b
+      register: fabric
+    - ansible.builtin.assert:
+        that:
+          - fabric is changed
+          - fabric.record.name == "my-fabric-updated"
+          - fabric.record.class_type == "b"
+          # - fabric.record.description == "my fabric updated" # description isn't returned
+
+    - name: Update network fabric - idempotence
+      canonical.maas.fabric:
+        state: present
+        name: my-fabric-updated
+        new_name: my-fabric-updated
+        class_type: b
+      # description isn't returned so it can't be compared
+      # description: my fabric updated
+      register: fabric
+    - ansible.builtin.assert:
+        that:
+          - fabric is not changed
+          - fabric.record.name == "my-fabric-updated"
+          - fabric.record.class_type == "b"
+          # - fabric.record.description == "my fabric updated" # description isn't returned
+
+    - name: Delete network fabric
+      canonical.maas.fabric:
+        name: my-fabric-updated
+        state: absent
