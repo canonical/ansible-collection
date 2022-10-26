@@ -15,7 +15,7 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Returns info about network spaces.
 description:
-  - Plugin returns information about all network spaces or specific network space.
+  - Plugin returns information about all network spaces or specific network space if I(name) is provided.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -23,7 +23,7 @@ seealso: []
 options:
   name:
     description:
-      - Name of the network space to be created, updated or deleted.
+      - Name of the network space to be listed.
       - Serves as unique identifier of the network space.
     type: str
 """
@@ -47,7 +47,7 @@ EXAMPLES = r"""
     name: my-network-space
 """
 
-RETURN = r"""
+RETURN = r""" # TODO: UPDATE RETURN
 records:
   description:
     - Network space info list.
