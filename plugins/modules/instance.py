@@ -270,7 +270,7 @@ def release(module, client: Client):
                 before=updated_machine.to_ansible(), after=updated_machine.to_ansible()
             ),
         )
-    if machine.status == "New" or machine.status == "Failed":
+    if machine.status == "New" or "Failed" in machine.status:
         # commissioning will bring machine to the ready state
         machine.commission(client)
         updated_machine = Machine.wait_for_state(machine.id, client, False, "Ready")
