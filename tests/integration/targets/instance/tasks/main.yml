@@ -93,7 +93,7 @@
         state: deployed
         deploy_params:
           osystem: ubuntu
-          distro_series: jammy 
+          distro_series: jammy
     - ansible.builtin.assert:
         that:
           - machine is changed
