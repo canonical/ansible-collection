@@ -266,7 +266,7 @@ class TestSendRequestAndPayload:
             tags=["tag1", "tag2"],
             effective_mtu=1500,
             ip_address="this-ip",
-            subnet_cidr="this-subnet",
+            cidr="this-subnet",
             vlan=None,
             links=[],
         )
@@ -336,6 +336,44 @@ class TestSendRequestAndPayload:
         client.delete.return_value = None
         results = nic_obj.send_delete_request(client, machine_obj, nic_obj.id)
         assert results is None
+
+    def test_payload_for_link_subnet(self, client, mocker):
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        expected = nic_obj.to_maas()
+        expected["subnet"] = 2
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
+        ).return_value = {"id": 2, "gateway_ip": "10.10.10.1"}
+        results = nic_obj.payload_for_link_subnet(client)
+        assert results == expected
+
+    def test_send_link_subnet_request(self, client):
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        machine_dict = self.get_machine()
+        machine_obj = Machine.from_maas(machine_dict)
+        payload = {}
+        nic_id = 2
+        client.post.return_value = Response(
+            200, '{"system_id": 123, "machine_id": 123}'
+        )
+        results = nic_obj.send_link_subnet_request(client, machine_obj, payload, nic_id)
+        assert results == {"system_id": 123, "machine_id": 123}
+
+    def test_send_unlink_subnet_request(self, client):
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        machine_dict = self.get_machine()
+        machine_obj = Machine.from_maas(machine_dict)
+        linked_subnet_id = 2
+        client.post.return_value = Response(
+            200, '{"system_id": 123, "machine_id": 123}'
+        )
+        results = nic_obj.send_unlink_subnet_request(
+            client, machine_obj, linked_subnet_id
+        )
+        assert results == {"system_id": 123, "machine_id": 123}
 
 
 class TestAlias:
