@@ -312,7 +312,7 @@ class Machine(MaasValueMapper):
 
     def commission(self, client):
         return client.post(
-            f"/api/2.0/machines/{self.id}", query={"op": "commission"}
+            f"/api/2.0/machines/{self.id}/", query={"op": "commission"}, data={}
         ).json
 
     @classmethod
