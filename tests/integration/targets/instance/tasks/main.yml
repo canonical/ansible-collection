@@ -63,7 +63,7 @@
 
     - name: Release machine
       canonical.maas.instance: &release
-        fqdn: new-machine-3.maas
+        fqdn: instance-test.maas
         state: ready
       register: machine
     - ansible.builtin.assert:
@@ -89,7 +89,7 @@
 
     - name: Deploy machine with another OS
       canonical.maas.instance:
-        fqdn: new-machine-3.maas
+        fqdn: instance-test.maas
         state: deployed
         deploy_params:
           osystem: ubuntu
@@ -163,7 +163,6 @@
     #       tags: virtual, pod-console-logging
     #       zone: default # TO USE DIFFERENT ZONE OR POOL IT NEEDS TO BE CREATED FIRST
     #       pool: default
-    #       hostname: new-machine
     #     # TO BE ABLE TO TEST THIS, THIS NETWORK NEEDS TO BE CREATED
     #     # network_interfaces:
     #     #   name: my_network
