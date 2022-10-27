@@ -81,7 +81,7 @@
 
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Create new_nic on machine with name integration-test.
-      canonical.maas.vm_nic_physical:
+      canonical.maas.network_interface_physical:
         fqdn: integration-test-nic
         state: present
         mac_address: '00:16:3e:ae:78:75'
@@ -111,7 +111,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create new_nic on machine with name integration-test. (Idempotence)
-      canonical.maas.vm_nic_physical:
+      canonical.maas.network_interface_physical:
         fqdn: integration-test-nic
         state: present
         mac_address: '00:16:3e:ae:78:75'
@@ -141,7 +141,7 @@
 
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Update new_nic on machine with name integration-test.
-      canonical.maas.vm_nic_physical:
+      canonical.maas.network_interface_physical:
         fqdn: integration-test-nic
         state: present
         mac_address: '00:16:3e:ae:78:75'
@@ -171,7 +171,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Update new_nic on machine with name integration-test. (Idempotence)
-      canonical.maas.vm_nic_physical:
+      canonical.maas.network_interface_physical:
         fqdn: integration-test-nic
         state: present
         mac_address: '00:16:3e:ae:78:75'
@@ -201,7 +201,7 @@
 
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Delete new_nic on machine with name integration-test.
-      canonical.maas.vm_nic_physical:
+      canonical.maas.network_interface_physical:
         fqdn: integration-test-nic
         state: absent
         mac_address: '00:16:3e:ae:78:75'
@@ -229,7 +229,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Delete new_nic on machine with name integration-test. (Idempotence)
-      canonical.maas.vm_nic_physical:
+      canonical.maas.network_interface_physical:
         fqdn: integration-test-nic
         state: absent
         mac_address: '00:16:3e:ae:78:75'

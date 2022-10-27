@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: vm_nic_physical
+module: network_interface_physical
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
@@ -54,7 +54,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create new nic on sunny-raptor host with machine calm-guinea
-  canonical.maas.vm_nic_physical:
+  canonical.maas.network_interface_physical:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -75,7 +75,7 @@ EXAMPLES = r"""
     var: nic_info
 
 - name: Delete nic from machine calm-guinea on host sunny-raptor
-  canonical.maas.vm_nic_physical:
+  canonical.maas.network_interface_physical:
     cluster_instance:
       host: host-ip
       token_key: token-key
