@@ -188,12 +188,12 @@ def ensure_absent(module, client, machine_obj):
     after = None
     nic_to_delete_obj = machine_obj.find_nic_by_name(module.params["network_interface"])
     if nic_to_delete_obj:
-        before = linked_alias_to_delete = nic_to_delete_obj.find_linked_alias_by_cidr(
-            module
-        )
-        nic_to_delete_obj.send_unlink_subnet_request(
-            client, machine_obj, linked_alias_to_delete["id"]
-        )
+        linked_alias_to_delete = nic_to_delete_obj.find_linked_alias_by_cidr(module)
+        if linked_alias_to_delete:
+            before = linked_alias_to_delete
+            nic_to_delete_obj.send_unlink_subnet_request(
+                client, machine_obj, linked_alias_to_delete["id"]
+            )
     return is_changed(before, after), after, dict(before=before, after=after)
 
 

@@ -4,7 +4,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
-from ipaddress import ip_address
 
 __metaclass__ = type
 
@@ -62,7 +61,7 @@ class TestMain:
             subnet="10.10.10.0/24",
             mode="AUTO",
             default_gateway=True,
-            ip_address="10.10.10.2"
+            ip_address="10.10.10.2",
         )
 
         success, results = run_main(nic_link, params)
@@ -159,7 +158,7 @@ class TestRun:
                 fqdn="this-machine-fqdn",
                 network_interface="this-interface",
                 subnet="10.10.10.0/24",
-                mode="AUTO"
+                mode="AUTO",
             )
         )
         machine_dict = self.get_machine_state_new()
@@ -189,7 +188,7 @@ class TestRun:
                 fqdn="this-machine-fqdn",
                 network_interface="this-interface",
                 subnet="10.10.10.0/24",
-                mode="AUTO"
+                mode="AUTO",
             )
         )
         machine_dict = self.get_machine_state_allocating()
@@ -220,7 +219,7 @@ class TestRun:
                 fqdn="this-machine-fqdn",
                 network_interface="this-interface",
                 subnet="10.10.10.0/24",
-                mode="AUTO"
+                mode="AUTO",
             )
         )
         machine_dict = self.get_machine_state_ready()
@@ -248,7 +247,7 @@ class TestRun:
                 fqdn="this-machine-fqdn",
                 network_interface="this-interface",
                 subnet="10.10.10.0/24",
-                mode="AUTO"
+                mode="AUTO",
             )
         )
         machine_dict = self.get_machine_state_ready()
@@ -264,6 +263,86 @@ class TestRun:
 
 
 class TestEnsurePresent:
+    @staticmethod
+    def get_alias():
+        return dict(
+            id=14,
+            mode="auto",
+            subnet=dict(
+                name="subnet-1",
+                vlan=dict(
+                    vid=0,
+                    mtu=1500,
+                    dhcp_on=False,
+                    external_dhcp=None,
+                    relay_vlan=None,
+                    name="vlan-1",
+                    space="management",
+                    secondary_rack="76y7pg",
+                    primary_rack="7xtf67",
+                    fabric="fabric-1",
+                    fabric_id=1,
+                    id=5003,
+                    resource_uri="/MAAS/api/2.0/vlans/5003/",
+                ),
+                cidr="10.10.10.0/24",
+                rdns_mode=2,
+                gateway_ip="10.10.10.1",
+                dns_servers=[
+                    "fcb0:c682:8c15:817d:7d80:2713:e225:5624",
+                    "fd66:86c9:6a50:27cd:de13:3f1c:40d1:8aac",
+                    "120.129.237.29",
+                ],
+                allow_dns=True,
+                allow_proxy=True,
+                active_discovery=False,
+                managed=True,
+                space="management",
+                id=2,
+                resource_uri="/MAAS/api/2.0/subnets/2/",
+            ),
+        )
+
+    @staticmethod
+    def get_updated_alias():
+        return dict(
+            id=15,
+            mode="static",
+            subnet=dict(
+                name="subnet-1",
+                vlan=dict(
+                    vid=0,
+                    mtu=1500,
+                    dhcp_on=False,
+                    external_dhcp=None,
+                    relay_vlan=None,
+                    name="vlan-1",
+                    space="management",
+                    secondary_rack="76y7pg",
+                    primary_rack="7xtf67",
+                    fabric="fabric-1",
+                    fabric_id=1,
+                    id=5003,
+                    resource_uri="/MAAS/api/2.0/vlans/5003/",
+                ),
+                cidr="10.10.10.0/24",
+                rdns_mode=2,
+                gateway_ip="10.10.10.1",
+                dns_servers=[
+                    "fcb0:c682:8c15:817d:7d80:2713:e225:5624",
+                    "fd66:86c9:6a50:27cd:de13:3f1c:40d1:8aac",
+                    "120.129.237.29",
+                ],
+                allow_dns=True,
+                allow_proxy=True,
+                active_discovery=False,
+                managed=True,
+                space="management",
+                id=2,
+                resource_uri="/MAAS/api/2.0/subnets/2/",
+            ),
+        )
+
     @staticmethod
     def get_machine_state_new():
         return dict(
@@ -319,7 +398,45 @@ class TestEnsurePresent:
                     ip_address="this-ip",
                     cidr="this-cidr",
                     vlan=dict(name="this-vlan", fabric="this-fabric"),
-                    links=[],
+                    links=[
+                        dict(
+                            id=14,
+                            mode="auto",
+                            subnet=dict(
+                                name="subnet-1",
+                                vlan=dict(
+                                    vid=0,
+                                    mtu=1500,
+                                    dhcp_on=False,
+                                    external_dhcp=None,
+                                    relay_vlan=None,
+                                    name="vlan-1",
+                                    space="management",
+                                    secondary_rack="76y7pg",
+                                    primary_rack="7xtf67",
+                                    fabric="fabric-1",
+                                    fabric_id=1,
+                                    id=5003,
+                                    resource_uri="/MAAS/api/2.0/vlans/5003/",
+                                ),
+                                cidr="10.10.10.0/24",
+                                rdns_mode=2,
+                                gateway_ip="10.10.10.1",
+                                dns_servers=[
+                                    "fcb0:c682:8c15:817d:7d80:2713:e225:5624",
+                                    "fd66:86c9:6a50:27cd:de13:3f1c:40d1:8aac",
+                                    "120.129.237.29",
+                                ],
+                                allow_dns=True,
+                                allow_proxy=True,
+                                active_discovery=False,
+                                managed=True,
+                                space="management",
+                                id=2,
+                                resource_uri="/MAAS/api/2.0/subnets/2/",
+                            ),
+                        )
+                    ],
                 )
             ],
             blockdevice_set=None,
@@ -337,44 +454,56 @@ class TestEnsurePresent:
         )
 
     @staticmethod
-    def get_alias():
+    def get_updated_nic():
         return dict(
-                id=14,
-                mode="auto",
-                subnet=dict(
-                    name="subnet-1",
-                    vlan=dict(
-                        vid=0,
-                        mtu=1500,
-                        dhcp_on=False,
-                        external_dhcp=None,
-                        relay_vlan=None,
-                        name="vlan-1",
+            name="this-nic",
+            id=123,
+            mac_address="this-mac",
+            system_id=123,
+            tags=None,
+            effective_mtu=1500,
+            ip_address="this-ip",
+            cidr="this-cidr",
+            vlan=dict(name="this-vlan", fabric="this-fabric"),
+            links=[
+                dict(
+                    id=14,
+                    mode="auto",
+                    subnet=dict(
+                        name="subnet-1",
+                        vlan=dict(
+                            vid=0,
+                            mtu=1500,
+                            dhcp_on=False,
+                            external_dhcp=None,
+                            relay_vlan=None,
+                            name="vlan-1",
+                            space="management",
+                            secondary_rack="76y7pg",
+                            primary_rack="7xtf67",
+                            fabric="fabric-1",
+                            fabric_id=1,
+                            id=5003,
+                            resource_uri="/MAAS/api/2.0/vlans/5003/",
+                        ),
+                        cidr="10.10.10.0/24",
+                        rdns_mode=2,
+                        gateway_ip="10.10.10.1",
+                        dns_servers=[
+                            "fcb0:c682:8c15:817d:7d80:2713:e225:5624",
+                            "fd66:86c9:6a50:27cd:de13:3f1c:40d1:8aac",
+                            "120.129.237.29",
+                        ],
+                        allow_dns=True,
+                        allow_proxy=True,
+                        active_discovery=False,
+                        managed=True,
                         space="management",
-                        secondary_rack="76y7pg",
-                        primary_rack="7xtf67",
-                        fabric="fabric-1",
-                        fabric_id=1,
-                        id=5003,
-                        resource_uri="/MAAS/api/2.0/vlans/5003/"
+                        id=2,
+                        resource_uri="/MAAS/api/2.0/subnets/2/",
                     ),
-                    cidr="10.10.10.0/24",
-                    rdns_mode=2,
-                    gateway_ip="10.10.10.1",
-                    dns_servers=[
-                        "fcb0:c682:8c15:817d:7d80:2713:e225:5624",
-                        "fd66:86c9:6a50:27cd:de13:3f1c:40d1:8aac",
-                        "120.129.237.29"
-                    ],
-                    allow_dns=True,
-                    allow_proxy=True,
-                    active_discovery=False,
-                    managed=True,
-                    space="management",
-                    id=2,
-                    resource_uri="/MAAS/api/2.0/subnets/2/"
                 )
-            
+            ],
         )
 
     @staticmethod
@@ -391,44 +520,93 @@ class TestEnsurePresent:
             vlan=dict(name="this-vlan", fabric="this-fabric"),
             links=[],
         )
-"""
-    def test_ensure_present_when_create_new_linked_alias(self, create_module, client, mocker):
+
+    @staticmethod
+    def get_new_alias_ansible():
+        return dict(
+            network_interface="this-interface", subnet="10.10.10.0/24", mode="AUTO"
+        )
+
+    def test_ensure_present_when_nic_not_found(self, create_module, client, mocker):
+        machine_dict = self.get_machine_state_new()
+        machine_obj = Machine.from_maas(machine_dict)
+        new_alias_dict = self.get_new_alias_ansible()
+        new_alias_obj = NetworkInterface.from_ansible(new_alias_dict)
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    client_key="client key",
+                    token_key="token key",
+                    token_secret="token secret",
+                ),
+                state="present",
+                fqdn="this-machine-fqdn",
+                network_interface="this-interface",
+                subnet="10.10.10.0/24",
+                mode="AUTO",
+            )
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_name"
+        ).side_effect = [None]
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
+        ).return_value = new_alias_obj
+        with pytest.raises(
+            errors.MaasError,
+            match=f"Network interface with name - {module.params['network_interface']} - not found",
+        ):
+            nic_link.ensure_present(module, client, machine_obj)
+
+    def test_ensure_present_when_create_new_alias_on_existing_nic(
+        self, create_module, client, mocker
+    ):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         updated_machine_dict = self.get_machine_updated()
         updated_machine_obj = Machine.from_maas(updated_machine_dict)
-        alias_dict = self.get_alias()
+        new_alias_dict = self.get_new_alias_ansible()
+        new_nic_alias_obj = NetworkInterface.from_ansible(new_alias_dict)
+        existing_nic_dict = self.get_nic_existing()
+        existing_nic_obj = NetworkInterface.from_maas(existing_nic_dict)
+        updated_nic_dict = self.get_updated_nic()
+        updated_nic_obj = NetworkInterface.from_maas(updated_nic_dict)
+        created_alias = self.get_alias()
         expected = (
             True,
-            alias_dict,
-            {"before": None, "after": alias_dict},
+            created_alias,
+            {"before": None, "after": created_alias},
         )
         module = create_module(
             params=dict(
                 instance=dict(
-                    state="absent",
-                    fqdn="this-machine-fqdn",
-                    network_interface="this-interface",
-                    subnet="10.10.10.0/24",
-                    mode="AUTO"
+                    host="https://0.0.0.0",
+                    client_key="client key",
+                    token_key="token key",
+                    token_secret="token secret",
                 ),
                 state="present",
-                vm_host="this-host",
-                hostname="this-machine",
-                mac_address="this-mac",
+                fqdn="this-machine-fqdn",
+                network_interface="this-interface",
+                subnet="10.10.10.0/24",
+                mode="AUTO",
             )
         )
         mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_name"
+        ).side_effect = [existing_nic_obj, updated_nic_obj]
+        mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
-        ).return_value = nic_obj
+        ).return_value = new_nic_alias_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
-        ).side_effect = [None, nic_obj]
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_linked_alias_by_cidr"
+        ).side_effect = [None, created_alias]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_create_request"
-        ).return_value = None
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_link_subnet"
+        ).return_value = {}
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_create"
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_link_subnet_request"
         ).return_value = None
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
@@ -436,21 +614,25 @@ class TestEnsurePresent:
         results = nic_link.ensure_present(module, client, machine_obj)
         assert results == expected
 
-    def test_ensure_present_when_update_existing_nic(
+    def test_ensure_present_when_update_existing_alias_on_existing_nic(
         self, create_module, client, mocker
     ):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         updated_machine_dict = self.get_machine_updated()
         updated_machine_obj = Machine.from_maas(updated_machine_dict)
-        nic_dict = self.get_nic()
-        nic_obj = NetworkInterface.from_maas(nic_dict)
+        new_alias_dict = self.get_new_alias_ansible()
+        new_nic_alias_obj = NetworkInterface.from_ansible(new_alias_dict)
         existing_nic_dict = self.get_nic_existing()
         existing_nic_obj = NetworkInterface.from_maas(existing_nic_dict)
+        updated_nic_dict = self.get_updated_nic()
+        updated_nic_obj = NetworkInterface.from_maas(updated_nic_dict)
+        existing_alias_dict = self.get_alias()
+        updated_alias_dict = self.get_updated_alias()
         expected = (
             True,
-            nic_obj.to_ansible(),
-            {"before": existing_nic_obj.to_ansible(), "after": nic_obj.to_ansible()},
+            updated_alias_dict,
+            {"before": existing_alias_dict, "after": updated_alias_dict},
         )
         module = create_module(
             params=dict(
@@ -461,43 +643,56 @@ class TestEnsurePresent:
                     token_secret="token secret",
                 ),
                 state="present",
-                vm_host="this-host",
-                hostname="this-machine",
-                mac_address="this-mac",
-                mtu=2000,
+                fqdn="this-machine-fqdn",
+                network_interface="this-interface",
+                subnet="10.10.10.0/24",
+                mode="STATIC",
+                ip_address="10.10.10.3",
             )
         )
         mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_name"
+        ).side_effect = [existing_nic_obj, updated_nic_obj]
+        mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
-        ).return_value = nic_obj
+        ).return_value = new_nic_alias_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
-        ).side_effect = [existing_nic_obj, nic_obj]
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_linked_alias_by_cidr"
+        ).side_effect = [existing_alias_dict, updated_alias_dict]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.needs_update"
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.alias_needs_update"
         ).return_value = True
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_update_request"
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_unlink_subnet_request"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_update"
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_link_subnet"
+        ).return_value = {}
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_link_subnet_request"
         ).return_value = None
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = vm_nic_physical.ensure_present(module, client, machine_obj)
+        results = nic_link.ensure_present(module, client, machine_obj)
         assert results == expected
 
     def test_ensure_present_when_no_changes_nic(self, create_module, client, mocker):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
-        updated_machine_dict = self.get_machine_updated()
-        updated_machine_obj = Machine.from_maas(updated_machine_dict)
-        nic_dict = self.get_nic_existing()
-        nic_obj = NetworkInterface.from_maas(nic_dict)
+        new_alias_dict = self.get_new_alias_ansible()
+        new_nic_alias_obj = NetworkInterface.from_ansible(new_alias_dict)
         existing_nic_dict = self.get_nic_existing()
         existing_nic_obj = NetworkInterface.from_maas(existing_nic_dict)
-        expected = (False, None, {"before": None, "after": None})
+        updated_nic_dict = self.get_updated_nic()
+        updated_nic_obj = NetworkInterface.from_maas(updated_nic_dict)
+        existing_alias_dict = self.get_alias()
+        updated_alias_dict = self.get_updated_alias()
+        expected = (
+            False,
+            None,
+            {"before": None, "after": None},
+        )
         module = create_module(
             params=dict(
                 instance=dict(
@@ -507,25 +702,26 @@ class TestEnsurePresent:
                     token_secret="token secret",
                 ),
                 state="present",
-                vm_host="this-host",
-                hostname="this-machine",
-                mac_address="this-mac",
-                mtu=2000,
+                fqdn="this-machine-fqdn",
+                network_interface="this-interface",
+                subnet="10.10.10.0/24",
+                mode="STATIC",
+                ip_address="10.10.10.3",
             )
         )
         mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_name"
+        ).side_effect = [existing_nic_obj, updated_nic_obj]
+        mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
-        ).return_value = nic_obj
+        ).return_value = new_nic_alias_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
-        ).side_effect = [existing_nic_obj]
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_linked_alias_by_cidr"
+        ).side_effect = [existing_alias_dict, updated_alias_dict]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.needs_update"
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.alias_needs_update"
         ).return_value = False
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
-        ).return_value = updated_machine_obj
-        results = vm_nic_physical.ensure_present(module, client, machine_obj)
+        results = nic_link.ensure_present(module, client, machine_obj)
         assert results == expected
 
 
@@ -619,19 +815,58 @@ class TestEsnureAbsent:
             links=[],
         )
 
-    def test_ensure_absent_when_delete_existing_nic(
+    @staticmethod
+    def get_alias():
+        return dict(
+            id=14,
+            mode="auto",
+            subnet=dict(
+                name="subnet-1",
+                vlan=dict(
+                    vid=0,
+                    mtu=1500,
+                    dhcp_on=False,
+                    external_dhcp=None,
+                    relay_vlan=None,
+                    name="vlan-1",
+                    space="management",
+                    secondary_rack="76y7pg",
+                    primary_rack="7xtf67",
+                    fabric="fabric-1",
+                    fabric_id=1,
+                    id=5003,
+                    resource_uri="/MAAS/api/2.0/vlans/5003/",
+                ),
+                cidr="10.10.10.0/24",
+                rdns_mode=2,
+                gateway_ip="10.10.10.1",
+                dns_servers=[
+                    "fcb0:c682:8c15:817d:7d80:2713:e225:5624",
+                    "fd66:86c9:6a50:27cd:de13:3f1c:40d1:8aac",
+                    "120.129.237.29",
+                ],
+                allow_dns=True,
+                allow_proxy=True,
+                active_discovery=False,
+                managed=True,
+                space="management",
+                id=2,
+                resource_uri="/MAAS/api/2.0/subnets/2/",
+            ),
+        )
+
+    def test_ensure_absent_when_delete_existing_alias_on_existing_nic(
         self, create_module, client, mocker
     ):
         machine_dict = self.get_machine_updated()
         machine_obj = Machine.from_maas(machine_dict)
-        updated_machine_dict = self.get_machine_state_new()
-        updated_machine_obj = Machine.from_maas(updated_machine_dict)
         existing_nic_dict = self.get_nic_existing()
         existing_nic_obj = NetworkInterface.from_maas(existing_nic_dict)
+        existing_alias_dict = self.get_alias()
         expected = (
             True,
             None,
-            {"before": existing_nic_obj.to_ansible(), "after": None},
+            {"before": existing_alias_dict, "after": None},
         )
         module = create_module(
             params=dict(
@@ -642,24 +877,35 @@ class TestEsnureAbsent:
                     token_secret="token secret",
                 ),
                 state="absent",
-                vm_host="this-host",
-                hostname="this-machine",
-                mac_address="this-mac",
+                fqdn="this-machine-fqdn",
+                network_interface="this-interface",
+                subnet="10.10.10.0/24",
+                mode="STATIC",
+                ip_address="10.10.10.3",
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
-        ).side_effect = [existing_nic_obj, None]
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_name"
+        ).return_value = existing_nic_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
-        ).return_value = updated_machine_obj
-        results = vm_nic_physical.ensure_absent(module, client, machine_obj)
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_linked_alias_by_cidr"
+        ).return_value = existing_alias_dict
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_unlink_subnet_request"
+        ).return_value = None
+        results = nic_link.ensure_absent(module, client, machine_obj)
         assert results == expected
 
-    def test_ensure_absent_when_no_changes_nic(self, create_module, client, mocker):
-        machine_dict = self.get_machine_state_new()
+    def test_ensure_absent_when_alias_not_exist(self, create_module, client, mocker):
+        machine_dict = self.get_machine_updated()
         machine_obj = Machine.from_maas(machine_dict)
-        expected = (False, None, {"before": None, "after": None})
+        existing_nic_dict = self.get_nic_existing()
+        existing_nic_obj = NetworkInterface.from_maas(existing_nic_dict)
+        expected = (
+            False,
+            None,
+            {"before": None, "after": None},
+        )
         module = create_module(
             params=dict(
                 instance=dict(
@@ -669,50 +915,18 @@ class TestEsnureAbsent:
                     token_secret="token secret",
                 ),
                 state="absent",
-                vm_host="this-host",
-                hostname="this-machine",
-                mac_address="this-mac",
+                fqdn="this-machine-fqdn",
+                network_interface="this-interface",
+                subnet="10.10.10.0/24",
+                mode="STATIC",
+                ip_address="10.10.10.3",
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_name"
+        ).return_value = existing_nic_obj
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_linked_alias_by_cidr"
         ).return_value = None
-        results = vm_nic_physical.ensure_absent(module, client, machine_obj)
+        results = nic_link.ensure_absent(module, client, machine_obj)
         assert results == expected
-
-    def test_ensure_absent_when_delete_existing_nic_but_no_changes(
-        self, create_module, client, mocker
-    ):
-        machine_dict = self.get_machine_state_new()
-        machine_obj = Machine.from_maas(machine_dict)
-        nic_dict = self.get_nic()
-        nic_obj = NetworkInterface.from_maas(nic_dict)
-        module = create_module(
-            params=dict(
-                instance=dict(
-                    host="https://0.0.0.0",
-                    client_key="client key",
-                    token_key="token key",
-                    token_secret="token secret",
-                ),
-                state="absent",
-                vm_host="this-host",
-                hostname="this-machine",
-                mac_address="this-mac",
-            )
-        )
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
-        ).return_value = nic_obj
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_delete_request"
-        ).return_value = None
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
-        ).return_value = machine_obj
-        with pytest.raises(
-            errors.MaasError,
-            match=f"Delete network interface task failed with mac: {nic_obj.mac_address}",
-        ):
-            vm_nic_physical.ensure_absent(module, client, machine_obj)
-"""
