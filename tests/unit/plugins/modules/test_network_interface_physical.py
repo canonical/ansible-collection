@@ -35,7 +35,7 @@ class TestMain:
                 token_key="token key",
                 token_secret="token secret",
             ),
-            fqdn="this-machine-fqdn",
+            machine="this-machine-fqdn",
             mac_address="this-mac",
             state="present",
         )
@@ -56,7 +56,7 @@ class TestMain:
                 token_key="token key",
                 token_secret="token secret",
             ),
-            fqdn="this-machine-fqdn",
+            machine="this-machine-fqdn",
             mac_address="this-mac",
             state="present",
             vlan="this-vlan",

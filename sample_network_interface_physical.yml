@@ -8,7 +8,7 @@
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
         customer_key: nzW4EBWjyDe5B5szja
-      fqdn: new-machine-3
+      machine: new-machine-3
       state: present
       mac_address: '00:16:3e:ae:78:75'
       # vlan: 5
@@ -29,7 +29,7 @@
         token_key: URCfn6EhdZSj9CSDf7
         token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
         client_key: nzW4EBWjyDe5B5szja
-      fqdn: calm-guinea
+      machine: calm-guinea
       state: absent
       mac_address: '00:16:3e:ae:78:75'
     register: nic_info
