@@ -8,7 +8,7 @@
         token_key: kDcKvtWX7fXLB7TvB2
         token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
         customer_key: tqDErtYzyzRVdUb9hS
-      fqdn: new-machine-3.test-domain
+      machine: new-machine-3.test-domain
       state: present
       mode: AUTO
       network_interface: enp5s0

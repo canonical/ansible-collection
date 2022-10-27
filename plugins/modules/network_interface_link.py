@@ -21,7 +21,7 @@ extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
 options:
-  fqdn:
+  machine:
     description:
       - Fully qualified domain name of the machine to be deleted, deployed or released.
       - Serves as unique identifier of the machine.
@@ -65,7 +65,7 @@ EXAMPLES = r"""
       token_key: token-key
       token_secret: token-secret
       customer_key: customer-key
-    fqdn: new-machine-3.test-domain
+    machine: new-machine-3.test-domain
     state: present
     mode: STATIC
     network_interface: enp5s0
@@ -81,7 +81,7 @@ EXAMPLES = r"""
       token_key: token-key
       token_secret: token-secret
       customer_key: customer-key
-    fqdn: new-machine-3.test-domain
+    machine: new-machine-3.test-domain
     state: absent
     mode: STATIC
     network_interface: enp5s0
@@ -166,7 +166,9 @@ def ensure_present(module, client, machine_obj):
             new_nic_obj.payload_for_link_subnet(client),
             existing_nic_obj.id,
         )
-        updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+        updated_machine_obj = Machine.get_by_fqdn(
+            module, client, must_exist=True, name_field_ansible="machine"
+        )
         updated_nic_obj = updated_machine_obj.find_nic_by_name(new_nic_obj.name)
         after = updated_nic_obj.find_linked_alias_by_cidr(module)
     elif not existing_linked_alias:
@@ -176,7 +178,9 @@ def ensure_present(module, client, machine_obj):
             new_nic_obj.payload_for_link_subnet(client),
             existing_nic_obj.id,
         )
-        updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+        updated_machine_obj = Machine.get_by_fqdn(
+            module, client, must_exist=True, name_field_ansible="machine"
+        )
         updated_nic_obj = updated_machine_obj.find_nic_by_name(new_nic_obj.name)
         after = updated_nic_obj.find_linked_alias_by_cidr(module)
     return is_changed(before, after), after, dict(before=before, after=after)
@@ -198,7 +202,9 @@ def ensure_absent(module, client, machine_obj):
 
 
 def run(module, client):
-    machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+    machine_obj = Machine.get_by_fqdn(
+        module, client, must_exist=True, name_field_ansible="machine"
+    )
     if machine_obj.status not in [
         MachineTaskState.ready,
         MachineTaskState.allocated,
@@ -235,7 +241,7 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            fqdn=dict(
+            machine=dict(
                 type="str",
                 required=True,
             ),
