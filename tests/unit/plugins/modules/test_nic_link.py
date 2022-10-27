@@ -339,16 +339,42 @@ class TestEnsurePresent:
     @staticmethod
     def get_alias():
         return dict(
-            name="this-nic",
-            id=123,
-            mac_address="this-mac",
-            system_id=123,
-            tags=None,
-            effective_mtu=2000,
-            ip_address="this-ip",
-            cidr="this-cidr",
-            vlan=dict(name="this-vlan", fabric="this-fabric"),
-            links=[],
+                id=14,
+                mode="auto",
+                subnet=dict(
+                    name="subnet-1",
+                    vlan=dict(
+                        vid=0,
+                        mtu=1500,
+                        dhcp_on=False,
+                        external_dhcp=None,
+                        relay_vlan=None,
+                        name="vlan-1",
+                        space="management",
+                        secondary_rack="76y7pg",
+                        primary_rack="7xtf67",
+                        fabric="fabric-1",
+                        fabric_id=1,
+                        id=5003,
+                        resource_uri="/MAAS/api/2.0/vlans/5003/"
+                    ),
+                    cidr="10.10.10.0/24",
+                    rdns_mode=2,
+                    gateway_ip="10.10.10.1",
+                    dns_servers=[
+                        "fcb0:c682:8c15:817d:7d80:2713:e225:5624",
+                        "fd66:86c9:6a50:27cd:de13:3f1c:40d1:8aac",
+                        "120.129.237.29"
+                    ],
+                    allow_dns=True,
+                    allow_proxy=True,
+                    active_discovery=False,
+                    managed=True,
+                    space="management",
+                    id=2,
+                    resource_uri="/MAAS/api/2.0/subnets/2/"
+                )
+            
         )
 
     @staticmethod
@@ -374,8 +400,8 @@ class TestEnsurePresent:
         alias_dict = self.get_alias()
         expected = (
             True,
-            nic_obj.to_ansible(),
-            {"before": None, "after": nic_obj.to_ansible()},
+            alias_dict,
+            {"before": None, "after": alias_dict},
         )
         module = create_module(
             params=dict(
@@ -407,7 +433,7 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = vm_nic_physical.ensure_present(module, client, machine_obj)
+        results = nic_link.ensure_present(module, client, machine_obj)
         assert results == expected
 
     def test_ensure_present_when_update_existing_nic(
