@@ -11,7 +11,7 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.modules import nic_link
+from ansible_collections.canonical.maas.plugins.modules import network_interface_link
 from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
     NetworkInterface,
@@ -39,7 +39,7 @@ class TestMain:
             subnet="10.10.10.0/24",
         )
 
-        success, results = run_main(nic_link, params)
+        success, results = run_main(network_interface_link, params)
         assert success is True
         assert results == {
             "changed": False,
@@ -64,7 +64,7 @@ class TestMain:
             ip_address="10.10.10.2",
         )
 
-        success, results = run_main(nic_link, params)
+        success, results = run_main(network_interface_link, params)
         assert success is True
         assert results == {
             "changed": False,
@@ -170,7 +170,7 @@ class TestRun:
             errors.MaasError,
             match=f"Machine {machine_obj.hostname} is not in the right state, needs to be in Ready, Allocated or Broken.",
         ):
-            nic_link.run(module, client)
+            network_interface_link.run(module, client)
 
     def test_run_with_present_with_waiting_on_machine_state(
         self, create_module, client, mocker
@@ -200,9 +200,9 @@ class TestRun:
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.wait_for_state"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.nic_link.ensure_present"
+            "ansible_collections.canonical.maas.plugins.modules.network_interface_link.ensure_present"
         ).return_value = (False, {}, {"before": {}, "after": {}})
-        results = nic_link.run(module, client)
+        results = network_interface_link.run(module, client)
         assert results == expected
 
     def test_run_with_present_ensure_present(self, create_module, client, mocker):
@@ -228,9 +228,9 @@ class TestRun:
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.nic_link.ensure_present"
+            "ansible_collections.canonical.maas.plugins.modules.network_interface_link.ensure_present"
         ).return_value = (False, {}, {"before": {}, "after": {}})
-        results = nic_link.run(module, client)
+        results = network_interface_link.run(module, client)
         assert results == expected
 
     def test_run_with_absent_ensure_absent(self, create_module, client, mocker):
@@ -256,9 +256,9 @@ class TestRun:
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.nic_link.ensure_absent"
+            "ansible_collections.canonical.maas.plugins.modules.network_interface_link.ensure_absent"
         ).return_value = (False, {}, {"before": {}, "after": {}})
-        results = nic_link.run(module, client)
+        results = network_interface_link.run(module, client)
         assert results == expected
 
 
@@ -557,7 +557,7 @@ class TestEnsurePresent:
             errors.MaasError,
             match=f"Network interface with name - {module.params['network_interface']} - not found",
         ):
-            nic_link.ensure_present(module, client, machine_obj)
+            network_interface_link.ensure_present(module, client, machine_obj)
 
     def test_ensure_present_when_create_new_alias_on_existing_nic(
         self, create_module, client, mocker
@@ -611,7 +611,7 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = nic_link.ensure_present(module, client, machine_obj)
+        results = network_interface_link.ensure_present(module, client, machine_obj)
         assert results == expected
 
     def test_ensure_present_when_update_existing_alias_on_existing_nic(
@@ -674,7 +674,7 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = nic_link.ensure_present(module, client, machine_obj)
+        results = network_interface_link.ensure_present(module, client, machine_obj)
         assert results == expected
 
     def test_ensure_present_when_no_changes_nic(self, create_module, client, mocker):
@@ -721,7 +721,7 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.alias_needs_update"
         ).return_value = False
-        results = nic_link.ensure_present(module, client, machine_obj)
+        results = network_interface_link.ensure_present(module, client, machine_obj)
         assert results == expected
 
 
@@ -893,7 +893,7 @@ class TestEsnureAbsent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_unlink_subnet_request"
         ).return_value = None
-        results = nic_link.ensure_absent(module, client, machine_obj)
+        results = network_interface_link.ensure_absent(module, client, machine_obj)
         assert results == expected
 
     def test_ensure_absent_when_alias_not_exist(self, create_module, client, mocker):
@@ -928,5 +928,5 @@ class TestEsnureAbsent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_linked_alias_by_cidr"
         ).return_value = None
-        results = nic_link.ensure_absent(module, client, machine_obj)
+        results = network_interface_link.ensure_absent(module, client, machine_obj)
         assert results == expected

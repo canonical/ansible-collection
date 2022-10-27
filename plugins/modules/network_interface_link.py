@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: nic_link
+module: network_interface_link
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
@@ -59,7 +59,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create subnet link on VM new-machine-3.test-domain with network interface enp5s0
-  canonical.maas.nic_link:
+  canonical.maas.network_interface_link:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -75,7 +75,7 @@ EXAMPLES = r"""
   register: nic_info
 
 - name: Delete subnet link on VM new-machine-3.test-domain with network interface enp5s0
-  canonical.maas.nic_link:
+  canonical.maas.network_interface_link:
     cluster_instance:
       host: host-ip
       token_key: token-key
