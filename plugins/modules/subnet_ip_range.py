@@ -10,45 +10,48 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: dns_domain
+module: subnet_ip_range
 
 author:
   - Jure Medvesek (@juremedvesek)
-short_description: Edit DNS domains.
+short_description: Edit subnets IP range.
 description:
-  - Plugin provides a resource to manage MAAS DNS domains.
+  - Plugin provides a resource to manage MAAS IP ranges.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
 options:
   state:
-    description: Should domain be present or absent.
+    description: Should IP range be present or absent.
     type: str
     choices:
       - present
       - absent
     required: true
-  name:
-    description: The name of the DNS domain.
+  subnet:
+    description: The name of subnet that we attach IP range to.
     type: str
     required: true
-  authoritative:
-    type: bool
-    description: Boolean value indicating if the DNS domain is authoritative. Defaults to false
-  ttl:
-    type: int
-    description: The default TTL for the DNS domain.
-  is_default:
-    type: bool
-    description:
-     - Boolean value indicating if the new DNS domain will be set as the default in the MAAS environment.
-     - One is not allow to set it to false. It can be achived bz setting other a defualt
-    choices: [True]
+  type:
+    type: str
+    description: Type of IP range. Options are dynamic, reserved, ...
+    required: true
+  start_ip:
+    type: str
+    description: Start of IP range.
+    required: true
+  end_ip:
+    type: str
+    description: End of IP range
+    required: true
+  comment:
+    type: str
+    description: Free text
 """
 
 EXAMPLES = r"""
-- name: Add domain
+- name: Add subnet IP range
   cannonical.maas.dns_domain_info:
     cluster_instance:
       host: ...
@@ -83,7 +86,7 @@ from ..module_utils.client import Client
 from ..module_utils.cluster_instance import get_oauth1_client
 
 
-ENDPOINT = "/api/2.0/domains/"
+ENDPOINT = "/api/2.0/ipranges/"
 
 
 def clean_data(data: dict):
@@ -94,19 +97,53 @@ def get_match(items, key, value):
     return next((item for item in items if item.get(key) == value), None)
 
 
+def get_complex_match(items, conditions: dict):
+    for item in items:
+        complex_conditions = {
+            k: v for k, v in conditions.items() if not isinstance(k, str)
+        }
+
+        is_simple_match = all(
+            item[k] == v for k, v in conditions.items() if k not in complex_conditions
+        )
+        is_complex_match = all(
+            item[k1][k2] == v for (k1, k2), v in complex_conditions.items()
+        )
+        if is_simple_match and is_complex_match:
+            return item
+
+    return None
+
+
 def must_update(old_data, new_data):
     return any(old_data.get(key) != value for key, value in new_data.items())
 
 
 def ensure_present(module, client: Client):
-    # extract all data from ansible task
-    domain_name = module.params["name"]
-    is_default = module.params["is_default"]
+    subnet_name = module.params["subnet"]
+
+    # map subnet to its Id
+    subnets = client.get("/api/2.0/subnets/").json
+    subnet = get_match(subnets, "name", subnet_name)
+    if not subnet:
+        available_subnets = ", ".join(x["name"] for x in subnets)
+        raise errors.MaasError(
+            f"Can not find matching subnet. Options are [{ available_subnets }]"
+        )
+
+    compound_key = {
+        ("subnet", "id"): subnet["id"],
+        "type": module.params["type"],
+        "start_ip": module.params["start_ip"],
+        "end_ip": module.params["end_ip"],
+    }
 
     data = {
-        "name": module.params["name"],
-        "ttl": module.params["ttl"],
-        "authoritative": module.params["authoritative"],
+        "subnet": subnet["id"],
+        "type": module.params["type"],
+        "start_ip": module.params["start_ip"],
+        "end_ip": module.params["end_ip"],
+        "comment": module.params["comment"],
     }
     cleaned_data = clean_data(data)
 
@@ -115,33 +152,38 @@ def ensure_present(module, client: Client):
 
     # find a match on server, if none, create new object
     items = client.get(ENDPOINT).json
-    item = get_match(items, "name", domain_name)
+    item = get_complex_match(items, compound_key)
     if not item:
         response_json = client.post(ENDPOINT, cleaned_data).json
         return True, response_json, dict(before={}, after=response_json)
 
     # check if update is needed at all
+    item["subnet"] = item["subnet"]["id"]
     item_changed = must_update(item, cleaned_data)
-    force_update = is_default and not item.get("is_default")
-    if not item_changed and not force_update:
+    item["subnet"] = subnet["name"]
+
+    if not item_changed:
         return False, item, dict(before=item, after=item)
 
     # update object
     id = item.get("id")
     if item_changed:
         response_json = client.put(f"{ENDPOINT}/{id}/", cleaned_data).json
-    if force_update:
-        response_json = client.post(
-            f"{ENDPOINT}/{id}/", {}, query={"op": "set_default"}
-        ).json
+        response_json["subnet"] = subnet["name"]
+
     return True, response_json, dict(before=item, after=response_json)
 
 
 def ensure_absent(module, client: Client):
-    domain_name = module.params["name"]
+    compound_key = {
+        ("subnet", "name"): module.params["subnet"],
+        "type": module.params["type"],
+        "start_ip": module.params["start_ip"],
+        "end_ip": module.params["end_ip"],
+    }
 
     items = client.get(ENDPOINT).json
-    item = get_match(items, "name", domain_name)
+    item = get_complex_match(items, compound_key)
     if not item:
         return False, None, dict(before={}, after={})
 
@@ -164,10 +206,11 @@ def main():
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             state=dict(type="str", required=True, choices=["present", "absent"]),
-            name=dict(type="str", required=True),
-            ttl=dict(type="int", required=False),
-            authoritative=dict(type="bool", required=False),
-            is_default=dict(type="bool", required=False, choices=[True]),
+            subnet=dict(type="str", required=True),
+            type=dict(type="str", required=True),
+            start_ip=dict(type="str", required=True),
+            end_ip=dict(type="str", required=True),
+            comment=dict(type="str", required=False),
         ),
     )
 
