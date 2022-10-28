@@ -66,11 +66,13 @@ class Vlan(MaasValueMapper):
             return vlan_from_maas
 
     @classmethod
-    def get_by_vid(cls, module, client: Client, fabric_id):
+    def get_by_vid(cls, module, client: Client, fabric_id, must_exist=False):
         response = client.get(
             f"/api/2.0/fabrics/{fabric_id}/vlans/{module.params['vid']}/"
         )
         if response.status == 404:
+            if must_exist:
+                raise errors.VlanNotFound(module.params["vid"])
             return None
         vlan_maas_dict = response.json
         vlan = cls.from_maas(vlan_maas_dict)
