@@ -97,38 +97,35 @@ options:
       vlan:
         type: str
         description:
-          - The VLAN for the network interface.
+          - The VLAN id for the network interface.
           - Matches an interface on the specified VLAN.
 """
 
 EXAMPLES = r"""
-- name: Create machine with compose
-  hosts: localhost
-  tasks:
-  - name: Create new machine on sunny-raptor host
-    canonical.maas.vm_host_machine:
-      cluster_instance:
-        host: host-ip
-        token_key: token-key
-        token_secret: token-secret
-        customer_key: customer-key
-      vm_host: sunny-raptor
-      hostname: new-machine-3
-      cores: 2
-      memory: 2048
-      zone: 1
-      pool: 0
-      domain: 0
-      network_interfaces:
-        label_name: my-net
-        subnet_cidr: "10.10.10.0/24"
-      storage_disks:
-        - size_gigabytes: 3
-        - size_gigabytes: 5
-    register: machine
+- name: Create new machine on sunny-raptor host
+  canonical.maas.vm_host_machine:
+    cluster_instance:
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
+    vm_host: sunny-raptor
+    hostname: new-machine-3
+    cores: 2
+    memory: 2048
+    zone: 1
+    pool: 0
+    domain: 0
+    network_interfaces:
+      label_name: my-net
+      subnet_cidr: "10.10.10.0/24"
+    storage_disks:
+      - size_gigabytes: 3
+      - size_gigabytes: 5
+  register: machine
 
-  - debug:
-      var: machine
+- debug:
+    var: machine
 """
 
 RETURN = r"""
@@ -139,8 +136,9 @@ record:
   type: dict
   sample:
     cores: 2
-    distro_series: ''
-    hostname: new-machine-3
+    distro_series: focal
+    hostname: new-machine
+    hwe_kernel: ga-22.04
     id: 6h4fn6
     memory: 2048
     network_interfaces:
@@ -150,7 +148,9 @@ record:
       name: my-net
       subnet_cidr: 10.10.10.0/24
       vlan: untagged
-    osystem: ''
+    osystem: ubuntu
+    pool: default
+    power_type: lxd
     status: Commissioning
     storage_disks:
     - id: 288
@@ -159,6 +159,10 @@ record:
     - id: 289
       name: sdb
       size_gigabytes: 5
+    tags:
+      - pod-console-logging
+      - my-tag
+    zone: default
 """
 
 from ansible.module_utils.basic import AnsibleModule

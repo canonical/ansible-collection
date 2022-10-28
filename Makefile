@@ -33,7 +33,7 @@ help:
 
 .PHONY: format
 format:  ## Format python code with black
-	black -t py27 plugins tests/unit
+	black -t py38 plugins tests/unit
 
 .PHONY: clean
 clean:  ## Remove all auto-generated files
@@ -52,7 +52,8 @@ $(integration_test_targets):
 .PHONY: sanity
 sanity:  ## Run sanity tests
 	pip install -r sanity.requirements
-	black -t py36 --check --diff --color plugins tests/unit
+	ansible-lint
+	black -t py38 --check --diff --color plugins tests/unit
 	flake8 --exclude tests/output/
 	ansible-test sanity --docker
 

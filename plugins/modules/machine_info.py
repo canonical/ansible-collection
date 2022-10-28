@@ -21,14 +21,11 @@ extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
 options:
-  hostname:
+  fqdn:
     description:
-      - Name of a specific machine.
-      - In order to get info about a specific machine.
-    type: str
-  vm_host:
-    description:
-      - Name of a specific vm_host where specific virtual machine is located.
+      - Fully qualified domain name of the specific machine to be listed.
+      - Serves as unique identifier of the machine.
+      - If machine is not found the task will FAIL.
     type: str
 """
 
@@ -41,15 +38,14 @@ EXAMPLES = r"""
       token_secret: token-secret
       customer_key: customer-key
 
-- name: Get info about a specific machine on a specific host
+- name: Get info about a specific machine
   canonical.maas.machine_info:
     cluster_instance:
       host: host-ip
       token_key: token-key
       token_secret: token-secret
       customer_key: customer-key
-    hostname: solid-fish
-    vm_host: sunny-raptor
+    fqdn: solid-fish
 """
 
 RETURN = r"""
@@ -514,8 +510,8 @@ from ..module_utils.machine import Machine
 
 
 def run(module, client: Client):
-    if module.params["hostname"]:
-        machine = Machine.get_by_name_and_host(module, client, must_exist=True)
+    if module.params["fqdn"]:
+        machine = Machine.get_by_fqdn(module, client, must_exist=True)
         response = [client.get(f"/api/2.0/machines/{machine.id}/").json]
     else:
         response = client.get("/api/2.0/machines/").json
@@ -527,12 +523,8 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            vm_host=dict(type="str"),
-            hostname=dict(
-                type="str",
-            ),
+            fqdn=dict(type="str"),
         ),
-        required_together=[("vm_host", "hostname")],
     )
 
     try:

@@ -5,12 +5,17 @@
 
 from __future__ import absolute_import, division, print_function
 
+from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
+    NetworkInterface,
+)
+
 __metaclass__ = type
 
 import sys
 
 import pytest
 
+import json
 from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
@@ -40,6 +45,7 @@ class TestGet:
                     token_secret="PhXz3ncACvkcK",
                     client_key="nzW4EBWjyDe",
                 ),
+                fqdn="my_instance.maas",
                 hostname="my_instance",
                 state="absent",
                 allocate_params={
@@ -56,6 +62,7 @@ class TestGet:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
         ).return_value = dict(
+            fqdn="my_instance.maas",
             hostname="my_instance",
             system_id="system_id",
             memory=2000,
@@ -70,9 +77,13 @@ class TestGet:
             zone=dict(id=2),
             tag_names=["my_tag"],
             hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
+            power_type="lxd",
+            architecture="amd64",
         )
 
         assert Machine.get_by_name(module, client, True) == Machine(
+            fqdn="my_instance.maas",
             hostname="my_instance",
             id="system_id",
             pool=1,
@@ -86,7 +97,77 @@ class TestGet:
             distro_series="jammy",
             tags=["my_tag"],
             hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
             domain=3,
+            power_type="lxd",
+            architecture="amd64",
+        )
+
+    def test_get_by_fqdn(self, create_module, mocker, client):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    client_key="nzW4EBWjyDe",
+                ),
+                fqdn="my_instance.maas",
+                hostname="my_instance",
+                state="absent",
+                allocate_params={
+                    "memory": 2000,
+                    "cpu": 1,
+                },
+                deploy_params={
+                    "osystem": "ubuntu",
+                    "distro_series": "jammy",
+                },
+            ),
+        )
+
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
+        ).return_value = dict(
+            fqdn="my_instance.maas",
+            hostname="my_instance",
+            system_id="system_id",
+            memory=2000,
+            cpu_count=2,
+            interface_set=None,
+            blockdevice_set=None,
+            status_name="Ready",
+            osystem="ubuntu",
+            distro_series="jammy",
+            domain=dict(id=3),
+            pool=dict(id=1),
+            zone=dict(id=2),
+            tag_names=["my_tag"],
+            hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
+            power_type="lxd",
+            architecture="amd64",
+        )
+
+        assert Machine.get_by_name(module, client, True) == Machine(
+            fqdn="my_instance.maas",
+            hostname="my_instance",
+            id="system_id",
+            pool=1,
+            zone=2,
+            memory=2000,
+            cores=2,
+            network_interfaces=[],
+            disks=[],
+            status="Ready",
+            osystem="ubuntu",
+            distro_series="jammy",
+            tags=["my_tag"],
+            hwe_kernel="my_kernel",
+            min_hwe_kernel="min_kernel",
+            domain=3,
+            power_type="lxd",
+            architecture="amd64",
         )
 
 
@@ -148,12 +229,21 @@ class TestPayloadForCompose:
 class TestWaitForState:
     def test_wait_for_state(self, client, mocker):
         system_id = "system_id"
+
+        client.get.return_value = Response(
+            200,
+            json.dumps(
+                dict(
+                    hostname="my_instance",
+                    system_id="system_id",
+                    status_name="Commissioning",
+                ),
+            ),
+        )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_id"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
         ).return_value = Machine(
-            hostname="my_instance",
-            id="system_id",
-            status="Commissioning",
+            id="system_id", hostname="my_instance", status="Commissioning"
         )
 
         machine = Machine.wait_for_state(
@@ -173,8 +263,7 @@ class TestCommission:
         machine.commission(client)
 
         client.post.assert_called_with(
-            "/api/2.0/machines/123",
-            query={"op": "commission"},
+            "/api/2.0/machines/123/", query={"op": "commission"}, data={}
         )
 
 
@@ -225,6 +314,118 @@ class TestRelease:
             query={"op": "release"},
             data={},
         )
+
+
+class TestFindNic:
+    @staticmethod
+    def get_nic():
+        return dict(
+            name="this-nic",
+            id=123,
+            mac_address="this-mac",
+            system_id=123,
+            tags=["tag1", "tag2"],
+            effective_mtu=1500,
+            ip_address="this-ip",
+            subnet_cidr="this-subnet",
+            vlan=None,
+            links=[],
+        )
+
+    @staticmethod
+    def get_machine():
+        return dict(
+            fqdn="this-machine-fqdn",
+            hostname="this-machine",
+            cpu_count=2,
+            memory=5000,
+            system_id="123",
+            interface_set=[
+                dict(
+                    name="this-nic",
+                    id=123,
+                    mac_address="this-mac",
+                    system_id=123,
+                    tags=["tag1", "tag2"],
+                    effective_mtu=1500,
+                    ip_address="this-ip",
+                    subnet_cidr="this-subnet",
+                    vlan=None,
+                    links=[],
+                )
+            ],
+            blockdevice_set=None,
+            domain=dict(id=1),
+            zone=dict(id=1),
+            pool=dict(id=1),
+            tag_names=["my_tag"],
+            status_name="New",
+            osystem="ubuntu",
+            distro_series="jammy",
+            hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-powertype",
+            architecture="this-architecture",
+        )
+
+    @staticmethod
+    def get_machine_no_nic():
+        return dict(
+            fqdn="this-machine-fqdn",
+            hostname="this-machine",
+            cpu_count=2,
+            memory=5000,
+            system_id="123",
+            interface_set=None,
+            blockdevice_set=None,
+            domain=dict(id=1),
+            zone=dict(id=1),
+            pool=dict(id=1),
+            tag_names=["my_tag"],
+            status_name="New",
+            osystem="ubuntu",
+            distro_series="jammy",
+            hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-powertype",
+            architecture="this-architecture",
+        )
+
+    def test_find_nic_by_mac_when_nic_found(self):
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        machine_dict = self.get_machine()
+        machine_obj = Machine.from_maas(machine_dict)
+        mac_address = "this-mac"
+        expected = nic_obj
+        results = machine_obj.find_nic_by_mac(mac_address)
+        assert results == expected
+
+    def test_nic_by_mac_when_nic_not_found(self):
+        machine_dict = self.get_machine_no_nic()
+        machine_obj = Machine.from_maas(machine_dict)
+        mac_address = "this-mac"
+        expected = None
+        results = machine_obj.find_nic_by_mac(mac_address)
+        assert results == expected
+
+    def test_find_nic_by_name_when_nic_found(self):
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        machine_dict = self.get_machine()
+        machine_obj = Machine.from_maas(machine_dict)
+        nic_name = "this-nic"
+        expected = nic_obj
+        results = machine_obj.find_nic_by_name(nic_name)
+        assert results == expected
+
+    def test_nic_by_name_when_nic_not_found(self):
+        machine_dict = self.get_machine_no_nic()
+        machine_obj = Machine.from_maas(machine_dict)
+        nic_name = "this-nic"
+        expected = None
+        results = machine_obj.find_nic_by_name(nic_name)
+        assert results == expected
 
 
 # TODO: test mapper, when more values are added.

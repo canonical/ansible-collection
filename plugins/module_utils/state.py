@@ -20,3 +20,23 @@ class HostState(str, enum.Enum):
 class TaskState(str, enum.Enum):
     ready = "Ready"
     comissioning = "Commissioning"
+
+
+class NicState(str, enum.Enum):
+    present = "present"
+    absent = "absent"
+
+
+class MachineTaskState(str, enum.Enum):
+    allocated = "Allocated"
+    new = "New"
+    broken = "Broken"
+    deployed = "Deployed"
+    ready = "Ready"
+    comissioning = "Commissioning"
+    failed = "Failed"
+    deploying = "Deploying"
+    allocating = "Allocating"
+    testing = "Testing"
+    failed_comissioning = "Failed commissioning"
+    failed_deployment = "Failed deployment"

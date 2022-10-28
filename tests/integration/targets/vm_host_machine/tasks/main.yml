@@ -7,87 +7,87 @@
 
 
   block:
-  # ----------------------------------Cleanup----------------------------------------------------------------------------
-  - name: Delete machine
-    canonical.maas.instance:
-      hostname: integration-test
-      state: absent
-  # ----------------------------------Job----------------------------------------------------------------------------
-  - name: Create virtual machine with name integration-test two disks and a network interface.
-    canonical.maas.vm_host_machine:
-      vm_host: sunny-raptor # TODO: find a better way, maybe create host first?
-      hostname: integration-test
-      cores: 2
-      memory: 2000
-      network_interfaces:
-        label_name: my_first
-        subnet_cidr: "10.10.10.0/24"
-      storage_disks:
-        - size_gigabytes: 3
-        - size_gigabytes: 5
-    register: machine
-  - ansible.builtin.assert:
-      that:
-        - machine is succeeded
-        - machine is changed
+    # ----------------------------------Cleanup----------------------------------------------------------------------------
+    - name: Delete machine
+      canonical.maas.instance:
+        fqdn: integration-test.maas
+        state: absent
+    # ----------------------------------Job----------------------------------------------------------------------------
+    - name: Create virtual machine with name integration-test two disks and a network interface.
+      canonical.maas.vm_host_machine:
+        vm_host: crisp-skunk # TODO: find a better way, maybe create host first?
+        hostname: integration-test
+        cores: 2
+        memory: 2000
+        network_interfaces:
+          label_name: my_first
+          subnet_cidr: "10.10.10.0/24"
+        storage_disks:
+          - size_gigabytes: 3
+          - size_gigabytes: 5
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is succeeded
+          - machine is changed
 
-  - name: Get info from created machine.
-    canonical.maas.machine_info:
-      hostname: "{{ machine.record.hostname }}"
-    register: machine_info
-  - ansible.builtin.assert:
-      that:
-        - machine_info is succeeded
-        - machine_info is not changed
-        - machine_info.records
-        - machine_info.records | length == 1
-        - machine_info.records.0.hostname == "integration-test"
-        - machine_info.records.0.blockdevice_set | length == 2
-        - machine_info.records.0.cpu_count == 2
-        - machine_info.records.0.interface_set | length == 1
-        - machine_info.records.0.interface_set.0.name == "my_first"
-        - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-        - machine_info.records.0.memory == 2000
+    - name: Get info from created machine.
+      canonical.maas.machine_info:
+        fqdn: "{{ machine.record.fqdn }}"
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 2
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
 
-# ----------------------------------Idempotence check------------------------------------------------------------------------
-  - name: Create virtual machine with name integration-test two disks and a network interface. (Idempotence)
-    canonical.maas.vm_host_machine:
-      vm_host: sunny-raptor #
-      hostname: integration-test
-      cores: 2
-      memory: 2000
-      network_interfaces:
-        label_name: my_first
-        subnet_cidr: "10.10.10.0/24"
-      storage_disks:
-        - size_gigabytes: 3
-        - size_gigabytes: 5
-    register: machine_idempotence
-  - ansible.builtin.assert:
-      that:
-        - machine_idempotence is succeeded
-        - machine_idempotence is not changed
+  # ----------------------------------Idempotence check------------------------------------------------------------------------
+    - name: Create virtual machine with name integration-test two disks and a network interface. (Idempotence)
+      canonical.maas.vm_host_machine:
+        vm_host: crisp-skunk #
+        hostname: integration-test
+        cores: 2
+        memory: 2000
+        network_interfaces:
+          label_name: my_first
+          subnet_cidr: "10.10.10.0/24"
+        storage_disks:
+          - size_gigabytes: 3
+          - size_gigabytes: 5
+      register: machine_idempotence
+    - ansible.builtin.assert:
+        that:
+          - machine_idempotence is succeeded
+          - machine_idempotence is not changed
 
-  - name: Get info from created machine. (Idempotence)
-    canonical.maas.machine_info:
-      hostname: "{{ machine.record.hostname }}"
-    register: machine_info
-  - ansible.builtin.assert:
-      that:
-        - machine_info is succeeded
-        - machine_info is not changed
-        - machine_info.records
-        - machine_info.records | length == 1
-        - machine_info.records.0.hostname == "integration-test"
-        - machine_info.records.0.blockdevice_set | length == 2
-        - machine_info.records.0.cpu_count == 2
-        - machine_info.records.0.interface_set | length == 1
-        - machine_info.records.0.interface_set.0.name == "my_first"
-        - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-        - machine_info.records.0.memory == 2000
+    - name: Get info from created machine. (Idempotence)
+      canonical.maas.machine_info:
+        fqdn: "{{ machine.record.fqdn }}"
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 2
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
 
-  # ----------------------------------Cleanup----------------------------------------------------------------------------
-  - name: Delete machine
-    canonical.maas.instance:
-      hostname: integration-test
-      state: absent
+    # ----------------------------------Cleanup----------------------------------------------------------------------------
+    - name: Delete machine
+      canonical.maas.instance:
+        fqdn: integration-test.maas
+        state: absent
