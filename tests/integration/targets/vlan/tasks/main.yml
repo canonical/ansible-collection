@@ -1,0 +1,155 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+    # ----------------------------------Cleanup------------------------------------
+    - name: List fabrics
+      canonical.maas.fabric_info:
+      register: fabrics
+
+    - name: Delete vlan (by vid)
+      canonical.maas.vlan:
+        state: absent
+        fabric_name: "{{ fabrics.records.0.name }}"
+        vid: 5
+
+    - name: Delete network space
+      canonical.maas.space: &delete-network-space
+        name: space-for-vlan-test
+        state: absent
+
+    # -----------------------------------Info------------------------------------
+    - name: List vlans
+      canonical.maas.vlan_info:
+        fabric_name: "{{ fabrics.records.0.name }}"
+      register: vlans
+
+    - name: List specific vlan
+      canonical.maas.vlan_info:
+        fabric_name: "{{ fabrics.records.0.name }}"
+        vlan_name: "{{ vlans.records.0.name }}"
+      register: vlan
+    - ansible.builtin.assert:
+        that:
+          - vlan.records.0.name == vlans.records.0.name
+
+    # ------------------------------------Job------------------------------------
+    - name: Create vlan - missing parameter
+      canonical.maas.vlan:
+        state: present
+        fabric_name: fabric-10
+      ignore_errors: true
+      register: vlan
+    - ansible.builtin.assert:
+        that:
+          - vlan is failed
+          - "'one of the following is required: vid, vlan_name' in vlan.msg"
+
+    - name: Add network space
+      canonical.maas.space:
+        state: present
+        name: space-for-vlan-test
+      register: space
+    - ansible.builtin.assert:
+        that:
+          - space is changed
+          - space.record.name == "space-for-vlan-test"
+
+    - name: Create vlan
+      canonical.maas.vlan:
+        state: present
+        fabric_name: "{{ fabrics.records.0.name }}"
+        vid: 5
+        vlan_name: vlan-5
+        description: VLAN on fabric-0
+        mtu: 1500
+        dhcp_on: false
+        space: "{{ space.record.name }}"
+      register: vlan
+    - ansible.builtin.assert:
+        that:
+          - vlan is changed
+          - vlan.record.name == "vlan-5"
+          - vlan.record.fabric == fabrics.records.0.name
+          - vlan.record.mtu == 1500
+          - vlan.record.dhcp_on == false
+          - vlan.record.space == "space-for-vlan-test"
+          # - vlan.record.description == "VLAN on fabric-0" # description is not returned
+
+    - name: Create vlan - idempotence
+      canonical.maas.vlan:
+        state: present
+        fabric_name: "{{ fabrics.records.0.name }}"
+        vid: 5
+        vlan_name: vlan-5
+        # description: VLAN on fabric-0 # description is not returned
+        mtu: 1500
+        dhcp_on: false
+        space: "{{ space.record.name }}"
+      register: vlan
+    - ansible.builtin.assert:
+        that:
+          - vlan is not changed
+          - vlan.record.name == "vlan-5"
+          - vlan.record.fabric == fabrics.records.0.name
+          - vlan.record.mtu == 1500
+          - vlan.record.dhcp_on == false
+          - vlan.record.space == "space-for-vlan-test"
+          # - vlan.record.description == "VLAN on fabric-0" # description is not returned
+
+    - name: Update vlan (by name)
+      canonical.maas.vlan:
+        state: present
+        fabric_name: "{{ fabrics.records.0.name }}"
+        vlan_name: vlan-5
+        new_vlan_name: vlan-555
+        description: VLAN on fabric-0 updated
+        mtu: 2000
+        space: ""
+        # dhcp_on: true # dhcp can only be turned on when a dynamic IP range is defined
+      register: vlan
+    - ansible.builtin.assert:
+        that:
+          - vlan is changed
+          - vlan.record.name == "vlan-555"
+          - vlan.record.fabric == fabrics.records.0.name
+          - vlan.record.mtu == 2000
+          # - vlan.record.dhcp_on == true
+          - vlan.record.space == "undefined"
+          # - vlan.record.description == "VLAN on fabric-0 updated" # description is not returned
+
+    - name: Update vlan (by vid) - idempotence
+      canonical.maas.vlan:
+        state: present
+        fabric_name: "{{ fabrics.records.0.name }}"
+        vid: 5
+        new_vlan_name: vlan-555
+        # description: VLAN on fabric-0 updated # description is not returned
+        mtu: 2000
+        space: ""
+        # dhcp_on: true # dhcp can only be turned on when a dynamic IP range is defined
+      register: vlan
+    - ansible.builtin.assert:
+        that:
+          - vlan is changed
+          - vlan.record.name == "vlan-555"
+          - vlan.record.fabric == fabrics.records.0.name
+          - vlan.record.mtu == 2000
+          # - vlan.record.dhcp_on == true
+          - vlan.record.space == "undefined"
+          # - vlan.record.description == "VLAN on fabric-0 updated" # description is not returned
+
+    # ----------------------------------Cleanup------------------------------------
+    - name: Delete vlan (by name)
+      canonical.maas.vlan:
+        state: absent
+        fabric_name: "{{ fabrics.records.0.name }}"
+        vlan_name: vlan-555
+
+    - name: Delete network space
+      canonical.maas.space: *delete-network-space
