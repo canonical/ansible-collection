@@ -34,7 +34,7 @@ options:
     required: true
   vlan:
     description:
-      - Virtual LAN.
+      - Virtual LAN id.
       - If not provided, network interface is considered disconnected.
     type: str
   name:
@@ -65,7 +65,7 @@ EXAMPLES = r"""
     machine: calm-guinea
     state: present
     mac_address: '00:16:3e:ae:78:75'
-    vlan: vlan-5
+    vlan: 5002
     name: new_nic
     mtu: 1700
     tags:
