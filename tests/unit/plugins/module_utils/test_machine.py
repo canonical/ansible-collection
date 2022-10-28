@@ -263,8 +263,7 @@ class TestCommission:
         machine.commission(client)
 
         client.post.assert_called_with(
-            "/api/2.0/machines/123",
-            query={"op": "commission"},
+            "/api/2.0/machines/123/", query={"op": "commission"}, data={}
         )
 
 

@@ -25,7 +25,7 @@
   - name: Delete nic from machine calm-guinea on host sunny-raptor
     canonical.maas.vm_nic_physical:
       cluster_instance:
-        host: http://localhost:5240/MAAS
+        host: http://10.44.240.10:5240/MAAS
         token_key: kDcKvtWX7fXLB7TvB2
         token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
         customer_key: tqDErtYzyzRVdUb9hS

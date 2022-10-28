@@ -11,7 +11,9 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.modules import vm_nic_physical
+from ansible_collections.canonical.maas.plugins.modules import (
+    network_interface_physical,
+)
 from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
     NetworkInterface,
@@ -33,12 +35,12 @@ class TestMain:
                 token_key="token key",
                 token_secret="token secret",
             ),
-            fqdn="this-machine-fqdn",
+            machine="this-machine-fqdn",
             mac_address="this-mac",
             state="present",
         )
 
-        success, results = run_main(vm_nic_physical, params)
+        success, results = run_main(network_interface_physical, params)
         assert success is True
         assert results == {
             "changed": False,
@@ -54,7 +56,7 @@ class TestMain:
                 token_key="token key",
                 token_secret="token secret",
             ),
-            fqdn="this-machine-fqdn",
+            machine="this-machine-fqdn",
             mac_address="this-mac",
             state="present",
             vlan="this-vlan",
@@ -63,7 +65,7 @@ class TestMain:
             tags=["tag1", "tag2"],
         )
 
-        success, results = run_main(vm_nic_physical, params)
+        success, results = run_main(network_interface_physical, params)
         assert success is True
         assert results == {
             "changed": False,
@@ -168,7 +170,7 @@ class TestRun:
             errors.MaasError,
             match=f"Machine {machine_obj.hostname} is not in the right state, needs to be in Ready, Allocated or Broken.",
         ):
-            vm_nic_physical.run(module, client)
+            network_interface_physical.run(module, client)
 
     def test_run_with_present_with_waiting_on_machine_state(
         self, create_module, client, mocker
@@ -197,9 +199,9 @@ class TestRun:
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.wait_for_state"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.vm_nic_physical.ensure_present"
+            "ansible_collections.canonical.maas.plugins.modules.network_interface_physical.ensure_present"
         ).return_value = (False, {}, {"before": {}, "after": {}})
-        results = vm_nic_physical.run(module, client)
+        results = network_interface_physical.run(module, client)
         assert results == expected
 
     def test_run_with_present_ensure_present(self, create_module, client, mocker):
@@ -224,9 +226,9 @@ class TestRun:
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.vm_nic_physical.ensure_present"
+            "ansible_collections.canonical.maas.plugins.modules.network_interface_physical.ensure_present"
         ).return_value = (False, {}, {"before": {}, "after": {}})
-        results = vm_nic_physical.run(module, client)
+        results = network_interface_physical.run(module, client)
         assert results == expected
 
     def test_run_with_absent_ensure_absent(self, create_module, client, mocker):
@@ -251,9 +253,9 @@ class TestRun:
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.vm_nic_physical.ensure_absent"
+            "ansible_collections.canonical.maas.plugins.modules.network_interface_physical.ensure_absent"
         ).return_value = (False, {}, {"before": {}, "after": {}})
-        results = vm_nic_physical.run(module, client)
+        results = network_interface_physical.run(module, client)
         assert results == expected
 
 
@@ -388,7 +390,7 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = vm_nic_physical.ensure_present(module, client, machine_obj)
+        results = network_interface_physical.ensure_present(module, client, machine_obj)
         assert results == expected
 
     def test_ensure_present_when_update_existing_nic(
@@ -440,7 +442,7 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = vm_nic_physical.ensure_present(module, client, machine_obj)
+        results = network_interface_physical.ensure_present(module, client, machine_obj)
         assert results == expected
 
     def test_ensure_present_when_no_changes_nic(self, create_module, client, mocker):
@@ -480,7 +482,7 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
         ).return_value = updated_machine_obj
-        results = vm_nic_physical.ensure_present(module, client, machine_obj)
+        results = network_interface_physical.ensure_present(module, client, machine_obj)
         assert results == expected
 
 
@@ -608,7 +610,7 @@ class TestEsnureAbsent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = vm_nic_physical.ensure_absent(module, client, machine_obj)
+        results = network_interface_physical.ensure_absent(module, client, machine_obj)
         assert results == expected
 
     def test_ensure_absent_when_no_changes_nic(self, create_module, client, mocker):
@@ -632,7 +634,7 @@ class TestEsnureAbsent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
         ).return_value = None
-        results = vm_nic_physical.ensure_absent(module, client, machine_obj)
+        results = network_interface_physical.ensure_absent(module, client, machine_obj)
         assert results == expected
 
     def test_ensure_absent_when_delete_existing_nic_but_no_changes(
@@ -669,4 +671,4 @@ class TestEsnureAbsent:
             errors.MaasError,
             match=f"Delete network interface task failed with mac: {nic_obj.mac_address}",
         ):
-            vm_nic_physical.ensure_absent(module, client, machine_obj)
+            network_interface_physical.ensure_absent(module, client, machine_obj)
