@@ -4,11 +4,11 @@
   - name: Create new machine on sunny-raptor host
     canonical.maas.vm_host_machine:
       cluster_instance:
-        host: http://localhost:5240/MAAS
-        token_key: URCfn6EhdZSj9CSDf7
-        token_secret: PhXz3ncACvkcKnmCjsuSpzPnkf79pLPk
-        customer_key: nzW4EBWjyDe5B5szja
-      vm_host: sunny-raptor
+        host: http://10.44.240.10:5240/MAAS
+        token_key: kDcKvtWX7fXLB7TvB2
+        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+        customer_key: tqDErtYzyzRVdUb9hS
+      vm_host: crisp-skunk
       hostname: new-machine-3
       cores: 2
       # pinned_cores: 3
@@ -19,10 +19,10 @@
       network_interfaces: # Compose allows for one network interface only.
         label_name: my-net
         name: lxdbr0
-        # subnet_cidr: "10.10.10.0/24"
-        # fabric: fabric-1
-        # vlan: vlan-2
-        # ip_address: "10.10.10.1"
+        subnet_cidr: "10.10.10.0/24"
+        fabric: fabric-1
+        vlan: 0
+        ip_address: "10.10.10.150"
       storage_disks:
         - size_gigabytes: 3
         - size_gigabytes: 5

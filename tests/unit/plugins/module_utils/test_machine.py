@@ -5,6 +5,10 @@
 
 from __future__ import absolute_import, division, print_function
 
+from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
+    NetworkInterface,
+)
+
 __metaclass__ = type
 
 import sys
@@ -312,12 +316,116 @@ class TestRelease:
         )
 
 
-class TestFindNicByMac:
+class TestFindNic:
+    @staticmethod
+    def get_nic():
+        return dict(
+            name="this-nic",
+            id=123,
+            mac_address="this-mac",
+            system_id=123,
+            tags=["tag1", "tag2"],
+            effective_mtu=1500,
+            ip_address="this-ip",
+            subnet_cidr="this-subnet",
+            vlan=None,
+            links=[],
+        )
+
+    @staticmethod
+    def get_machine():
+        return dict(
+            fqdn="this-machine-fqdn",
+            hostname="this-machine",
+            cpu_count=2,
+            memory=5000,
+            system_id="123",
+            interface_set=[
+                dict(
+                    name="this-nic",
+                    id=123,
+                    mac_address="this-mac",
+                    system_id=123,
+                    tags=["tag1", "tag2"],
+                    effective_mtu=1500,
+                    ip_address="this-ip",
+                    subnet_cidr="this-subnet",
+                    vlan=None,
+                    links=[],
+                )
+            ],
+            blockdevice_set=None,
+            domain=dict(id=1),
+            zone=dict(id=1),
+            pool=dict(id=1),
+            tag_names=["my_tag"],
+            status_name="New",
+            osystem="ubuntu",
+            distro_series="jammy",
+            hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-powertype",
+            architecture="this-architecture",
+        )
+
+    @staticmethod
+    def get_machine_no_nic():
+        return dict(
+            fqdn="this-machine-fqdn",
+            hostname="this-machine",
+            cpu_count=2,
+            memory=5000,
+            system_id="123",
+            interface_set=None,
+            blockdevice_set=None,
+            domain=dict(id=1),
+            zone=dict(id=1),
+            pool=dict(id=1),
+            tag_names=["my_tag"],
+            status_name="New",
+            osystem="ubuntu",
+            distro_series="jammy",
+            hwe_kernel="ga-22.04",
+            min_hwe_kernel="ga-22.04",
+            power_type="this-powertype",
+            architecture="this-architecture",
+        )
+
     def test_find_nic_by_mac_when_nic_found(self):
-        pass
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        machine_dict = self.get_machine()
+        machine_obj = Machine.from_maas(machine_dict)
+        mac_address = "this-mac"
+        expected = nic_obj
+        results = machine_obj.find_nic_by_mac(mac_address)
+        assert results == expected
 
     def test_nic_by_mac_when_nic_not_found(self):
-        pass
+        machine_dict = self.get_machine_no_nic()
+        machine_obj = Machine.from_maas(machine_dict)
+        mac_address = "this-mac"
+        expected = None
+        results = machine_obj.find_nic_by_mac(mac_address)
+        assert results == expected
+
+    def test_find_nic_by_name_when_nic_found(self):
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        machine_dict = self.get_machine()
+        machine_obj = Machine.from_maas(machine_dict)
+        nic_name = "this-nic"
+        expected = nic_obj
+        results = machine_obj.find_nic_by_name(nic_name)
+        assert results == expected
+
+    def test_nic_by_name_when_nic_not_found(self):
+        machine_dict = self.get_machine_no_nic()
+        machine_obj = Machine.from_maas(machine_dict)
+        nic_name = "this-nic"
+        expected = None
+        results = machine_obj.find_nic_by_name(nic_name)
+        assert results == expected
 
 
 # TODO: test mapper, when more values are added.

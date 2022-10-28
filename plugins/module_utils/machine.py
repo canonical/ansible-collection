@@ -18,6 +18,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.client import Client
 from ..module_utils.network_interface import NetworkInterface
 from ..module_utils.disk import Disk
+from ..module_utils.state import MachineTaskState
 
 
 class Machine(MaasValueMapper):
@@ -261,6 +262,12 @@ class Machine(MaasValueMapper):
             if mac == nic_obj.mac_address:
                 return nic_obj
 
+    def find_nic_by_name(self, nic_name):
+        # returns nic object or None
+        for nic_obj in self.network_interfaces:
+            if nic_name == nic_obj.name:
+                return nic_obj
+
     def __eq__(self, other):
         """One Machine is equal to another if it has ALL attributes exactly the same"""
         return all(
@@ -292,7 +299,14 @@ class Machine(MaasValueMapper):
                 maas_dict = client.get(f"/api/2.0/machines/{id}/").json
                 if maas_dict["status_name"] in states:  # IMPLEMENT TIMEOUT?
                     return cls.from_maas(maas_dict)
-                sleep(3)
+                if maas_dict["status_name"] in [
+                    MachineTaskState.failed_comissioning.value,
+                    MachineTaskState.failed_deployment.value,
+                ]:
+                    raise errors.MaasError(
+                        f"Machine - {maas_dict['hostname']} - Failed to commision or deploy"
+                    )
+                sleep(10)
             except errors.MaasError:
                 raise errors.MachineNotFound(id)
 
@@ -322,6 +336,3 @@ class Machine(MaasValueMapper):
 
     def update(self, client, payload):
         return client.put(f"/api/2.0/machines/{self.id}/", data=payload).json
-
-    def find_nic_by_name(self, nic_name):
-        pass

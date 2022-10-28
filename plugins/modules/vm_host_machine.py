@@ -97,7 +97,7 @@ options:
       vlan:
         type: str
         description:
-          - The VLAN for the network interface.
+          - The VLAN id for the network interface.
           - Matches an interface on the specified VLAN.
 """
 

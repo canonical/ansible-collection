@@ -33,7 +33,9 @@ options:
     type: str
     required: true
   vlan:
-    description: Virtual LAN.
+    description:
+      - Virtual LAN id.
+      - If not provided, network interface is considered disconnected.
     type: str
   name:
     description: Network interface name.
@@ -63,7 +65,7 @@ EXAMPLES = r"""
     machine: calm-guinea
     state: present
     mac_address: '00:16:3e:ae:78:75'
-    vlan: vlan-5
+    vlan: 5002
     name: new_nic
     mtu: 1700
     tags:
@@ -94,7 +96,7 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Created virtual machine on a specified host.
+    - Crated or deleted network interface.
   returned: success
   type: dict
   sample:
@@ -185,10 +187,10 @@ def run(module, client):
             machine_obj.id,
             client,
             False,
-            [
-                MachineTaskState.ready,
-                MachineTaskState.broken,
-                MachineTaskState.allocated,
+            *[
+                MachineTaskState.ready.value,
+                MachineTaskState.broken.value,
+                MachineTaskState.allocated.value,
             ],
         )
     if module.params["state"] == NicState.present:
