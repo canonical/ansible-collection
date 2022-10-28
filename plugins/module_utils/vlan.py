@@ -14,6 +14,7 @@ from ..module_utils.utils import (
 )
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
+from ..module_utils.client import Client
 
 
 class Vlan(MaasValueMapper):
@@ -61,8 +62,19 @@ class Vlan(MaasValueMapper):
             f"/api/2.0/fabrics/{fabric_id}/vlans/", query, must_exist=must_exist
         )
         if maas_dict:
-            vmhost_from_maas = cls.from_maas(maas_dict)
-            return vmhost_from_maas
+            vlan_from_maas = cls.from_maas(maas_dict)
+            return vlan_from_maas
+
+    @classmethod
+    def get_by_vid(cls, module, client: Client, fabric_id):
+        response = client.get(
+            f"/api/2.0/fabrics/{fabric_id}/vlans/{module.params['vid']}/"
+        )
+        if response.status == 404:
+            return None
+        vlan_maas_dict = response.json
+        vlan = cls.from_maas(vlan_maas_dict)
+        return vlan
 
     @classmethod
     def from_ansible(cls, module):
@@ -109,15 +121,16 @@ class Vlan(MaasValueMapper):
             resource_uri=self.resource_uri,
         )
 
-    def delete(self, client, fabric_id):
-        client.delete(f"/api/2.0/fabrics/{fabric_id}/vlans/{self.vid}/")
+    def delete(self, client):
+        client.delete(f"/api/2.0/fabrics/{self.fabric_id}/vlans/{self.vid}/")
 
-    def get(self, client, fabric_id):
-        return client.get(f"/api/2.0/fabrics/{fabric_id}/vlans/{self.vid}/").json
+    def get(self, client):
+        return client.get(f"/api/2.0/fabrics/{self.fabric_id}/vlans/{self.vid}/").json
+        # Also possible: client.get(f"/api/2.0/vlans/{self.id}/").json
 
-    def update(self, client, fabric_id, payload):
+    def update(self, client, payload):
         return client.put(
-            f"/api/2.0/fabrics/{fabric_id}/vlans/{self.vid}/", data=payload
+            f"/api/2.0/fabrics/{self.fabric_id}/vlans/{self.vid}/", data=payload
         ).json
 
     @classmethod

@@ -95,7 +95,7 @@ def run(module, client: Client):
     if module.params["vlan_name"]:
         pass
         vlan = Vlan.get_by_name(module, client, fabric.id, must_exist=True)
-        response = [vlan.get(client, fabric.id)]
+        response = [vlan.get(client)]
     else:
         response = client.get(f"/api/2.0/fabrics/{fabric.id}/vlans/").json
     return response

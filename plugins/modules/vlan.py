@@ -6,8 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-from ansible_collections.canonical.maas.plugins.module_utils.fabric import Fabric
-
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -17,10 +15,10 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Creates, updates or deletes MAAS VLANs.
 description:
-  - If I(state) is C(present) and I(vlan_name) is not present or not found, new VLAN with specified traffic segregation ID - I(vid)
+  - If I(state) is C(present) and I(vid) is provided but not found, new VLAN with specified traffic segregation ID - I(vid)
     is created on a specified fabric - I(fabric_name).
-  - If I(state) is C(present) and I(vlan_name) is found, updates an existing VLAN.
-  - If I(state) is C(absent) selected VLAN is deleted.
+  - If I(state) is C(present) and I(vid) or I(vlan_name) is found, updates an existing VLAN.
+  - If I(state) is C(absent) VLAN selected either by I(vid) of I(vlan_name) is deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -42,12 +40,13 @@ options:
   vid:
     description:
       - The traffic segregation ID for the new VLAN.
+      - Required when creating new VLAN.
+      - Serves as unique identifier of VLAN to be updated.
     type: str
-    required: True
   vlan_name:
     description:
-      - The name of the new VLAN.
-      - This is computed if it's not set.
+      - The name of the new VLAN to be created. This is computed if it's not set.
+      - Serves also as unique identifier of VLAN to be updated if I(vid) is not provided.
     type: str
   new_vlan_name:
     description:
@@ -70,7 +69,7 @@ options:
   space:
     description:
       - The network space this VLAN should be placed in.
-      - Passing in an empty string (or the string undefined) will cause the VLAN to be placed in the undefined space.
+      - Passing in an empty string will cause the VLAN to be placed in the undefined space.
     type: str
 """
 
@@ -79,29 +78,46 @@ EXAMPLES = r"""
   canonical.maas.vlan:
     state: present
     fabric_name: fabric-10
-    vid: 0
+    vid: 5
     vlan_name: vlan-10
     description: VLAN on fabric-10
     mtu: 1500
     dhcp_on: false
     space: network-space-10
 
-- name: Update VLAN
+- name: Update VLAN using vid as identifier
   canonical.maas.space:
     state: present
     fabric_name: fabric-10
-    vid: 0
+    vid: 5
+    new_vlan_name: vlan-10-updated
+    description: VLAN on fabric-10 updated
+    mtu: 2000
+    dhcp_on: true
+    space: new-network-space
+
+- name: Update VLAN using name as identifier
+  canonical.maas.space:
+    state: present
+    fabric_name: fabric-10
     vlan_name: vlan-10
     new_vlan_name: vlan-10-updated
     description: VLAN on fabric-10 updated
     mtu: 2000
     dhcp_on: true
-    space: network-space-10
+    space: new-network-space
 
 - name: Remove network space
   canonical.maas.space:
     state: absent
-    name: updated-space
+    fabric_name: fabric-10
+    vid: 5
+
+- name: Remove network space
+  canonical.maas.space:
+    state: absent
+    fabric_name: fabric-10
+    vlan_name: vlan-10
 """
 
 RETURN = r"""
@@ -132,6 +148,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.vlan import Vlan
+from ..module_utils.fabric import Fabric
 
 
 def data_for_create_vlan(module):
@@ -152,8 +169,8 @@ def create_vlan(module, client: Client, fabric_id):
     data = data_for_create_vlan(module)
     vlan = Vlan.create(client, fabric_id, data)
     if module.params["dhcp_on"]:  # this parameter can only be set with put
-        data = data_for_update_vlan(module, fabric_id, vlan)
-        vlan.update(client, fabric_id, data)
+        data = data_for_update_vlan(module, vlan)
+        vlan.update(client, data)
     return (
         True,
         vlan.to_ansible(),
@@ -174,7 +191,9 @@ def data_for_update_vlan(module, vlan):
     if module.params["dhcp_on"]:
         if vlan.dhcp_on != module.params["dhcp_on"]:
             data["dhcp_on"] = module.params["dhcp_on"]
-    if module.params["space"]:
+    if (
+        module.params["space"] is not None
+    ):  # we want a possibility to write empty string to get "undefined" space
         if vlan.space != module.params["space"]:
             data["space"] = module.params["space"]
     return data
@@ -198,7 +217,10 @@ def update_vlan(module, client: Client, vlan):
 
 
 def delete_vlan(module, client: Client, fabric_id):
-    vlan = Vlan.get_by_name(module, client, fabric_id, must_exist=False)
+    if module.params["vid"]:
+        vlan = Vlan.get_by_vid(module, client, fabric_id)
+    else:
+        vlan = Vlan.get_by_name(module, client, fabric_id, must_exist=False)
     if vlan:
         vlan.delete(client)
         return True, dict(), dict(before=vlan.to_ansible(), after={})
@@ -217,14 +239,14 @@ def run(module, client: Client):
             vlan = Vlan.get_by_vid(module, client, fabric.id)
             if vlan:
                 return update_vlan(module, client, vlan)
-            return create_vlan(module, client)
+            return create_vlan(module, client, fabric.id)
     if module.params["state"] == "absent":
-        return delete_vlan(module, client)
+        return delete_vlan(module, client, fabric.id)
 
 
 def main():
     module = AnsibleModule(
-        supports_check_mode=True,
+        supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             state=dict(type="str", choices=["present", "absent"], required=True),
@@ -233,11 +255,13 @@ def main():
             vlan_name=dict(type="str"),
             new_vlan_name=dict(type="str"),
             description=dict(type="str"),
-            mtu=dict(type="str"),
-            dhcp_on=dict(type="str"),
+            mtu=dict(type="int"),
+            dhcp_on=dict(type="bool"),
             space=dict(type="str"),
         ),
-        # required_one_of=
+        required_one_of=[
+            ("vid", "vlan_name"),
+        ],
     )
 
     try:
