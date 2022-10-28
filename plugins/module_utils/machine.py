@@ -301,7 +301,7 @@ class Machine(MaasValueMapper):
                     return cls.from_maas(maas_dict)
                 if maas_dict["status_name"] in [
                     MachineTaskState.failed_comissioning.value,
-                    MachineTaskState.failed_deploying.value,
+                    MachineTaskState.failed_deployment.value,
                 ]:
                     raise errors.MaasError(
                         f"Machine - {maas_dict['hostname']} - Failed to commision or deploy"
