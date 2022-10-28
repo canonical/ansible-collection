@@ -267,7 +267,7 @@ class TestSendRequestAndPayload:
             effective_mtu=1500,
             ip_address="this-ip",
             cidr="this-subnet",
-            vlan=None,
+            vlan=dict(fabric="this-fabeic"),
             links=[],
         )
 
@@ -344,9 +344,31 @@ class TestSendRequestAndPayload:
         expected["subnet"] = 2
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
-        ).return_value = {"id": 2, "gateway_ip": "10.10.10.1"}
-        results = nic_obj.payload_for_link_subnet(client)
+        ).return_value = {
+            "id": 2,
+            "gateway_ip": "10.10.10.1",
+            "vlan": dict(fabric="this-fabric"),
+        }
+        results = nic_obj.payload_for_link_subnet(client, "this-fabric")
         assert results == expected
+
+    def test_payload_for_link_subnet_when_fabric_not_the_same(self, client, mocker):
+        nic_dict = self.get_nic()
+        nic_obj = NetworkInterface.from_maas(nic_dict)
+        expected = nic_obj.to_maas()
+        expected["subnet"] = 2
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
+        ).return_value = {
+            "id": 2,
+            "gateway_ip": "10.10.10.1",
+            "vlan": dict(fabric="this-fabric-1"),
+        }
+        with pytest.raises(
+            errors.MaasError,
+            match=f"subnet - {nic_dict['cidr']} does not have the same fabric. Try another subnet or change fabric.",
+        ):
+            nic_obj.payload_for_link_subnet(client, "this-fabric")
 
     def test_send_link_subnet_request(self, client):
         nic_dict = self.get_nic()

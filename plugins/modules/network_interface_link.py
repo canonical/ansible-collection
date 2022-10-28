@@ -163,7 +163,7 @@ def ensure_present(module, client, machine_obj):
         new_nic_obj.send_link_subnet_request(
             client,
             machine_obj,
-            new_nic_obj.payload_for_link_subnet(client),
+            new_nic_obj.payload_for_link_subnet(client, existing_nic_obj.fabric),
             existing_nic_obj.id,
         )
         updated_machine_obj = Machine.get_by_fqdn(
@@ -175,7 +175,7 @@ def ensure_present(module, client, machine_obj):
         new_nic_obj.send_link_subnet_request(
             client,
             machine_obj,
-            new_nic_obj.payload_for_link_subnet(client),
+            new_nic_obj.payload_for_link_subnet(client, existing_nic_obj.fabric),
             existing_nic_obj.id,
         )
         updated_machine_obj = Machine.get_by_fqdn(
@@ -223,10 +223,10 @@ def run(module, client):
             machine_obj.id,
             client,
             False,
-            [
-                MachineTaskState.ready,
-                MachineTaskState.broken,
-                MachineTaskState.allocated,
+            *[
+                MachineTaskState.ready.value,
+                MachineTaskState.broken.value,
+                MachineTaskState.allocated.value,
             ],
         )
     if module.params["state"] == NicState.present:

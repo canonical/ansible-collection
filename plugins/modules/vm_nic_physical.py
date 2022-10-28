@@ -33,7 +33,9 @@ options:
     type: str
     required: true
   vlan:
-    description: Virtual LAN.
+    description:
+      - Virtual LAN.
+      - If not provided, network interface is considered disconnected.
     type: str
   name:
     description: Network interface name.
@@ -179,10 +181,10 @@ def run(module, client):
             machine_obj.id,
             client,
             False,
-            [
-                MachineTaskState.ready,
-                MachineTaskState.broken,
-                MachineTaskState.allocated,
+            *[
+                MachineTaskState.ready.value,
+                MachineTaskState.broken.value,
+                MachineTaskState.allocated.value,
             ],
         )
     if module.params["state"] == NicState.present:

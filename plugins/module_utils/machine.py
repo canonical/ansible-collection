@@ -298,7 +298,7 @@ class Machine(MaasValueMapper):
                 maas_dict = client.get(f"/api/2.0/machines/{id}/").json
                 if maas_dict["status_name"] in states:  # IMPLEMENT TIMEOUT?
                     return cls.from_maas(maas_dict)
-                sleep(3)
+                sleep(10)
             except errors.MaasError:
                 raise errors.MachineNotFound(id)
 

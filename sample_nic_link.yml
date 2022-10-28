@@ -8,10 +8,10 @@
         token_key: kDcKvtWX7fXLB7TvB2
         token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
         customer_key: tqDErtYzyzRVdUb9hS
-      machine: new-machine-3.test-domain
+      machine: integration-test-nic-link.maas
       state: present
       mode: AUTO
-      network_interface: enp5s0
+      network_interface: test_nic
       subnet: 10.10.10.0/24
       ip_address: 10.10.10.4
     register: nic_info

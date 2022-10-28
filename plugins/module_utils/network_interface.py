@@ -97,10 +97,16 @@ class NetworkInterface(MaasValueMapper):
                 obj.fabric = maas_dict["discovered"][0]["subnet"]["vlan"].get("fabric")
             elif maas_dict.get("links") and len(maas_dict["links"]) > 0:  # Static IP
                 obj.ip_address = maas_dict["links"][0].get("ip_address")
-                obj.ip_address = maas_dict["links"][0].get("mac_address")
-                obj.subnet_cidr = maas_dict["links"][0]["subnet"].get("cidr")
-                obj.vlan = maas_dict["links"][0]["subnet"]["vlan"].get("name")
-                obj.fabric = maas_dict["links"][0]["subnet"]["vlan"].get("fabric")
+                obj.subnet_cidr = maas_dict["links"][0].get("subnet", {}).get("cidr")
+                obj.vlan = (
+                    maas_dict["links"][0].get("subnet", {}).get("vlan", {}).get("name")
+                )
+                obj.fabric = (
+                    maas_dict["links"][0]
+                    .get("subnet", {})
+                    .get("vlan", {})
+                    .get("fabric")
+                )
             else:  # interface auto generated
                 obj.ip_address = maas_dict.get("ip_address")
                 obj.subnet_cidr = maas_dict.get("cidr")
@@ -157,7 +163,8 @@ class NetworkInterface(MaasValueMapper):
     def find_linked_alias_by_cidr(self, module):
         for linked_subnet in self.linked_subnets:
             if (
-                linked_subnet["subnet"]["name"] == module.params["subnet"]
+                linked_subnet.get("subnet", {}).get("name")
+                and linked_subnet["subnet"]["name"] == module.params["subnet"]
             ):  # subnet name is cidr from MaaS API.
                 return linked_subnet
 
@@ -227,9 +234,13 @@ class NetworkInterface(MaasValueMapper):
         # DELETE does not return valid json.
         client.delete(f"/api/2.0/nodes/{machine_obj.id}/interfaces/{nic_id}/")
 
-    def payload_for_link_subnet(self, client):
+    def payload_for_link_subnet(self, client, fabric):
         payload = self.to_maas()
         subnet = NetworkInterface.find_subnet_by_cidr(client, payload["subnet_cidr"])
+        if subnet.get("vlan", {}).get("fabric") != fabric:
+            raise errors.MaasError(
+                f"subnet - {payload['subnet_cidr']} does not have the same fabric. Try another subnet or change fabric."
+            )
         payload["subnet"] = subnet["id"]
         return payload
 
