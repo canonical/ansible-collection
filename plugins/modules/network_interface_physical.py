@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: vm_nic_physical
+module: network_interface_physical
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
@@ -21,7 +21,7 @@ extends_documentation_fragment:
   - canonical.maas.cluster_instance
 seealso: []
 options:
-  fqdn:
+  machine:
     description:
       - Fully qualified domain name of the machine to be deleted, deployed or released.
       - Serves as unique identifier of the machine.
@@ -54,13 +54,13 @@ options:
 
 EXAMPLES = r"""
 - name: Create new nic on sunny-raptor host with machine calm-guinea
-  canonical.maas.vm_nic_physical:
+  canonical.maas.network_interface_physical:
     cluster_instance:
       host: host-ip
       token_key: token-key
       token_secret: token-secret
       customer_key: customer-key
-    fqdn: calm-guinea
+    machine: calm-guinea
     state: present
     mac_address: '00:16:3e:ae:78:75'
     vlan: vlan-5
@@ -75,13 +75,13 @@ EXAMPLES = r"""
     var: nic_info
 
 - name: Delete nic from machine calm-guinea on host sunny-raptor
-  canonical.maas.vm_nic_physical:
+  canonical.maas.network_interface_physical:
     cluster_instance:
       host: host-ip
       token_key: token-key
       token_secret: token-secret
       customer_key: customer-key
-    fqdn: calm-guinea
+    machine: calm-guinea
     state: absent
     mac_address: '00:16:3e:ae:78:75'
   register: nic_info
@@ -137,7 +137,9 @@ def ensure_present(module, client, machine_obj):
         )
     else:
         return is_changed(before, after), after, dict(before=before, after=after)
-    updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+    updated_machine_obj = Machine.get_by_fqdn(
+        module, client, must_exist=True, name_field_ansible="machine"
+    )
     after = updated_machine_obj.find_nic_by_mac(new_nic_obj.mac_address).to_ansible()
     return is_changed(before, after), after, dict(before=before, after=after)
 
@@ -150,7 +152,9 @@ def ensure_absent(module, client, machine_obj):
         before = nic_to_delete_obj.to_ansible()
         nic_to_delete_obj.send_delete_request(client, machine_obj, nic_to_delete_obj.id)
         # Check if nic was actually deleted, if not failed = True in playbook.
-        updated_machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+        updated_machine_obj = Machine.get_by_fqdn(
+            module, client, must_exist=True, name_field_ansible="machine"
+        )
         if updated_machine_obj.find_nic_by_mac(nic_to_delete_obj.mac_address):
             raise errors.MaasError(
                 f"Delete network interface task failed with mac: {nic_to_delete_obj.mac_address}"
@@ -160,7 +164,9 @@ def ensure_absent(module, client, machine_obj):
 
 def run(module, client):
     # Machine needs to be allocated, broken or ready.
-    machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+    machine_obj = Machine.get_by_fqdn(
+        module, client, must_exist=True, name_field_ansible="machine"
+    )
     if machine_obj.status not in [
         MachineTaskState.ready,
         MachineTaskState.allocated,
@@ -197,7 +203,7 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            fqdn=dict(
+            machine=dict(
                 type="str",
                 required=True,
             ),
