@@ -13,7 +13,7 @@ module: vlan_info
 
 author:
   - Polona Mihalič (@PolonaM)
-short_description: Returns info about network spaces.
+short_description: Returns info about VLANs.
 description:
   - Plugin returns information about all VLANs on a specfic fabric or specific VLAN on a specfic fabric.
 version_added: 1.0.0
