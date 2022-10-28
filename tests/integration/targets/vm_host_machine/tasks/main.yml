@@ -10,12 +10,12 @@
     # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machine
       canonical.maas.instance:
-        hostname: integration-test
+        fqdn: integration-test.maas
         state: absent
     # ----------------------------------Job----------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test two disks and a network interface.
       canonical.maas.vm_host_machine:
-        vm_host: sunny-raptor # TODO: find a better way, maybe create host first?
+        vm_host: crisp-skunk # TODO: find a better way, maybe create host first?
         hostname: integration-test
         cores: 2
         memory: 2000
@@ -33,7 +33,7 @@
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
-        fqdn: "{{ machine.record.hostname }}"
+        fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -52,7 +52,7 @@
   # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test two disks and a network interface. (Idempotence)
       canonical.maas.vm_host_machine:
-        vm_host: sunny-raptor #
+        vm_host: crisp-skunk #
         hostname: integration-test
         cores: 2
         memory: 2000
@@ -70,7 +70,7 @@
 
     - name: Get info from created machine. (Idempotence)
       canonical.maas.machine_info:
-        fqdn: "{{ machine.record.hostname }}"
+        fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -89,5 +89,5 @@
     # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machine
       canonical.maas.instance:
-        hostname: integration-test
+        fqdn: integration-test.maas
         state: absent

@@ -8,7 +8,7 @@
         token_key: kDcKvtWX7fXLB7TvB2
         token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
         customer_key: tqDErtYzyzRVdUb9hS
-      vm_host: sunny-raptor
+      vm_host: crisp-skunk
       hostname: new-machine-3
       cores: 2
       # pinned_cores: 3

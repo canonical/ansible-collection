@@ -18,6 +18,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.client import Client
 from ..module_utils.network_interface import NetworkInterface
 from ..module_utils.disk import Disk
+from ..module_utils.state import MachineTaskState
 
 
 class Machine(MaasValueMapper):
@@ -298,6 +299,13 @@ class Machine(MaasValueMapper):
                 maas_dict = client.get(f"/api/2.0/machines/{id}/").json
                 if maas_dict["status_name"] in states:  # IMPLEMENT TIMEOUT?
                     return cls.from_maas(maas_dict)
+                if maas_dict["status_name"] in [
+                    MachineTaskState.failed_comissioning.value,
+                    MachineTaskState.failed_deploying.value,
+                ]:
+                    raise errors.MaasError(
+                        f"Machine - {maas_dict['hostname']} - Failed to commision or deploy"
+                    )
                 sleep(10)
             except errors.MaasError:
                 raise errors.MachineNotFound(id)

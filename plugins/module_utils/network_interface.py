@@ -93,13 +93,13 @@ class NetworkInterface(MaasValueMapper):
                 obj.ip_address = maas_dict["discovered"][0].get("ip_address")
                 obj.ip_address = maas_dict["discovered"][0].get("mac_address")
                 obj.subnet_cidr = maas_dict["discovered"][0]["subnet"].get("cidr")
-                obj.vlan = maas_dict["discovered"][0]["subnet"]["vlan"].get("name")
+                obj.vlan = maas_dict["discovered"][0]["subnet"]["vlan"].get("id")
                 obj.fabric = maas_dict["discovered"][0]["subnet"]["vlan"].get("fabric")
             elif maas_dict.get("links") and len(maas_dict["links"]) > 0:  # Static IP
                 obj.ip_address = maas_dict["links"][0].get("ip_address")
                 obj.subnet_cidr = maas_dict["links"][0].get("subnet", {}).get("cidr")
                 obj.vlan = (
-                    maas_dict["links"][0].get("subnet", {}).get("vlan", {}).get("name")
+                    maas_dict["links"][0].get("subnet", {}).get("vlan", {}).get("id")
                 )
                 obj.fabric = (
                     maas_dict["links"][0]
@@ -112,7 +112,7 @@ class NetworkInterface(MaasValueMapper):
                 obj.subnet_cidr = maas_dict.get("cidr")
                 # "if" added because of: AttributeError: 'NoneType' object has no attribute 'get'
                 if maas_dict["vlan"]:
-                    obj.vlan = maas_dict["vlan"].get("name")
+                    obj.vlan = maas_dict["vlan"].get("id")
                     obj.fabric = maas_dict["vlan"].get("fabric")
         except KeyError as e:
             raise errors.MissingValueMAAS(e)

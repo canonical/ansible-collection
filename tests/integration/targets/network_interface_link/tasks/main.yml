@@ -14,7 +14,7 @@
         state: absent
 
 # ----------------------------------Setup----------------------------------------------------------------------------
-    - name: Create virtual machine with name integration-test.
+    - name: Create virtual machine with name integration-test-nic-link.
       canonical.maas.vm_host_machine:
         hostname: integration-test-nic-link
         vm_host: crisp-skunk
@@ -31,7 +31,7 @@
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
-        fqdn: "{{ machine.record.fqdn }}"
+        fqdn: integration-test-nic-link.maas
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -44,10 +44,9 @@
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
-    - name: Create virtual machine with name integration-test-nic. (Idempotence)
+    - name: Create virtual machine with name integration-test-nic-link. (Idempotence)
       canonical.maas.vm_host_machine:
         hostname: integration-test-nic-link
         vm_host: crisp-skunk
@@ -64,7 +63,7 @@
 
     - name: Get info from created machine. (Idempotence)
       canonical.maas.machine_info:
-        fqdn: "{{ machine.record.fqdn }}"
+        fqdn: integration-test-nic-link.maas
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -77,16 +76,15 @@
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
 
 # ----------------------------------Job----------------------------------------------------------------------------
-    - name: Create new_nic on machine with name integration-test.
-      canonical.maas.vm_nic_physical:
-        fqdn: "{{ machine.record.fqdn }}"
+    - name: Create new alias on machine with name integration-test-nic-link.
+      canonical.maas.network_interface_link:
+        machine: integration-test-nic-link.maas
         state: present
-        mac_address: '00:16:3e:ae:78:75'
-        name: new_nic
-        mtu: 1700
+        network_interface: my_first
+        subnet: '10.10.10.0/24'
+        mode: DHCP
       register: nic
     - ansible.builtin.assert:
         that:
@@ -95,7 +93,7 @@
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
-        fqdn: "{{ machine.record.fqdn }}"
+        fqdn: integration-test-nic-link.maas
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -103,20 +101,19 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "{{ machine.record.fqdn }}"
-          - machine_info.records.0.interface_set | length == 2
-          - machine_info.records.0.interface_set.1.name == "new_nic"
-          - machine_info.records.0.interface_set.1.mac_address == "00:16:3e:ae:78:75"
-          - machine_info.records.0.interface_set.1.mtu == 1700
+          - machine_info.records.0.fqdn == "integration-test-nic-link.maas"
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.links | length == 1
+          - machine_info.records.0.interface_set.0.links.0.mode == "dhcp"
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
-    - name: Create new_nic on machine with name integration-test. (Idempotence)
-      canonical.maas.vm_nic_physical:
-        fqdn: "{{ machine.record.fqdn }}"
+    - name: Create new alias on machine with name integration-test-nic-link. (Idempotence)
+      canonical.maas.network_interface_link:
+        machine: integration-test-nic-link.maas
         state: present
-        mac_address: '00:16:3e:ae:78:75'
-        name: new_nic
-        mtu: 1700
+        network_interface: my_first
+        subnet: '10.10.10.0/24'
+        mode: DHCP
       register: nic
     - ansible.builtin.assert:
         that:
@@ -125,7 +122,7 @@
 
     - name: Get info from created machine. (Idempotence)
       canonical.maas.machine_info:
-        fqdn: "{{ machine.record.fqdn }}"
+        fqdn: integration-test-nic-link.maas
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -133,11 +130,10 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "{{ machine.record.fqdn }}"
-          - machine_info.records.0.interface_set | length == 2
-          - machine_info.records.0.interface_set.1.name == "new_nic"
-          - machine_info.records.0.interface_set.1.mac_address == "00:16:3e:ae:78:75"
-          - machine_info.records.0.interface_set.1.mtu == 1700
+          - machine_info.records.0.fqdn == "integration-test-nic-link.maas"
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.links | length == 1
+          - machine_info.records.0.interface_set.0.links.0.mode == "dhcp"
 
 # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machine
