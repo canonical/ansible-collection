@@ -44,7 +44,11 @@ from ..module_utils.cluster_instance import get_oauth1_client
 
 
 def run(module, client):
-    return changed, record, diff
+    if module.params["name"]:
+      response = client.get(f"/api/2.0/users/{module.params['name']}/")
+    else:
+      response = client.get("/api/2.0/users/")
+    return response.json
 
 
 def main():
@@ -60,8 +64,8 @@ def main():
 
     try:
         client = get_oauth1_client(module.params)
-        changed, record, diff = run(module, client)
-        module.exit_json(changed=changed, record=record, diff=diff)
+        record = run(module, client)
+        module.exit_json(changed=False, record=record)
     except errors.MaasError as e:
         module.fail_json(msg=str(e))
 

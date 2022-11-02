@@ -57,11 +57,42 @@ from ansible.module_utils.basic import AnsibleModule
 
 
 from ..module_utils import arguments, errors
+from ..module_utils.utils import is_changed
+from ..module_utils.state import UserState
+from ..module_utils.user import User
 from ..module_utils.cluster_instance import get_oauth1_client
 
 
+def ensure_present(module, client):
+    before = None
+    after = None
+    new_user = User.from_ansible(module.params)
+    existing_user = User.get_by_name(module, client)
+    if not existing_user: #Create user
+      new_user.send_create_request(client, new_user.payload_for_create())
+      after = User.get_by_name(module, client).to_ansible()
+    elif existing_user and existing_user.needs_update(new_user):
+      before = existing_user.to_ansible()
+      new_user.send_create_request(client, new_user.payload_for_create())
+      # TODO: update request
+      raise errors.MaasError("Check here")
+      after = User.get_by_name(module, client).to_ansible()
+    return is_changed(before, after), after, dict(before=before, after=after)
+
+def ensure_absent(module, client):
+    before = None
+    after = None
+    existing_user = User.get_by_name(module, client)
+    if existing_user:
+      before = existing_user.to_ansible()
+      existing_user.send_delete_request(client)
+    return is_changed(before, after), after, dict(before=before, after=after)
 
 def run(module, client):
+    if module.params["state"] == UserState.present:
+      changed, record, diff = ensure_present(module, client)
+    else:
+      changed, record, diff = ensure_absent(module, client)
     return changed, record, diff
 
 
@@ -77,6 +108,7 @@ def main():
             password=dict(
                 type="str",
                 required=True,
+                no_log=True,
             ),
             state=dict(
                 type="str",
