@@ -238,7 +238,9 @@ def run(module, client: Client):
             vlan = Vlan.get_by_name(module, client, fabric.id, must_exist=True)
             return update_vlan(module, client, vlan)
         else:
-            vlan = Vlan.get_by_vid(module, client, fabric.id)
+            vlan = Vlan.get_by_vid(
+                module.params["vid"], client, fabric.id, must_exist=False
+            )
             if vlan:
                 return update_vlan(module, client, vlan)
             return create_vlan(module, client, fabric.id)
