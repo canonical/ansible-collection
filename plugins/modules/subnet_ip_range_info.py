@@ -13,7 +13,7 @@ module: subnet_ip_range_info
 
 author:
   - Jure Medvesek (@juremedvesek)
-short_description: List IP rangest.
+short_description: List IP ranges.
 description:
   - Plugin returns all IP ranges.
 version_added: 1.0.0
