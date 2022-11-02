@@ -42,7 +42,7 @@ options:
       - The traffic segregation ID for the new VLAN.
       - Required when creating new VLAN.
       - Serves as unique identifier of VLAN to be updated.
-    type: str
+    type: int
   vlan_name:
     description:
       - The name of the new VLAN to be created. This is computed if it's not set.
@@ -218,7 +218,9 @@ def update_vlan(module, client: Client, vlan):
 
 def delete_vlan(module, client: Client, fabric_id):
     if module.params["vid"]:
-        vlan = Vlan.get_by_vid(module, client, fabric_id)
+        vlan = Vlan.get_by_vid(
+            module.params["vid"], client, fabric_id, must_exist=False
+        )
     else:
         vlan = Vlan.get_by_name(module, client, fabric_id, must_exist=False)
     if vlan:
@@ -251,7 +253,7 @@ def main():
             arguments.get_spec("cluster_instance"),
             state=dict(type="str", choices=["present", "absent"], required=True),
             fabric_name=dict(type="str", required=True),
-            vid=dict(type="str"),
+            vid=dict(type="int"),
             vlan_name=dict(type="str"),
             new_vlan_name=dict(type="str"),
             description=dict(type="str"),
