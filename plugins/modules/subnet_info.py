@@ -5,7 +5,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
-from itertools import groupby
 
 __metaclass__ = type
 
@@ -76,7 +75,7 @@ record:
         vid: 0
 """
 
-
+from itertools import groupby
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
@@ -95,9 +94,10 @@ def get_ip_ranges(client):
             "data": {
                 "type": ip_range["type"],
                 "start_ip": ip_range["start_ip"],
-                "end_ip": ip_range["end_ip"]
-            }
-        } for ip_range in ip_ranges
+                "end_ip": ip_range["end_ip"],
+            },
+        }
+        for ip_range in ip_ranges
     ]
 
     sorted_data = sorted(data, key=key_function)
