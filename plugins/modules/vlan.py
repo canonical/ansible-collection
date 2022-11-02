@@ -85,8 +85,8 @@ EXAMPLES = r"""
     dhcp_on: false
     space: network-space-10
 
-- name: Update VLAN using vid as identifier
-  canonical.maas.space:
+- name: Update VLAN - using vid as identifier
+  canonical.maas.vlan:
     state: present
     fabric_name: fabric-10
     vid: 5
@@ -96,8 +96,8 @@ EXAMPLES = r"""
     dhcp_on: true
     space: new-network-space
 
-- name: Update VLAN using name as identifier
-  canonical.maas.space:
+- name: Update VLAN - using name as identifier
+  canonical.maas.vlan:
     state: present
     fabric_name: fabric-10
     vlan_name: vlan-10
@@ -107,14 +107,14 @@ EXAMPLES = r"""
     dhcp_on: true
     space: new-network-space
 
-- name: Remove network space
-  canonical.maas.space:
+- name: Remove VLAN - using vid as identifier
+  canonical.maas.vlan:
     state: absent
     fabric_name: fabric-10
     vid: 5
 
-- name: Remove network space
-  canonical.maas.space:
+- name: Remove VLAN - using name as identifier
+  canonical.maas.vlan:
     state: absent
     fabric_name: fabric-10
     vlan_name: vlan-10
