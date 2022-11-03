@@ -18,7 +18,7 @@ description:
   - If I(state) is C(present) and I(vid) is provided but not found, new VLAN with specified traffic segregation ID - I(vid)
     is created on a specified fabric - I(fabric_name).
   - If I(state) is C(present) and I(vid) or I(vlan_name) is found, updates an existing VLAN.
-  - If I(state) is C(absent) VLAN selected either by I(vid) of I(vlan_name) is deleted.
+  - If I(state) is C(absent) VLAN selected either by I(vid) or I(vlan_name) is deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
