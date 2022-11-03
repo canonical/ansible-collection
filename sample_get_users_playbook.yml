@@ -8,7 +8,7 @@
         token_key: kDcKvtWX7fXLB7TvB2
         token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
         customer_key: tqDErtYzyzRVdUb9hS
-      # name: some_username # Use this field to filter results by name.
+      name: John # Use this field to filter results by name.
     register: users
 
   - ansible.builtin.debug:
