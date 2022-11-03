@@ -14,10 +14,6 @@ import pytest
 from ansible_collections.canonical.maas.plugins.modules import (
     user,
 )
-from ansible_collections.canonical.maas.plugins.module_utils import errors
-from ansible_collections.canonical.maas.plugins.module_utils.user import (
-    User,
-)
 
 
 pytestmark = pytest.mark.skipif(
@@ -80,7 +76,7 @@ class TestMain:
             name="name",
             password="password",
             email="email",
-            is_admin=True
+            is_admin=True,
         )
 
         success, results = run_main(user, params)
@@ -103,7 +99,7 @@ class TestMain:
             name="name",
             password="password",
             email="email",
-            is_admin=False
+            is_admin=False,
         )
 
         success, results = run_main(user, params)
