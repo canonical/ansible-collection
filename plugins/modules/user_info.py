@@ -89,6 +89,9 @@ from ..module_utils.cluster_instance import get_oauth1_client
 def run(module, client):
     if module.params["name"]:
         response = client.get(f"/api/2.0/users/{module.params['name']}/")
+        if response.status == 404:
+            module.warn(f"User - {module.params['name']} - does not exist.")
+            return None
     else:
         response = client.get("/api/2.0/users/")
     return response.json

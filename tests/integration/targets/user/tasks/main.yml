@@ -72,6 +72,16 @@
           - deleted_user is succeeded
           - deleted_user is changed
 
+    - name: Get info from user John after delete
+      canonical.maas.user_info:
+        name: John
+      register: deleted_user_info
+    - ansible.builtin.assert:
+        that:
+          - deleted_user_info is succeeded
+          - deleted_user_info is not changed
+          - deleted_user_info.record == None
+
   # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Delete user John (Idempotence)
       canonical.maas.user:
@@ -82,3 +92,13 @@
         that:
           - deleted_user is succeeded
           - deleted_user is not changed
+
+    - name: Get info from user John after delete (Idempotence)
+      canonical.maas.user_info:
+        name: John
+      register: deleted_user_info
+    - ansible.builtin.assert:
+        that:
+          - deleted_user_info is succeeded
+          - deleted_user_info is not changed
+          - deleted_user_info.record == None
