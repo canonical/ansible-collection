@@ -7,6 +7,7 @@
 
 
   block:
+    # ----------------------------------Cleanup------------------------------------
     - name: VM host cleanup
       canonical.maas.vm_host:
         vm_host_name: "{{ item }}"
@@ -22,6 +23,20 @@
         fqdn: machine.maas
         state: absent
 
+    # -----------------------------------Info------------------------------------
+    - name: List vm hosts
+      canonical.maas.vm_host_info:
+      register: vm_hosts
+
+    - name: List specific vm host
+      canonical.maas.vm_host_info:
+        name: "{{ vm_hosts.records.0.name }}"
+      register: vm_host
+    - ansible.builtin.assert:
+        that:
+          - vm_host.records.0.name == vm_hosts.records.0.name
+
+    # ------------------------------------Job------------------------------------
     - name: Register LXD VM host
       canonical.maas.vm_host:
         state: present
@@ -169,6 +184,7 @@
           - vm_host.record.memory_over_commit_ratio == 2.0
           - vm_host.record.default_macvlan_mode == "bridge"
 
+    # ----------------------------------Cleanup------------------------------------
     - name: Remove VM host
       canonical.maas.vm_host:
         state: absent
