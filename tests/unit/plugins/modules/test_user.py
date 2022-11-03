@@ -14,6 +14,7 @@ import pytest
 from ansible_collections.canonical.maas.plugins.modules import (
     user,
 )
+from ansible_collections.canonical.maas.plugins.module_utils.user import User
 
 
 pytestmark = pytest.mark.skipif(
@@ -109,3 +110,194 @@ class TestMain:
             "record": {},
             "diff": {"before": {}, "after": {}},
         }
+
+
+class TestRun:
+    def test_run_when_present(self, create_module, client, mocker):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    client_key="client key",
+                    token_key="token key",
+                    token_secret="token secret",
+                ),
+                state="present",
+                name="name",
+                email="email",
+                password="password",
+            )
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.user.ensure_present"
+        ).return_value = (False, {}, {})
+        results = user.run(module, client)
+        assert results == (False, {}, {})
+
+    def test_run_when_absent(self, create_module, client, mocker):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    client_key="client key",
+                    token_key="token key",
+                    token_secret="token secret",
+                ),
+                state="absent",
+                name="name",
+            )
+        )
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.modules.user.ensure_absent"
+        ).return_value = (False, {}, {})
+        results = user.run(module, client)
+        assert results == (False, {}, {})
+
+
+class TestEnsurePresent:
+    def test_ensure_present_when_creating_new_user_no_admin(
+        self, create_module, client, mocker
+    ):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    client_key="client key",
+                    token_key="token key",
+                    token_secret="token secret",
+                ),
+                state="present",
+                name="name",
+                email="email",
+                password="password",
+            )
+        )
+        user_obj = User.from_ansible(
+            dict(name="name", email="email", password="password", is_admin=False)
+        )
+        after = user_obj.to_ansible()
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.user.User.get_by_name"
+        ).side_effect = [None, user_obj]
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.user.User.payload_for_create"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.user.User.send_create_request"
+        ).return_value = None
+        results = user.ensure_present(module, client)
+        assert results == (True, after, dict(before=None, after=after))
+
+    def test_ensure_present_when_creating_new_user_admin(
+        self, create_module, client, mocker
+    ):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    client_key="client key",
+                    token_key="token key",
+                    token_secret="token secret",
+                ),
+                state="present",
+                name="name",
+                email="email",
+                password="password",
+                is_admin=True,
+            )
+        )
+        user_obj = User.from_ansible(
+            dict(name="name", email="email", password="password", is_admin=True)
+        )
+        after = user_obj.to_ansible()
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.user.User.get_by_name"
+        ).side_effect = [None, user_obj]
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.user.User.payload_for_create"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.user.User.send_create_request"
+        ).return_value = None
+        results = user.ensure_present(module, client)
+        assert results == (True, after, dict(before=None, after=after))
+
+    def test_ensure_present_when_user_already_exists(
+        self, create_module, client, mocker
+    ):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    client_key="client key",
+                    token_key="token key",
+                    token_secret="token secret",
+                ),
+                state="present",
+                name="name",
+                email="email",
+                password="password",
+                is_admin=True,
+            )
+        )
+        user_obj = User.from_ansible(
+            dict(name="name", email="email", password="password", is_admin=True)
+        )
+        after = None
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.user.User.get_by_name"
+        ).side_effect = [user_obj]
+        results = user.ensure_present(module, client)
+        assert results == (False, after, dict(before=None, after=after))
+
+
+class TestEnsureAbsent:
+    def test_ensure_absent_when_deleting_user(self, create_module, client, mocker):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    client_key="client key",
+                    token_key="token key",
+                    token_secret="token secret",
+                ),
+                state="absent",
+                name="name",
+            )
+        )
+        user_obj = User.from_ansible(
+            dict(name="name", email="email", password="password", is_admin=True)
+        )
+        after = None
+        before = user_obj.to_ansible()
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.user.User.get_by_name"
+        ).side_effect = [user_obj]
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.user.User.send_delete_request"
+        ).return_value = None
+        results = user.ensure_absent(module, client)
+        assert results == (True, after, dict(before=before, after=after))
+
+    def test_ensure_absent_when_user_already_deleted(
+        self, create_module, client, mocker
+    ):
+        module = create_module(
+            params=dict(
+                instance=dict(
+                    host="https://0.0.0.0",
+                    client_key="client key",
+                    token_key="token key",
+                    token_secret="token secret",
+                ),
+                state="absent",
+                name="name",
+            )
+        )
+        after = None
+        before = None
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.user.User.get_by_name"
+        ).side_effect = [None]
+        results = user.ensure_absent(module, client)
+        assert results == (False, after, dict(before=before, after=after))
