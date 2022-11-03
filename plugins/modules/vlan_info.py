@@ -110,10 +110,10 @@ def run(module, client: Client):
     )
     if module.params["vid"]:
         vlan = Vlan.get_by_vid(module, client, fabric.id, must_exist=True)
-        response = [vlan.get(client)]
+        response = [vlan.to_ansible()]
     elif module.params["vlan_name"]:
         vlan = Vlan.get_by_name(module, client, fabric.id, must_exist=True)
-        response = [vlan.get(client)]
+        response = [vlan.to_ansible()]
     else:
         response = client.get(f"/api/2.0/fabrics/{fabric.id}/vlans/").json
     return response
