@@ -69,10 +69,10 @@ EXAMPLES = r"""
     name: updated-fabric
 """
 
-RETURN = r""" # TODO: UPDATE RETURN when description is added
+RETURN = r"""
 record:
   description:
-    - Added fabric.
+    - Created or updated fabric.
   returned: success
   type: dict
   sample:
@@ -81,18 +81,18 @@ record:
     name: fabric-7
     resource_uri: /MAAS/api/2.0/fabrics/7/
     vlans:
-    - dhcp_on: false,
-      external_dhcp: null,
-      fabric: fabric-0,
-      fabric_id: 0,
-      id: 5001,
-      mtu: 1500,
-      name: untagged,
-      primary_rack: null,
-      relay_vlan: null,
-      resource_uri: /MAAS/api/2.0/vlans/5001/,
-      secondary_rack: null,
-      space: undefined,
+    - dhcp_on: false
+      external_dhcp: null
+      fabric: fabric-0
+      fabric_id: 0
+      id: 5001
+      mtu: 1500
+      name: untagged
+      primary_rack: null
+      relay_vlan: null
+      resource_uri: /MAAS/api/2.0/vlans/5001/
+      secondary_rack: null
+      space: undefined
       vid: 0
 """
 

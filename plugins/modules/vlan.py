@@ -123,7 +123,7 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Added space.
+    - Created or updated VLAN.
   returned: success
   type: dict
   sample:
