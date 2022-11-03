@@ -1,7 +1,7 @@
 - name: Use user module
   hosts: localhost
   tasks:
-  - name: Create user domen
+  - name: Create user James
     canonical.maas.user:
       cluster_instance:
         host: http://10.44.240.10:5240/MAAS
@@ -9,15 +9,15 @@
         token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
         customer_key: tqDErtYzyzRVdUb9hS
       state: present
-      name: domen
-      password: domen123
-      email: domen.dobnikar@email.com
+      name: James
+      password: james123
+      email: james@email.com
       is_admin: false
     register: users
   - ansible.builtin.debug:
       var: users
 
-  - name: Delete user domen
+  - name: Delete user James
     canonical.maas.user:
       cluster_instance:
         host: http://10.44.240.10:5240/MAAS
@@ -25,21 +25,8 @@
         token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
         customer_key: tqDErtYzyzRVdUb9hS
       state: absent
-      name: domen
+      name: James
       is_admin: false
     register: users
-
-  - name: Delete user John
-    canonical.maas.user:
-      cluster_instance:
-        host: http://10.44.240.10:5240/MAAS
-        token_key: kDcKvtWX7fXLB7TvB2
-        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-        customer_key: tqDErtYzyzRVdUb9hS
-      state: absent
-      name: John
-      is_admin: false
-    register: users
-
   - ansible.builtin.debug:
       var: users
