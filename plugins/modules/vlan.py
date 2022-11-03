@@ -18,7 +18,7 @@ description:
   - If I(state) is C(present) and I(vid) is provided but not found, new VLAN with specified traffic segregation ID - I(vid)
     is created on a specified fabric - I(fabric_name).
   - If I(state) is C(present) and I(vid) or I(vlan_name) is found, updates an existing VLAN.
-  - If I(state) is C(absent) VLAN selected either by I(vid) of I(vlan_name) is deleted.
+  - If I(state) is C(absent) VLAN selected either by I(vid) or I(vlan_name) is deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -42,7 +42,7 @@ options:
       - The traffic segregation ID for the new VLAN.
       - Required when creating new VLAN.
       - Serves as unique identifier of VLAN to be updated.
-    type: str
+    type: int
   vlan_name:
     description:
       - The name of the new VLAN to be created. This is computed if it's not set.
@@ -85,8 +85,8 @@ EXAMPLES = r"""
     dhcp_on: false
     space: network-space-10
 
-- name: Update VLAN using vid as identifier
-  canonical.maas.space:
+- name: Update VLAN - using vid as identifier
+  canonical.maas.vlan:
     state: present
     fabric_name: fabric-10
     vid: 5
@@ -96,8 +96,8 @@ EXAMPLES = r"""
     dhcp_on: true
     space: new-network-space
 
-- name: Update VLAN using name as identifier
-  canonical.maas.space:
+- name: Update VLAN - using name as identifier
+  canonical.maas.vlan:
     state: present
     fabric_name: fabric-10
     vlan_name: vlan-10
@@ -107,14 +107,14 @@ EXAMPLES = r"""
     dhcp_on: true
     space: new-network-space
 
-- name: Remove network space
-  canonical.maas.space:
+- name: Remove VLAN - using vid as identifier
+  canonical.maas.vlan:
     state: absent
     fabric_name: fabric-10
     vid: 5
 
-- name: Remove network space
-  canonical.maas.space:
+- name: Remove VLAN - using name as identifier
+  canonical.maas.vlan:
     state: absent
     fabric_name: fabric-10
     vlan_name: vlan-10
@@ -218,7 +218,9 @@ def update_vlan(module, client: Client, vlan):
 
 def delete_vlan(module, client: Client, fabric_id):
     if module.params["vid"]:
-        vlan = Vlan.get_by_vid(module, client, fabric_id)
+        vlan = Vlan.get_by_vid(
+            module.params["vid"], client, fabric_id, must_exist=False
+        )
     else:
         vlan = Vlan.get_by_name(module, client, fabric_id, must_exist=False)
     if vlan:
@@ -236,7 +238,9 @@ def run(module, client: Client):
             vlan = Vlan.get_by_name(module, client, fabric.id, must_exist=True)
             return update_vlan(module, client, vlan)
         else:
-            vlan = Vlan.get_by_vid(module, client, fabric.id)
+            vlan = Vlan.get_by_vid(
+                module.params["vid"], client, fabric.id, must_exist=False
+            )
             if vlan:
                 return update_vlan(module, client, vlan)
             return create_vlan(module, client, fabric.id)
@@ -251,7 +255,7 @@ def main():
             arguments.get_spec("cluster_instance"),
             state=dict(type="str", choices=["present", "absent"], required=True),
             fabric_name=dict(type="str", required=True),
-            vid=dict(type="str"),
+            vid=dict(type="int"),
             vlan_name=dict(type="str"),
             new_vlan_name=dict(type="str"),
             description=dict(type="str"),

@@ -67,3 +67,9 @@ class ClusterConnectionNotFound(MaasError):
     def __init__(self, data):
         self.message = "No cluster connection found - {0}".format(data)
         super(ClusterConnectionNotFound, self).__init__(self.message)
+
+
+class VlanNotFound(MaasError):
+    def __init__(self, data):
+        self.message = "VLAN - {0} - not found".format(data)
+        super(VlanNotFound, self).__init__(self.message)

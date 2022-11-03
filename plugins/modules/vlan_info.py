@@ -13,7 +13,7 @@ module: vlan_info
 
 author:
   - Polona Mihalič (@PolonaM)
-short_description: Returns info about network spaces.
+short_description: Returns info about VLANs.
 description:
   - Plugin returns information about all VLANs on a specfic fabric or specific VLAN on a specfic fabric.
 version_added: 1.0.0
@@ -28,10 +28,16 @@ options:
       - If fabric is not found, the task will FAIL.
     type: str
     required: true
+  vid:
+    description:
+      - Traffic segregation ID of the VLAN to be listed.
+      - Serves as unique identifier of the VLAN.
+      - If VLAN is not found, the task will FAIL.
+    type: str
   vlan_name:
     description:
       - Name of the VLAN to be listed.
-      - Serves as unique identifier of the VLAN.
+      - Serves as unique identifier of the VLAN if I(vid) is not provided.
       - If VLAN is not found, the task will FAIL.
     type: str
 """
@@ -46,7 +52,7 @@ EXAMPLES = r"""
       customer_key: customer-key
     fabric_name: fabric-7
 
-- name: Get info about a specific VLAN on a specific fabric
+- name: Get info about a specific VLAN on a specific fabric - by vlan name
   canonical.maas.vlan_info:
     cluster_instance:
       host: host-ip
@@ -55,6 +61,16 @@ EXAMPLES = r"""
       customer_key: customer-key
     fabric_name: fabric-7
     vlan_name: vlan-5
+
+- name: Get info about a specific VLAN on a specific fabric - by vid
+  canonical.maas.vlan_info:
+    cluster_instance:
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
+    fabric_name: fabric-7
+    vid: 5
 """
 
 RETURN = r"""
@@ -66,17 +82,17 @@ records:
   sample:
   - dhcp_on: false
     external_dhcp: null
-    fabric: fabric-10
-    fabric_id: 10
+    fabric: fabric-7
+    fabric_id: 7
     id: 5014
     mtu: 1500
-    name: untagged
+    name: vlan-5
     primary_rack: null
     relay_vlan: null
     resource_uri: /MAAS/api/2.0/vlans/5014/
     secondary_rack: null
     space: undefined
-    vid: 0
+    vid: 5
 """
 
 
@@ -92,8 +108,10 @@ def run(module, client: Client):
     fabric = Fabric.get_by_name(
         module, client, must_exist=True, name_field_ansible="fabric_name"
     )
-    if module.params["vlan_name"]:
-        pass
+    if module.params["vid"]:
+        vlan = Vlan.get_by_vid(module, client, fabric.id, must_exist=True)
+        response = [vlan.get(client)]
+    elif module.params["vlan_name"]:
         vlan = Vlan.get_by_name(module, client, fabric.id, must_exist=True)
         response = [vlan.get(client)]
     else:
@@ -108,6 +126,7 @@ def main():
             arguments.get_spec("cluster_instance"),
             fabric_name=dict(type="str", required=True),
             vlan_name=dict(type="str"),
+            vid=dict(type="str"),
         ),
     )
 
