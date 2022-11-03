@@ -69,7 +69,7 @@ EXAMPLES = r"""
     name: updated-fabric
 """
 
-RETURN = r""" # TODO: UPDATE RETURN when description is added
+RETURN = r"""
 record:
   description:
     - Added fabric.
