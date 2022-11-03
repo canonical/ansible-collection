@@ -105,7 +105,7 @@ class User(MaasValueMapper):
 
     def send_create_request(self, client, payload):
         results = client.post(
-            f"/api/2.0/users/",
+            "/api/2.0/users/",
             data=payload,
         ).json
         return results

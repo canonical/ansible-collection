@@ -14,8 +14,8 @@ module: user
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: 
-description: 
+short_description: Manage the user accounts.
+description: Create or delete user accounts.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -30,15 +30,13 @@ options:
   password:
     description: The user password.
     type: str
-    required: True
   email:
     description: The user e-mail address.
     type: str
-    required: True
   is_admin:
     description: Indicating if the user is a MAAS administrator.
     type: bool
-    Default: False
+    default: False
   state:
     description: Prefered state of the user.
     choices: [ present, absent ]
@@ -47,10 +45,48 @@ options:
 """
 
 EXAMPLES = r"""
+- name: Create user John
+  canonical.maas.user:
+    cluster_instance:
+      host: http://10.44.240.10:5240/MAAS
+      token_key: kDcKvtWX7fXLB7TvB2
+      token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+      customer_key: tqDErtYzyzRVdUb9hS
+    state: present
+    name: John
+    password: john123
+    email: john.smith@email.com
+    is_admin: false
+  register: new_user
+- ansible.builtin.debug:
+    var: new_user
+
+- name: Delete user John
+  canonical.maas.user:
+    cluster_instance:
+      host: http://10.44.240.10:5240/MAAS
+      token_key: kDcKvtWX7fXLB7TvB2
+      token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+      customer_key: tqDErtYzyzRVdUb9hS
+    state: absent
+    name: John
+    is_admin: false
+  register: deleted_user
+- ansible.builtin.debug:
+    var: deleted_user
 """
 
 RETURN = r"""
 record:
+  description:
+    - Created or deleted user account.
+  returned: success
+  type: dict
+  sample:
+    email: domen.dobnikar@email.com
+    is_admin: false
+    is_local: true
+    name: domen
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -68,31 +104,29 @@ def ensure_present(module, client):
     after = None
     new_user = User.from_ansible(module.params)
     existing_user = User.get_by_name(module, client)
-    if not existing_user: #Create user
-      new_user.send_create_request(client, new_user.payload_for_create())
-      after = User.get_by_name(module, client).to_ansible()
-    elif existing_user and existing_user.needs_update(new_user):
-      before = existing_user.to_ansible()
-      new_user.send_create_request(client, new_user.payload_for_create())
-      # TODO: update request
-      raise errors.MaasError("Check here")
-      after = User.get_by_name(module, client).to_ansible()
+    if not existing_user:  # Create user
+        new_user.send_create_request(client, new_user.payload_for_create())
+        after = User.get_by_name(module, client).to_ansible()
+    else:
+        module.warn(f"User - {existing_user.name} - already exists.")
     return is_changed(before, after), after, dict(before=before, after=after)
+
 
 def ensure_absent(module, client):
     before = None
     after = None
     existing_user = User.get_by_name(module, client)
     if existing_user:
-      before = existing_user.to_ansible()
-      existing_user.send_delete_request(client)
+        before = existing_user.to_ansible()
+        existing_user.send_delete_request(client)
     return is_changed(before, after), after, dict(before=before, after=after)
+
 
 def run(module, client):
     if module.params["state"] == UserState.present:
-      changed, record, diff = ensure_present(module, client)
+        changed, record, diff = ensure_present(module, client)
     else:
-      changed, record, diff = ensure_absent(module, client)
+        changed, record, diff = ensure_absent(module, client)
     return changed, record, diff
 
 
@@ -107,7 +141,6 @@ def main():
             ),
             password=dict(
                 type="str",
-                required=True,
                 no_log=True,
             ),
             state=dict(
@@ -117,13 +150,13 @@ def main():
             ),
             email=dict(
                 type="str",
-                required=True,
             ),
             is_admin=dict(
                 type="bool",
                 default=False,
             ),
         ),
+        required_if=[("state", "present", ("password", "email"))],
     )
 
     try:

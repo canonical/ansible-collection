@@ -14,20 +14,5 @@
       email: domen.dobnikar@email.com
       is_admin: false
     register: users
-
-  - name: Delete user domen
-    canonical.maas.user:
-      cluster_instance:
-        host: http://10.44.240.10:5240/MAAS
-        token_key: kDcKvtWX7fXLB7TvB2
-        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-        customer_key: tqDErtYzyzRVdUb9hS
-      state: absent
-      name: domen
-      password: domen123
-      email: domen.dobnikar@email.com
-      is_admin: false
-    register: users
-
   - ansible.builtin.debug:
       var: users

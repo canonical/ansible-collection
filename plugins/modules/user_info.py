@@ -14,8 +14,8 @@ module: user_info
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: 
-description: 
+short_description: Get information about user accounts.
+description: Get information about all or specific user.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -29,10 +29,54 @@ options:
 """
 
 EXAMPLES = r"""
+- name: List account information about all users
+  canonical.maas.user_info:
+    cluster_instance:
+      host: http://10.44.240.10:5240/MAAS
+      token_key: kDcKvtWX7fXLB7TvB2
+      token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+      customer_key: tqDErtYzyzRVdUb9hS
+  register: users
+- ansible.builtin.debug:
+    var: users
+
+- name: List account information about a specific user
+  canonical.maas.user_info:
+    cluster_instance:
+      host: http://10.44.240.10:5240/MAAS
+      token_key: kDcKvtWX7fXLB7TvB2
+      token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+      customer_key: tqDErtYzyzRVdUb9hS
+    name: some_username
+  register: user
+- ansible.builtin.debug:
+    var: user
+
+
 """
 
 RETURN = r"""
 record:
+  description:
+    - Users account information
+  returned: success
+  type: dict
+  sample:
+    - email: maas@localhost
+      is_local: true
+      is_superuser: false
+      resource_uri: /MAAS/api/2.0/users/MAAS/
+      username: MAAS
+    - email: admin
+      is_local: true
+      is_superuser: true
+      resource_uri: /MAAS/api/2.0/users/admin/
+      username: admin
+    - email: node-init-user@localhost
+      is_local: true
+      is_superuser: false
+      resource_uri: /MAAS/api/2.0/users/maas-init-node/
+      username: maas-init-node
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -42,18 +86,17 @@ from ..module_utils import arguments, errors
 from ..module_utils.cluster_instance import get_oauth1_client
 
 
-
 def run(module, client):
     if module.params["name"]:
-      response = client.get(f"/api/2.0/users/{module.params['name']}/")
+        response = client.get(f"/api/2.0/users/{module.params['name']}/")
     else:
-      response = client.get("/api/2.0/users/")
+        response = client.get("/api/2.0/users/")
     return response.json
 
 
 def main():
     module = AnsibleModule(
-        supports_check_mode=False,
+        supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             name=dict(
