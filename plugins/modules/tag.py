@@ -14,8 +14,8 @@ module: tag
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Manages network interfaces on a specific machine.
-description: Connects, updates or disconnects an existing network interface on a specified machine.
+short_description: Manages tags on a machines.
+description: Add or remove tags from machines.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -47,7 +47,7 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Created or deleted subnet link.
+    - Machine tags.
   returned: success
   type: dict
   sample:
@@ -59,21 +59,30 @@ from ..module_utils import arguments, errors
 from ..module_utils.utils import is_changed
 from ..module_utils.cluster_instance import get_oauth1_client
 from ..module_utils.state import TagState
+from ..module_utils.tag import Tag
+from ..module_utils.machine import Machine
 
 
-def ensure_present(module, client, machine_obj):
-    return is_changed(before, after), after, dict(before=before, after=after)
+def ensure_present(module, client):
+    # First create tag if it does not exist
+    # Add existing tag to existing machines
+    # If tag already on a machine - do nothing
+    for machine in module.params["machines"]:
+      # TODO: get machine by name / fqdn without module.
+      raise errors.MaasError("HERE")
+    Tag.send_tag_request(client, machine_id_list, module.params["name"])
+    return
 
 
 def ensure_absent(module, client, machine_obj):
-    return is_changed(before, after), after, dict(before=before, after=after)
+    return
 
 
 def run(module, client):
     if module.params["state"] == TagState.present:
-        changed, record, diff = ensure_present(module, client, machine_obj)
+        changed, record, diff = ensure_present(module, client)
     else:
-        changed, record, diff = ensure_absent(module, client, machine_obj)
+        changed, record, diff = ensure_absent(module, client)
     return changed, record, diff
 
 
