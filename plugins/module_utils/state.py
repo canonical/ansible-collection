@@ -27,6 +27,12 @@ class NicState(str, enum.Enum):
     absent = "absent"
 
 
+class TagState(str, enum.Enum):
+    present = "present"
+    absent = "absent"
+    set = "set"
+
+
 class MachineTaskState(str, enum.Enum):
     allocated = "Allocated"
     new = "New"
