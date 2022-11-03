@@ -85,7 +85,7 @@ from ..module_utils.fabric import Fabric
 def run(module, client: Client):
     if module.params["name"]:
         fabric = Fabric.get_by_name(module, client, must_exist=True)
-        response = [fabric.get(client)]
+        response = [fabric.to_ansible()]
     else:
         response = client.get("/api/2.0/fabrics/").json
     return response
