@@ -48,10 +48,10 @@ EXAMPLES = r"""
 - name: Create user John
   canonical.maas.user:
     cluster_instance:
-      host: http://10.44.240.10:5240/MAAS
-      token_key: kDcKvtWX7fXLB7TvB2
-      token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-      customer_key: tqDErtYzyzRVdUb9hS
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
     state: present
     name: John
     password: john123
@@ -64,10 +64,10 @@ EXAMPLES = r"""
 - name: Delete user John
   canonical.maas.user:
     cluster_instance:
-      host: http://10.44.240.10:5240/MAAS
-      token_key: kDcKvtWX7fXLB7TvB2
-      token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-      customer_key: tqDErtYzyzRVdUb9hS
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
     state: absent
     name: John
     is_admin: false
@@ -83,10 +83,10 @@ record:
   returned: success
   type: dict
   sample:
-    email: domen.dobnikar@email.com
+    email: john@email.com
     is_admin: false
     is_local: true
-    name: domen
+    name: john
 """
 
 from ansible.module_utils.basic import AnsibleModule

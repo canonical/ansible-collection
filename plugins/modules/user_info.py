@@ -32,10 +32,10 @@ EXAMPLES = r"""
 - name: List account information about all users
   canonical.maas.user_info:
     cluster_instance:
-      host: http://10.44.240.10:5240/MAAS
-      token_key: kDcKvtWX7fXLB7TvB2
-      token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-      customer_key: tqDErtYzyzRVdUb9hS
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
   register: users
 - ansible.builtin.debug:
     var: users
@@ -43,10 +43,10 @@ EXAMPLES = r"""
 - name: List account information about a specific user
   canonical.maas.user_info:
     cluster_instance:
-      host: http://10.44.240.10:5240/MAAS
-      token_key: kDcKvtWX7fXLB7TvB2
-      token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-      customer_key: tqDErtYzyzRVdUb9hS
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
     name: some_username
   register: user
 - ansible.builtin.debug:
