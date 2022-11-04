@@ -145,11 +145,19 @@ def ensure_absent(module, client):
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
+def ensure_set(module, client):
+    before = []
+    after = []
+    return is_changed(before, after), after, dict(before=before, after=after)
+
+
 def run(module, client):
     if module.params["state"] == TagState.present:
         changed, records, diff = ensure_present(module, client)
-    else:
+    elif module.params["state"] == TagState.absent:
         changed, records, diff = ensure_absent(module, client)
+    else:
+        changed, records, diff = ensure_set(module, client)
     return changed, records, diff
 
 
