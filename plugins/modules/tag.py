@@ -22,13 +22,13 @@ extends_documentation_fragment:
 seealso: []
 options:
   name:
-    description: 
+    description:
       - The new tag name.
       - Because the name will be used in urls, it should be short.
     type: str
     required: True
   machines:
-    description: 
+    description:
       - List of MAAS machines.
       - Use FQDN.
     type: list
@@ -45,12 +45,22 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-record:
+records:
   description:
     - Machine tags.
   returned: success
-  type: dict
+  type: list
   sample:
+    - machine: this_machine.maas
+      tags:
+        - one
+        - two
+        - three
+    - machine: that_machine.maas
+      tags:
+        - one
+        - four
+        - five
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -64,14 +74,23 @@ from ..module_utils.machine import Machine
 
 
 def ensure_present(module, client):
-    # First create tag if it does not exist
-    # Add existing tag to existing machines
-    # If tag already on a machine - do nothing
-    for machine in module.params["machines"]:
-      # TODO: get machine by name / fqdn without module.
-      raise errors.MaasError("HERE")
-    Tag.send_tag_request(client, machine_id_list, module.params["name"])
-    return
+    before = []
+    after = []
+    machine_list = Machine.get_id_from_fqdn(client, *module.params["machines"])
+    existing_tag = Tag.get_tag_by_name(client, module)
+    if not existing_tag:
+        Tag.send_create_request(client, module)
+    for machine in machine_list:
+        if module.params["name"] not in machine.tags:
+            before.append(dict(machine=machine.fqdn, tags=machine.tags))
+            Tag.send_tag_request(client, machine.id, module.params["name"])
+            after.append(machine.fqdn)
+    if after:  # Get updated machines
+        updated_machine_list = Machine.get_id_from_fqdn(client, *after)
+        after = []
+        for machine in updated_machine_list:
+            after.append(dict(machine=machine.fqdn, tags=machine.tags))
+    return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def ensure_absent(module, client, machine_obj):
@@ -80,10 +99,10 @@ def ensure_absent(module, client, machine_obj):
 
 def run(module, client):
     if module.params["state"] == TagState.present:
-        changed, record, diff = ensure_present(module, client)
+        changed, records, diff = ensure_present(module, client)
     else:
-        changed, record, diff = ensure_absent(module, client)
-    return changed, record, diff
+        changed, records, diff = ensure_absent(module, client)
+    return changed, records, diff
 
 
 def main():
@@ -110,8 +129,8 @@ def main():
 
     try:
         client = get_oauth1_client(module.params)
-        changed, record, diff = run(module, client)
-        module.exit_json(changed=changed, record=record, diff=diff)
+        changed, records, diff = run(module, client)
+        module.exit_json(changed=changed, records=records, diff=diff)
     except errors.MaasError as e:
         module.fail_json(msg=str(e))
 
