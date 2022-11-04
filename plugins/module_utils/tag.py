@@ -13,8 +13,16 @@ from ..module_utils import errors
 class Tag:
     @staticmethod
     def send_tag_request(client, machine_id, tag_name):
-        # Can't send a whole list, looped request is required.
         payload = dict(add=machine_id)
+        client.post(
+            f"/api/2.0/tags/{tag_name}/",
+            query={"op": "update_nodes"},
+            data=payload,
+        ).json
+
+    @staticmethod
+    def sent_untag_request(client, machine_id, tag_name):
+        payload = dict(remove=machine_id)
         client.post(
             f"/api/2.0/tags/{tag_name}/",
             query={"op": "update_nodes"},

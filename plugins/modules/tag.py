@@ -42,6 +42,37 @@ options:
 """
 
 EXAMPLES = r"""
+- name: Create new tag 'one' and place it on VMs
+  canonical.maas.tag:
+    cluster_instance:
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
+    state: present
+    name: one
+    machines:
+      - instance-test.maas
+      - new-machine-test-tag.maas
+  register: tag_list
+- ansible.builtin.debug:
+    var: tag_list
+
+- name: Delete new tag 'one' and place it on VMs
+  canonical.maas.tag:
+    cluster_instance:
+      host: host-ip
+      token_key: token-key
+      token_secret: token-secret
+      customer_key: customer-key
+    state: absent
+    name: one
+    machines:
+      - instance-test.maas
+      - new-machine-test-tag.maas
+  register: tag_list
+- ansible.builtin.debug:
+    var: tag_list
 """
 
 RETURN = r"""
@@ -73,6 +104,14 @@ from ..module_utils.tag import Tag
 from ..module_utils.machine import Machine
 
 
+def get_after(client, after):
+    updated_machine_list = Machine.get_id_from_fqdn(client, *after)
+    after = []
+    for machine in updated_machine_list:
+        after.append(dict(machine=machine.fqdn, tags=machine.tags))
+    return after
+
+
 def ensure_present(module, client):
     before = []
     after = []
@@ -86,16 +125,23 @@ def ensure_present(module, client):
             Tag.send_tag_request(client, machine.id, module.params["name"])
             after.append(machine.fqdn)
     if after:  # Get updated machines
-        updated_machine_list = Machine.get_id_from_fqdn(client, *after)
-        after = []
-        for machine in updated_machine_list:
-            after.append(dict(machine=machine.fqdn, tags=machine.tags))
+        after = get_after(client, after)
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
-def ensure_absent(module, client, machine_obj):
+def ensure_absent(module, client):
     before = []
     after = []
+    machine_list = Machine.get_id_from_fqdn(client, *module.params["machines"])
+    existing_tag = Tag.get_tag_by_name(client, module)
+    if existing_tag:
+        for machine in machine_list:
+            if existing_tag["name"] in machine.tags:
+                before.append(dict(machine=machine.fqdn, tags=machine.tags))
+                Tag.sent_untag_request(client, machine.id, module.params["name"])
+                after.append(machine.fqdn)
+    if after:  # Get updated machines
+        after = get_after(client, after)
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
