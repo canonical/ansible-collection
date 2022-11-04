@@ -15,5 +15,5 @@
         - new-machine-test-tag.maas
     register: tag_list
 
-  - debug:
+  - ansible.builtin.debug:
       var: tag_list

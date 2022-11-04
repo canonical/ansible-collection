@@ -8,7 +8,6 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from ..module_utils import errors
-from ..module_utils.rest_client import RestClient
 
 
 class Tag:
