@@ -94,7 +94,9 @@ def ensure_present(module, client):
 
 
 def ensure_absent(module, client, machine_obj):
-    return
+    before = []
+    after = []
+    return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def run(module, client):
