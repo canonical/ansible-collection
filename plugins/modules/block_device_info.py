@@ -64,19 +64,39 @@ records:
   returned: success
   type: list
   sample:
-  - firmware_version: null
+  - firmware_version: null # this is not in GET - checki in maas
     system_id: y7388k
     block_size: 102400
     available_size: 1000000000
     model: fakemodel
     serial: 123
     used_size: 0
-    tags: []
+    tags:
+    - tag-BGt1BR
+    - tag-1Fm39m
+    - tag-Hqbbak
     partition_table_type: null
-    partitions: []
+    partitions:
+    - uuid: 95f5d47d-0abd-408b-b3f1-c3f4df152609
+      size: 7994343424
+      bootable: false
+      tags: []
+      path: "/dev/disk/by-dname/vda-part1
+      system_id: ccrfnk
+      used_for: ext4 formatted filesystem mounted at /
+      filesystem:
+        fstype: ext4
+        label: root
+        uuid: f698b5ee-d53c-4538-86cf-ee4b23d37db6
+        mount_point: /
+        mount_options: null
+      id: 1
+      type: partition
+      device_id: 1
+      resource_uri: /MAAS/api/2.0/nodes/ccrfnk/blockdevices/1/partition/1
     path: /dev/disk/by-dname/newblockdevice
     size: 1000000000
-    id_path: ""
+    id_path: null
     filesystem: null
     storage_pool: null
     name: newblockdevice
@@ -103,7 +123,9 @@ def run(module, client: Client):
         block_device = BlockDevice.get_by_name(
             module, client, machine.id, must_exist=True
         )
-        response = [block_device.get(client)]
+        response = [
+            block_device.get(client)
+        ]  # replace with to_ansible if all the data is stored in an object
     else:
         response = client.get(f"/MAAS/api/2.0/nodes/{machine.id}/blockdevices/").json
     return response
