@@ -15,9 +15,9 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Creates, updates or deletes MAAS machines' block devices.
 description:
-  - If I(state) is C(present) and I(hostname) is not provided or not found, adds an existing machine to the system.
-  - If I(state) is C(present) and I(hostname) is found, updates an existing machine in the system.
-  - If I(state) is C(absent) selected machine is deleted.
+  - If I(state) is C(present) and I(name) is not found, creates new block device.
+  - If I(state) is C(present) and I(name) is found, updates an existing block device.
+  - If I(state) is C(absent) selected block device is deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
   - canonical.maas.cluster_instance
@@ -25,109 +25,107 @@ seealso: []
 options:
   state:
     description:
-      - Desired state of the machine.
+      - Desired state of the block device.
     choices: [ present, absent ]
     type: str
     required: True
-  power_type:
+  machine_fqdn:
     description:
-      - A power management type (e.g. ipmi).
-      - In case of adding new machine to the system, this parameters is required.
-    type: str
-    choices: [ "amt", "apc", "dli", "eaton", "hmc", "ipmi", "manual", "moonshot", "mscm", "msftocs", "nova",
-              "openbmc", "proxmox", "recs_box", "redfish", "sm15k", "ucsm", "vmware", "webhook", "wedge", "lxd", "virsh" ]
-  power_parameters:
-    description:
-      - A dictionary with the parameters specific to the power_type.
-      - See U(https://maas.io/docs/api#power-types) section for a list of available power parameters for each power type.
-      - In case of adding new machine to the system, this parameters is required.
-    type: dict
-  pxe_mac_address:
-    description:
-      - The MAC address of the machine's PXE boot NIC.
-      - In case of adding new machine to the system, this parameters is required.
-      - Relevant only in case of adding new machine.
-    type: str
-  architecture:
-    description:
-      - The architecture type of the machine (for example, "i386/generic" or "amd64/generic").
-      - Defaults to amd64/generic.
-    type: str
-  fqdn:
-    description:
-      - Fully qualified domain name of the machine to be updated or deleted.
+      - Fully qualified domain name of the machine that owns the block device.
       - Serves as unique identifier of the machine.
       - If machine is not found the task will FAIL.
     type: str
-  hostname:
+    required: True
+  name:
     description:
-      - Name of the machine to be added. In case of updating the machine, this parameter is used for updating the name of the machine.
-      - In case if new machine is added, the name is computed if it's not set.
+      - The name of a block device to be created, updated or deleted.
     type: str
-  domain:
+    required: True
+  new_name:
     description:
-      - The domain of the machine.
-      - This is computed if it's not set.
+      - Updated name of a selected block device.
     type: str
-  zone:
+  size_gigabytes:
     description:
-      - The zone of the machine.
-      - This is computed if it's not set.
-    type: str
-  pool:
+      - The size of the block device (in GB).
+    type: int
+    required: True
+  block_size:
     description:
-      - The resource pool of the machine.
-      - This is computed if it's not set.
-    type: str
-  min_hwe_kernel:
+      - The block size of the block device. Defaults to 512.
+    type: int
+  is_boot_device:
     description:
-      - The minimum kernel version allowed to run on this machine.
-      - Only used when deploying Ubuntu.
-      - This is computed if it's not set.
-    type: str
-
-
-
-
-    machine - (Required) The machine identifier (system ID, hostname, or FQDN) that owns the block device.
-    name - (Required) The block device name.
-    size_gigabytes - (Required) The size of the block device (given in GB).
-    block_size - (Optional) The block size of the block device. Defaults to 512.
-    is_boot_device - (Optional) Boolean value indicating if the block device is set as the boot device.
-    partitions - (Optional) List of partition resources created for the new block device. Parameters defined below. This argument is processed in attribute-as-blocks mode. And, it is computed if it's not given.
-    model - (Optional) Model of the block device. Used in conjunction with serial argument. Conflicts with id_path. This argument is computed if it's not given.
-    serial - (Optional) Serial number of the block device. Used in conjunction with model argument. Conflicts with id_path. This argument is computed if it's not given.
-    id_path - (Optional) Only used if model and serial cannot be provided. This should be a path that is fixed and doesn't change depending on the boot order or kernel version. This argument is computed if it's not given.
-    tags - (Optional) A set of tag names assigned to the new block device. This argument is computed if it's not given.
-
-
-POST /MAAS/api/2.0/nodes/{system_id}/blockdevices/:
-
-{system_id} (String): Required. The machine system_id.
-
-name (String): Required. Name of the block device.
-
-model (String): Optional. Model of the block device.
-
-serial (String): Optional. Serial number of the block device.
-
-id_path (String): Optional. Only used if model and serial cannot be provided. This should be a path that is fixed and doesn't change depending on the boot order or kernel version.
-
-size (String): Required. Size of the block device.
-
-block_size (String): Required. Block size of the block device.
-
-
-
-
-
-
-
-
+      - Indicates if the block device is set as the boot device.
+    type: bool
+  partitions:
+    description:
+      - List of partition resources created for the new block device.
+      - It is computed if it's not given.
+    type: list #CHECK
+    elements: dict #CHECK
+    suboptions:
+      size_gigabytes:
+        description:
+          - The partition size (in GB).
+        type: int
+        required: True
+      bootable:
+        description:
+          - Indicates if the partition is set as bootable.
+        type: bool
+      tags:
+        description:
+          - The tags assigned to the new block device partition.
+        type: str
+      fs_type:
+        description:
+          - The file system type (e.g. ext4).
+          - If this is not set, the partition is unformatted.
+        type: str
+      label:
+        description:
+          - The label assigned if the partition is formatted.
+        type: str
+      mount_point:
+        description:
+          - The mount point used.
+          - If this is not set, the partition is not mounted.
+          - This is used only the partition is formatted.
+        type: str
+      mount_options:
+        description:
+          - The options used for the partition mount.
+        type: str
+    model:
+      description:
+        - Model of the block device.
+        - Required together with I(serial).
+        - Mutually exclusive with I(id_path).
+        - This argument is computed if it's not given.
+      type: str
+    serial:
+      description:
+        - Serial number of the block device.
+        - Required together with with I(model).
+        - Mutually exclusive with I(id_path).
+        - This argument is computed if it's not given.
+      type: str
+    id_path:
+      description:
+        - Only used if I(model) and I(serial) cannot be provided.
+        - This should be a path that is fixed and doesn't change depending on the boot order or kernel version.
+        - This argument is computed if it's not given.
+      type: path
+    tags:
+      description:
+        - A set of tag names assigned to the new block device.
+        - This argument is computed if it's not given.
+      type: list # OR STR??
 """
 
 EXAMPLES = r"""
-- name: Create and attach block device to machine 
+- name: Create and attach block device to machine
   canonical.maas.block_device:
     machine_fqdn: some_machine_name.project
     name: vdb
@@ -161,42 +159,31 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Added machine.
+    - Created or updated machine's block device.
   returned: success
   type: dict
   sample:
-    architecture: amd64/generic
-    cores: 2
-    distro_series: focal
-    fqdn: new-machine.maas
-    hostname: new-machine
-    hwe_kernel: hwe-22.04
-    id: 6h4fn6
-    memory: 2048
-    min_hwe_kernel: ga-22.04
-    network_interfaces:
-    - fabric: fabric-1
-      id: 277
-      ip_address: 10.10.10.190
-      mac_address: 00:00:00:00:00:01
-      name: my-net
-      subnet_cidr: 10.10.10.0/24
-      vlan: untagged
-    osystem: ubuntu
-    pool: default
-    power_type: lxd
-    status: Commissioning
-    storage_disks:
-    - id: 288
-      name: sda
-      size_gigabytes: 3
-    - id: 289
-      name: sdb
-      size_gigabytes: 5
-    tags:
-      - pod-console-logging
-      - my-tag
-    zone: default
+  - firmware_version: null
+    system_id: y7388k
+    block_size: 102400
+    available_size: 1000000000
+    model: fakemodel
+    serial: 123
+    used_size: 0
+    tags: []
+    partition_table_type: null
+    partitions: []
+    path: /dev/disk/by-dname/newblockdevice
+    size: 1000000000
+    id_path: ""
+    filesystem: null
+    storage_pool: null
+    name: newblockdevice
+    used_for: Unused
+    id: 73
+    type: physical
+    uuid: null
+    resource_uri: /MAAS/api/2.0/nodes/y7388k/blockdevices/73/
 """
 
 
@@ -206,6 +193,34 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.machine import Machine
+
+
+# POST /MAAS/api/2.0/nodes/{system_id}/blockdevices/:
+# {system_id} (String): Required. The machine system_id.
+# name (String): Required. Name of the block device.
+# model (String): Optional. Model of the block device.
+# serial (String): Optional. Serial number of the block device.
+# id_path (String): Optional. Only used if model and serial cannot be provided. This should be a path that is fixed and doesn't change depending on the boot order or kernel version.
+# size (String): Required. Size of the block device.
+# block_size (String): Required. Block size of the block device.
+
+
+# PUT /MAAS/api/2.0/nodes/{system_id}/blockdevices/{id}/
+# {system_id} (String): Required. The machine system_id.
+# {id} (String): Required. The block device's id.
+# name (String): Optional. (Physical devices) Name of the block device.
+# model (String): Optional. (Physical devices) Model of the block device.
+# serial (String): Optional. (Physical devices) Serial number of the block device.
+# id_path (String): Optional. (Physical devices) Only used if model and serial cannot be provided. This should be a path that is fixed and doesn't change depending on the boot order or kernel version.
+# size (String): Optional. (Physical devices) Size of the block device.
+# block_size (String): Optional. (Physical devices) Block size of the block device.
+# name (String): Optional. (Virtual devices) Name of the block device.
+# uuid (String): Optional. (Virtual devices) UUID of the block device.
+# size (String): Optional. (Virtual devices) Size of the block device. (Only allowed for logical volumes.)
+
+
+# POST /MAAS/api/2.0/nodes/{system_id}/blockdevices/{id}/?op=set_boot_disk
+# Set a block device as the boot disk for the machine.
 
 
 def data_for_add_machine(module):
