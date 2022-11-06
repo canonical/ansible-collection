@@ -76,42 +76,42 @@ class Partition(MaasValueMapper):
         ).json
 
     def add_tag(self, client, payload):
-        return client.put(
+        return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
             query={"op": "add_tag"},
             data=payload,
         ).json
 
     def remove_tag(self, client, payload):
-        return client.put(
+        return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
             query={"op": "remove_tag"},
             data=payload,
         ).json
 
     def format(self, client, payload):
-        return client.put(
+        return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
             query={"op": "format"},
             data=payload,
         ).json
 
     def unformat(self, client, payload):
-        return client.put(
+        return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
             query={"op": "unformat"},
             data=payload,
         ).json
 
     def mount(self, client, payload):
-        return client.put(
+        return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
             query={"op": "mount"},
             data=payload,
         ).json
 
     def unmount(self, client, payload):
-        return client.put(
+        return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
             query={"op": "unmount"},
             data=payload,
