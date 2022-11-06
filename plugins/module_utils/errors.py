@@ -79,3 +79,9 @@ class BlockDeviceNotFound(MaasError):
     def __init__(self, data):
         self.message = "Block device - {0} - not found".format(data)
         super(BlockDeviceNotFound, self).__init__(self.message)
+
+
+class PartitionNotFound(MaasError):
+    def __init__(self, data):
+        self.message = "Partition - {0} - not found".format(data)
+        super(PartitionNotFound, self).__init__(self.message)
