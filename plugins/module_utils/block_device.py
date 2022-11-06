@@ -95,6 +95,55 @@ class BlockDevice(MaasValueMapper):
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/", data=payload
         ).json
 
+    def add_tag(self, client, payload):
+        return client.post(
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
+            query={"op": "add_tag"},
+            data=payload,
+        ).json
+
+    def remove_tag(self, client, payload):
+        return client.post(
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
+            query={"op": "remove_tag"},
+            data=payload,
+        ).json
+
+    def mount(self, client, payload):
+        return client.post(
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
+            query={"op": "mount"},
+            data=payload,
+        ).json
+
+    def unmount(self, client, payload):
+        return client.post(
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
+            query={"op": "unmount"},
+            data=payload,
+        ).json
+
+    def format(self, client, payload):
+        return client.post(
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
+            query={"op": "format"},
+            data=payload,
+        ).json
+
+    def unformat(self, client, payload):
+        return client.post(
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
+            query={"op": "unformat"},
+            data=payload,
+        ).json
+
+    def set_boot_disk(self, client, payload):
+        return client.post(
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
+            query={"op": "set_boot_disk"},
+            data=payload,
+        ).json
+
     @classmethod
     def create(cls, client, machine_id, payload):
         block_device_maas_dict = client.post(
