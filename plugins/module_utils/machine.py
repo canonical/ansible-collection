@@ -86,6 +86,20 @@ class Machine(MaasValueMapper):
             return machine_from_maas
 
     @classmethod
+    def get_id_from_fqdn(cls, client, *fqdns):
+        all_machines = client.get("/api/2.0/machines/").json
+        machine_list = [
+            cls.from_maas(machine)
+            for machine in all_machines
+            if machine["fqdn"] in fqdns
+        ]
+        check_list = [machine.fqdn for machine in machine_list]
+        for fqdn in fqdns:
+            if fqdn not in check_list:
+                raise errors.MaasError(f"Machine - {fqdn} - not found.")
+        return machine_list
+
+    @classmethod
     def get_by_fqdn(cls, module, client, must_exist=False, name_field_ansible="fqdn"):
         # Returns machine object or None
         rest_client = RestClient(client=client)
@@ -127,6 +141,17 @@ class Machine(MaasValueMapper):
             return vmhost_from_maas
         except errors.MaasError:
             raise errors.MachineNotFound(id)
+
+    @classmethod
+    def get_by_tag(cls, client, tag_name):
+        # Returns list of machines with the tag_name or empty list
+        all_machines = client.get("/api/2.0/machines/").json
+        machine_list = [
+            cls.from_maas(machine)
+            for machine in all_machines
+            if tag_name in machine["tag_names"]
+        ]
+        return machine_list
 
     @classmethod
     def from_ansible(cls, module):
