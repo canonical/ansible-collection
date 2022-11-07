@@ -143,6 +143,17 @@ class Machine(MaasValueMapper):
             raise errors.MachineNotFound(id)
 
     @classmethod
+    def get_by_tag(cls, client, tag_name):
+        # Returns list of machines with the tag_name or empty list
+        all_machines = client.get("/api/2.0/machines/").json
+        machine_list = [
+            cls.from_maas(machine)
+            for machine in all_machines
+            if tag_name in machine["tag_names"]
+        ]
+        return machine_list
+
+    @classmethod
     def from_ansible(cls, module):
         obj = cls()
         obj.hostname = module.params.get("hostname")

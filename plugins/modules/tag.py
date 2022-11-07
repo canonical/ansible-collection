@@ -104,28 +104,71 @@ from ..module_utils.tag import Tag
 from ..module_utils.machine import Machine
 
 
-def get_after(client, after):
-    updated_machine_list = Machine.get_id_from_fqdn(client, *after)
-    after = []
-    for machine in updated_machine_list:
-        after.append(dict(machine=machine.fqdn, tags=machine.tags))
+def _get_after(client, after):
+    if after:  # Get updated machines
+        updated_machine_list = Machine.get_id_from_fqdn(client, *after)
+        after = []
+        for machine in updated_machine_list:
+            after.append(dict(machine=machine.fqdn, tags=machine.tags))
     return after
 
 
-def ensure_present(module, client):
-    before = []
-    after = []
-    machine_list = Machine.get_id_from_fqdn(client, *module.params["machines"])
-    existing_tag = Tag.get_tag_by_name(client, module)
+def _create_tag(client, module, existing_tag):
     if not existing_tag:
         Tag.send_create_request(client, module)
+
+
+def _add_tag_to_machine(client, module, machine_list, before, after):
     for machine in machine_list:
         if module.params["name"] not in machine.tags:
             before.append(dict(machine=machine.fqdn, tags=machine.tags))
             Tag.send_tag_request(client, machine.id, module.params["name"])
             after.append(machine.fqdn)
-    if after:  # Get updated machines
-        after = get_after(client, after)
+    return before, after
+
+
+def _remove_tag_from_machine(client, module, machine_list, existing_tag, before, after):
+    for machine in machine_list:
+        if existing_tag["name"] in machine.tags:
+            before.append(dict(machine=machine.fqdn, tags=machine.tags))
+            Tag.sent_untag_request(client, machine.id, module.params["name"])
+            after.append(machine.fqdn)
+    return before, after
+
+
+def _remove_unecessary_tag_after_set(
+    client,
+    module,
+    existing_tag,
+    machine_list_from_ansible,
+    machine_list_from_maas,
+    before,
+    after,
+):
+    # Remove tag from machines not in the ansible machine list
+    check_list = [machine_ansible.fqdn for machine_ansible in machine_list_from_ansible]
+    remove_list = []
+    for machine in machine_list_from_maas:
+        if module.params["name"] in machine.tags and machine.fqdn not in check_list:
+            remove_list.append(machine)
+    before, after = _remove_tag_from_machine(
+        client, module, remove_list, existing_tag, before, after
+    )
+    return before, after
+
+
+def ensure_present(module, client):
+    before = []
+    after = []
+    machine_list_from_ansible = Machine.get_id_from_fqdn(
+        client, *module.params["machines"]
+    )
+    existing_tag = Tag.get_tag_by_name(client, module)
+    _create_tag(client, module, existing_tag)
+    before, after = _add_tag_to_machine(
+        client, module, machine_list_from_ansible, before, after
+    )
+    after = _get_after(client, after)
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
@@ -135,19 +178,37 @@ def ensure_absent(module, client):
     machine_list = Machine.get_id_from_fqdn(client, *module.params["machines"])
     existing_tag = Tag.get_tag_by_name(client, module)
     if existing_tag:
-        for machine in machine_list:
-            if existing_tag["name"] in machine.tags:
-                before.append(dict(machine=machine.fqdn, tags=machine.tags))
-                Tag.sent_untag_request(client, machine.id, module.params["name"])
-                after.append(machine.fqdn)
-    if after:  # Get updated machines
-        after = get_after(client, after)
+        before, after = _remove_tag_from_machine(
+            client, module, machine_list, existing_tag, before, after
+        )
+    after = _get_after(client, after)
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def ensure_set(module, client):
+    # Get list of all machines with the tag
+    # Remove tag from every machine not in the module.params machine_list
     before = []
     after = []
+    machine_list_from_ansible = Machine.get_id_from_fqdn(
+        client, *module.params["machines"]
+    )
+    machine_list_from_maas = Machine.get_by_tag(client, module.params["name"])
+    existing_tag = Tag.get_tag_by_name(client, module)
+    _create_tag(client, module, existing_tag)
+    before, after = _add_tag_to_machine(
+        client, module, machine_list_from_ansible, before, after
+    )
+    before, after = _remove_unecessary_tag_after_set(
+        client,
+        module,
+        existing_tag,
+        machine_list_from_ansible,
+        machine_list_from_maas,
+        before,
+        after,
+    )
+    after = _get_after(client, after)
     return is_changed(before, after), after, dict(before=before, after=after)
 
 

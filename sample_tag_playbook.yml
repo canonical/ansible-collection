@@ -1,7 +1,7 @@
 - name: Create new tag and place it on VMs
   hosts: localhost
   tasks:
-  - name: Create new tag 'one' and place it on VMs
+  - name: Create new tag 'bla' and place it on VMs
     canonical.maas.tag:
       cluster_instance:
         host: http://10.44.240.10:5240/MAAS
@@ -17,7 +17,53 @@
   - ansible.builtin.debug:
       var: tag_list
 
-  - name: Delete new tag 'one' and place it on VMs
+  - name: Delete new tag 'bla'
+    canonical.maas.tag:
+      cluster_instance:
+        host: http://10.44.240.10:5240/MAAS
+        token_key: kDcKvtWX7fXLB7TvB2
+        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+        customer_key: tqDErtYzyzRVdUb9hS
+      state: absent
+      name: bla
+      machines:
+        - instance-test.maas
+        - new-machine-test-tag.maas
+    register: tag_list
+  - ansible.builtin.debug:
+      var: tag_list
+
+  - name: Set new tag 'bla' and place it on one VM
+    canonical.maas.tag:
+      cluster_instance:
+        host: http://10.44.240.10:5240/MAAS
+        token_key: kDcKvtWX7fXLB7TvB2
+        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+        customer_key: tqDErtYzyzRVdUb9hS
+      state: set
+      name: bla
+      machines:
+        - instance-test.maas
+    register: tag_list
+  - ansible.builtin.debug:
+      var: tag_list
+
+  - name: Set new tag 'bla' and place it on the other VM and remove it from current
+    canonical.maas.tag:
+      cluster_instance:
+        host: http://10.44.240.10:5240/MAAS
+        token_key: kDcKvtWX7fXLB7TvB2
+        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+        customer_key: tqDErtYzyzRVdUb9hS
+      state: set
+      name: bla
+      machines:
+        - new-machine-test-tag.maas
+    register: tag_list
+  - ansible.builtin.debug:
+      var: tag_list
+
+  - name: Delete new tag 'bla'
     canonical.maas.tag:
       cluster_instance:
         host: http://10.44.240.10:5240/MAAS
