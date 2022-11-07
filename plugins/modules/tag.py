@@ -104,7 +104,7 @@ from ..module_utils.tag import Tag
 from ..module_utils.machine import Machine
 
 
-def _get_after(client, after):
+def get_after(client, after):
     if after:  # Get updated machines
         updated_machine_list = Machine.get_id_from_fqdn(client, *after)
         after = []
@@ -113,30 +113,32 @@ def _get_after(client, after):
     return after
 
 
-def _create_tag(client, module, existing_tag):
+def create_tag(client, module, existing_tag):
     if not existing_tag:
         Tag.send_create_request(client, module)
 
 
-def _add_tag_to_machine(client, module, machine_list, before, after):
+def add_tag_to_machine(client, module, machine_list, before, after):
     for machine in machine_list:
         if module.params["name"] not in machine.tags:
             before.append(dict(machine=machine.fqdn, tags=machine.tags))
+            # Request in a loop is not optimal design, but API does not support sending in a list.
             Tag.send_tag_request(client, machine.id, module.params["name"])
             after.append(machine.fqdn)
     return before, after
 
 
-def _remove_tag_from_machine(client, module, machine_list, existing_tag, before, after):
+def remove_tag_from_machine(client, module, machine_list, existing_tag, before, after):
     for machine in machine_list:
         if existing_tag["name"] in machine.tags:
             before.append(dict(machine=machine.fqdn, tags=machine.tags))
+            # Request in a loop is not optimal design, but API does not support sending in a list.
             Tag.sent_untag_request(client, machine.id, module.params["name"])
             after.append(machine.fqdn)
     return before, after
 
 
-def _remove_unecessary_tag_after_set(
+def remove_unnecessary_tag_after_set(
     client,
     module,
     existing_tag,
@@ -151,7 +153,7 @@ def _remove_unecessary_tag_after_set(
     for machine in machine_list_from_maas:
         if module.params["name"] in machine.tags and machine.fqdn not in check_list:
             remove_list.append(machine)
-    before, after = _remove_tag_from_machine(
+    before, after = remove_tag_from_machine(
         client, module, remove_list, existing_tag, before, after
     )
     return before, after
@@ -164,11 +166,11 @@ def ensure_present(module, client):
         client, *module.params["machines"]
     )
     existing_tag = Tag.get_tag_by_name(client, module)
-    _create_tag(client, module, existing_tag)
-    before, after = _add_tag_to_machine(
+    create_tag(client, module, existing_tag)
+    before, after = add_tag_to_machine(
         client, module, machine_list_from_ansible, before, after
     )
-    after = _get_after(client, after)
+    after = get_after(client, after)
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
@@ -178,10 +180,10 @@ def ensure_absent(module, client):
     machine_list = Machine.get_id_from_fqdn(client, *module.params["machines"])
     existing_tag = Tag.get_tag_by_name(client, module)
     if existing_tag:
-        before, after = _remove_tag_from_machine(
+        before, after = remove_tag_from_machine(
             client, module, machine_list, existing_tag, before, after
         )
-    after = _get_after(client, after)
+    after = get_after(client, after)
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
@@ -195,11 +197,11 @@ def ensure_set(module, client):
     )
     machine_list_from_maas = Machine.get_by_tag(client, module.params["name"])
     existing_tag = Tag.get_tag_by_name(client, module)
-    _create_tag(client, module, existing_tag)
-    before, after = _add_tag_to_machine(
+    create_tag(client, module, existing_tag)
+    before, after = add_tag_to_machine(
         client, module, machine_list_from_ansible, before, after
     )
-    before, after = _remove_unecessary_tag_after_set(
+    before, after = remove_unnecessary_tag_after_set(
         client,
         module,
         existing_tag,
@@ -208,7 +210,7 @@ def ensure_set(module, client):
         before,
         after,
     )
-    after = _get_after(client, after)
+    after = get_after(client, after)
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
