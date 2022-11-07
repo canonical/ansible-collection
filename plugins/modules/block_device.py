@@ -68,8 +68,8 @@ options:
       size_gigabytes:
         description:
           - The partition size (in GB).
+          - If not specified, all available space will be used.
         type: int
-        required: True
       bootable:
         description:
           - Indicates if the partition is set as bootable.
@@ -91,7 +91,7 @@ options:
         description:
           - The mount point used.
           - If this is not set, the partition is not mounted.
-          - This is used only the partition is formatted.
+          - This is used only if the partition is formatted.
         type: str
       mount_options:
         description:
@@ -121,7 +121,7 @@ options:
       description:
         - A set of tag names assigned to the new block device.
         - This argument is computed if it's not given.
-      type: list # OR STR??
+      type: list
 """
 
 EXAMPLES = r"""
@@ -187,145 +187,166 @@ record:
 """
 
 
-import json
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.machine import Machine
+from ..module_utils.state import MachineTaskState
+from ..module_utils.partition import Partition
+from ..module_utils.block_device import BlockDevice
 
 
-# POST /MAAS/api/2.0/nodes/{system_id}/blockdevices/:
-# {system_id} (String): Required. The machine system_id.
-# name (String): Required. Name of the block device.
-# model (String): Optional. Model of the block device.
-# serial (String): Optional. Serial number of the block device.
-# id_path (String): Optional. Only used if model and serial cannot be provided. This should be a path that is fixed and doesn't change depending on the boot order or kernel version.
-# size (String): Required. Size of the block device.
-# block_size (String): Required. Block size of the block device.
-
-
-# PUT /MAAS/api/2.0/nodes/{system_id}/blockdevices/{id}/
-# {system_id} (String): Required. The machine system_id.
-# {id} (String): Required. The block device's id.
-# name (String): Optional. (Physical devices) Name of the block device.
-# model (String): Optional. (Physical devices) Model of the block device.
-# serial (String): Optional. (Physical devices) Serial number of the block device.
-# id_path (String): Optional. (Physical devices) Only used if model and serial cannot be provided. This should be a path that is fixed and doesn't change depending on the boot order or kernel version.
-# size (String): Optional. (Physical devices) Size of the block device.
-# block_size (String): Optional. (Physical devices) Block size of the block device.
-# name (String): Optional. (Virtual devices) Name of the block device.
-# uuid (String): Optional. (Virtual devices) UUID of the block device.
-# size (String): Optional. (Virtual devices) Size of the block device. (Only allowed for logical volumes.)
-
-
-# POST /MAAS/api/2.0/nodes/{system_id}/blockdevices/{id}/?op=set_boot_disk
-# Set a block device as the boot disk for the machine.
-
-
-def data_for_add_machine(module):
+def data_for_create_block_device(module):
     data = {}
-    if (
-        not module.params["power_type"]
-        or not module.params["power_parameters"]
-        or not module.params["pxe_mac_address"]
-    ):
-        raise errors.MissingValueAnsible(
-            "power_type, power_parameters or pxe_mac_address"
-        )
-    data["power_type"] = module.params["power_type"]  # required
-    data["power_parameters"] = json.dumps(module.params["power_parameters"])  # required
-    data["mac_addresses"] = module.params["pxe_mac_address"]  # required
-    data["architecture"] = "amd64/generic"  # default
-    if module.params["architecture"]:
-        data["architecture"] = module.params["architecture"]
-    if module.params["hostname"]:
-        data["hostname"] = module.params["hostname"]
-    if module.params["domain"]:
-        data["domain"] = module.params["domain"]
-    if module.params["zone"]:
-        data["zone"] = module.params["zone"]
-    if module.params["pool"]:
-        data["pool"] = module.params["pool"]
-    if module.params["min_hwe_kernel"]:
-        data["min_hwe_kernel"] = module.params["min_hwe_kernel"]
+    data["name"] = module.params["name"]  # required
+    data["size"] = module.params["size_gigabytes"]  # required
+    data["block_size"] = 512  # default
+    if module.params["block_size"]:
+        data["block_size"] = module.params["block_size"]
+    if module.params["model"]:
+        data["model"] = module.params["model"]
+    if module.params["serial"]:
+        data["serial"] = module.params["serial"]
+    if module.params["id_path"]:
+        data["id_path"] = module.params["id_path"]
     return data
 
 
-def add_machine(module, client: Client):
-    data = data_for_add_machine(module)
-    machine = Machine.create(client, data)
+def create_block_device(module, client: Client, machine_id):
+    data = data_for_create_block_device(module)
+    block_device = BlockDevice.create(client, machine_id, data)
+    if module.params["partitions"]:
+        create_partition(module, client, machine_id, block_device.id)
+    if module.params["tags"]:
+        for tag in module.params["tags"]:
+            block_device.add_tag(client, tag)
+    if module.params["is_boot_device"]:  # if it is true
+        block_device.set_boot_disk(client)
+    block_device_maas_dict = block_device.get(client)
     return (
         True,
-        machine.to_ansible(),
-        dict(before={}, after=machine.to_ansible()),
+        block_device_maas_dict,
+        dict(before={}, after=block_device_maas_dict),
     )
 
 
-def data_for_update_machine(module, machine):
+def data_for_create_partition(partition):
     data = {}
-    if module.params["power_type"]:
-        if machine.power_type != module.params["power_type"]:
-            data["power_type"] = module.params["power_type"]
-    if module.params["power_parameters"]:
-        # Here we will not check for changes because some parameteres aren't returned
-        data["power_parameters"] = json.dumps(module.params["power_parameters"])
-    # pxe_mac_address can't be updated
-    if module.params["architecture"]:
-        if machine.architecture != module.params["architecture"]:
-            data["architecture"] = module.params["architecture"]
-    if module.params["hostname"]:
-        if machine.hostname != module.params["hostname"]:
-            data["hostname"] = module.params["hostname"]
-    if module.params["domain"]:
-        if machine.domain != module.params["domain"]:
-            data["domain"] = module.params["domain"]
-    if module.params["zone"]:
-        if machine.zone != module.params["zone"]:
-            data["zone"] = module.params["zone"]
-    if module.params["pool"]:
-        if machine.pool != module.params["pool"]:
-            data["pool"] = module.params["pool"]
-    if module.params["min_hwe_kernel"]:
-        if machine.min_hwe_kernel != module.params["min_hwe_kernel"]:
-            data["min_hwe_kernel"] = module.params["min_hwe_kernel"]
+    if partition["size_gigabytes"]:
+        data["size"] = partition["size_gigabytes"]
+    if partition["bootable"]:
+        data["bootalbe"] = partition["bootable"]
+
+
+def create_partition(module, client, machine_id, block_device_id):
+    for partition in module.params["partitions"]:
+        data = data_for_create_partition(partition)
+        new_partition = Partition.create(client, machine_id, block_device_id, data)
+        if partition[
+            "fs_type"
+        ]:  # If this is not set, the partition is unformatted. - CHECK IF IT REALLY NEEDS TO BE UNFOMRATED WHEN CREATING NEW PARTITION
+            data = {}
+            data["fstype"] = partition["fs_type"]
+            if partition["label"]:
+                data["label"] = partition["label"]
+            new_partition.format(client, data)
+            if partition[
+                "mount_point"
+            ]:  # This is used only if the partition is formatted
+                data = {}
+                data["mount_point"] = partition["mount_point"]
+                if partition["mount_options"]:
+                    data["mount_options"] = partition["mount_options"]
+                new_partition.mount(client, data)
+        if partition["tags"]:
+            for tag in partition["tags"]:
+                new_partition.add_tag(client, tag)
+
+
+def data_for_update_block_device(module, block_device, machine, client):
+    """
+    Machines must have a status of Ready to have access to all options.
+    Machines with Deployed status can only have the name, model, serial, and/or id_path updated for a block device.
+    This is intented to allow a bad block device to be replaced while the machine remains deployed.
+    """
+    data = {}
+    if module.params["new_name"]:
+        if block_device.name != module.params["new_name"]:
+            data["name"] = module.params["new_name"]
+    if module.params["model"]:
+        if block_device.model != module.params["model"]:
+            data["model"] = module.params["model"]
+    if module.params["serial"]:
+        if block_device.serial != module.params["serial"]:
+            data["serial"] = module.params["serial"]
+    if module.params["id_path"]:
+        if block_device.id_path != module.params["id_path"]:
+            data["id_path"] = module.params["id_path"]
+    if machine.status == MachineTaskState.ready.value:
+        if module.params["block_size"]:
+            if block_device.block_size != module.params["block_size"]:
+                data["block_size"] = module.params["block_size"]
+        if module.params["size_gigabytes"]:
+            if block_device.size != module.params["size_gigabytes"]:
+                data["size"] = module.params["size_gigabytes"]
     return data
 
 
-def update_machine(module, client: Client):
-    machine = Machine.get_by_fqdn(module, client, must_exist=True)
-    data = data_for_update_machine(module, machine)
+def update_block_device(module, client: Client, machine):
+    block_device = BlockDevice.get_by_name(
+        module,
+        client,
+        machine.id,
+        must_exist=True,
+        name_field_ansible="name",
+    )
+    block_device_maas_dict = block_device.get(client)
+    data = data_for_update_block_device(module, machine)
     if data:
-        updated_machine_maas_dict = machine.update(client, data)
-        machine_after = Machine.from_maas(updated_machine_maas_dict)
+        block_device.update(client, data)
+    if module.params["tags"]:  # tags can be added but not removed!!
+        for tag in module.params["tags"]:
+            if tag not in block_device.tags:
+                block_device.add_tag(client, tag)
+    if module.params["is_boot_device"]:  # if it is true
+        block_device.set_boot_disk(client)
+    # check if create_partition works if partition are already created on the device
+    updated_block_device_maas_dict = block_device.get(client)
+    if updated_block_device_maas_dict == block_device_maas_dict:
         return (
-            True,
-            machine_after.to_ansible(),
-            dict(before=machine.to_ansible(), after=machine_after.to_ansible()),
+            False,
+            block_device_maas_dict,
+            dict(before=block_device_maas_dict, after=block_device_maas_dict),
         )
     return (
-        False,
-        machine.to_ansible(),
-        dict(before=machine.to_ansible(), after=machine.to_ansible()),
+        True,
+        updated_block_device_maas_dict,
+        dict(before=block_device_maas_dict, after=updated_block_device_maas_dict),
     )
 
 
-def delete_machine(module, client: Client):
-    machine = Machine.get_by_fqdn(module, client, must_exist=False)
-    if machine:
-        machine.delete(client)
-        return True, dict(), dict(before=machine.to_ansible(), after={})
+def delete_block_device(module, client: Client, machine_id):
+    block_device = BlockDevice.get_by_name(module, client, machine_id)
+    if block_device:
+        block_device_maas_dict = block_device.get(client)
+        block_device.delete(client)
+        return True, dict(), dict(before=block_device_maas_dict, after={})
     return False, dict(), dict(before={}, after={})
 
 
 def run(module, client: Client):
+    machine = Machine.get_by_fqdn(
+        module, client, must_exist=True, name_field_ansible="machine_fqdn"
+    )
     if module.params["state"] == "present":
-        if module.params["fqdn"]:
-            return update_machine(module, client)
+        block_device = BlockDevice.get_by_name(module, client, machine.id)
+        if block_device:
+            return update_block_device(module, client, machine)
         else:
-            return add_machine(module, client)
+            return create_block_device(module, client, machine.id)
     if module.params["state"] == "absent":
-        return delete_machine(module, client)
+        return delete_block_device(module, client, machine.id)
 
 
 def main():
@@ -338,46 +359,32 @@ def main():
                 choices=["present", "absent"],
                 required=True,
             ),
-            fqdn=dict(type="str"),
-            power_type=dict(
-                type="str",
-                choices=[
-                    "amt",
-                    "apc",
-                    "dli",
-                    "eaton",
-                    "hmc",
-                    "ipmi",
-                    "manual",
-                    "moonshot",
-                    "mscm",
-                    "msftocs",
-                    "nova",
-                    "openbmc",
-                    "proxmox",
-                    "recs_box",
-                    "redfish",
-                    "sm15k",
-                    "ucsm",
-                    "vmware",
-                    "webhook",
-                    "wedge",
-                    "lxd",
-                    "virsh",
-                ],
+            machine_fqdn=dict(type="str", required=True),
+            name=dict(type="str", required=True),
+            new_name=dict(type="str"),
+            block_size=dict(type="int"),
+            size_gigabytes=dict(type="int"),
+            is_boot_device=dict(type="bool"),
+            model=dict(type="str"),
+            serial=dict(type="str"),
+            id_path=dict(type="path"),
+            tags=dict(type="list", elements="str"),
+            partitions=dict(
+                type="list",
+                elements="dict",
+                options=dict(
+                    size_gigabytes=dict(type="int"),
+                    bootable=dict(type="bool"),
+                    tags=dict(type="list", elements="str"),
+                    fs_type=dict(type="str"),
+                    label=dict(type="str"),
+                    mount_point=dict(type="str"),
+                    mount_options=dict(type="str"),
+                ),
             ),
-            power_parameters=dict(type="dict"),
-            pxe_mac_address=dict(type="str"),
-            hostname=dict(type="str"),
-            domain=dict(type="str"),
-            zone=dict(type="str"),
-            pool=dict(type="str"),
-            min_hwe_kernel=dict(type="str"),
-            architecture=dict(type="str"),
         ),
-        required_if=[
-            ("state", "absent", ("fqdn",), False),
-        ],
+        required_together=[("model", "serial")],
+        mutually_exclusive=[("model", "id_path"), ("serial", "id_path")],
     )
 
     try:
