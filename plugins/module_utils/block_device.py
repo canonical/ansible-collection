@@ -23,10 +23,22 @@ class BlockDevice(MaasValueMapper):
         name=None,
         id=None,
         machine_id=None,
+        model=None,
+        serial=None,
+        id_path=None,
+        block_size=None,
+        size=None,
+        tags=None,
     ):
         self.name = name
         self.id = id
         self.machine_id = machine_id
+        self.model = model
+        self.serial = serial
+        self.id_path = id_path
+        self.block_size = block_size
+        self.size = size
+        self.tags = tags
 
     @classmethod
     def get_by_name(
@@ -72,6 +84,12 @@ class BlockDevice(MaasValueMapper):
             obj.name = maas_dict["name"]
             obj.id = maas_dict["id"]
             obj.machine_id = maas_dict["system_id"]
+            obj.model = maas_dict["model"]
+            obj.serial = maas_dict["serial"]
+            obj.id_path = maas_dict["id_path"]
+            obj.block_size = maas_dict["block_size"]
+            obj.size = maas_dict["size"]
+            obj.tags = maas_dict["tags"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -158,5 +176,11 @@ class BlockDevice(MaasValueMapper):
                 self.name == other.name,
                 self.id == other.id,
                 self.machine_id == other.machine_id,
+                self.model == other.model,
+                self.serial == other.serial,
+                self.id_path == other.id_path,
+                self.block_size == other.block_size,
+                self.size == other.size,
+                self.tags == other.tags,
             )
         )
