@@ -73,6 +73,7 @@ class Vlan(MaasValueMapper):
     @classmethod
     def get_by_vid(cls, vid, client: Client, fabric_id, must_exist=False):
         response = client.get(f"/api/2.0/fabrics/{fabric_id}/vlans/{vid}/")
+        # Also possible: client.get(f"/api/2.0/vlans/{self.id}/").json
         if response.status == 404:
             if must_exist:
                 raise errors.VlanNotFound(vid)
@@ -128,10 +129,6 @@ class Vlan(MaasValueMapper):
 
     def delete(self, client):
         client.delete(f"/api/2.0/fabrics/{self.fabric_id}/vlans/{self.vid}/")
-
-    def get(self, client):
-        return client.get(f"/api/2.0/fabrics/{self.fabric_id}/vlans/{self.vid}/").json
-        # Also possible: client.get(f"/api/2.0/vlans/{self.id}/").json
 
     def update(self, client, payload):
         return client.put(

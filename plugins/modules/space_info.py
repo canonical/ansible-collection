@@ -113,7 +113,7 @@ from ..module_utils.space import Space
 def run(module, client: Client):
     if module.params["name"]:
         space = Space.get_by_name(module, client, must_exist=True)
-        response = [space.get(client)]
+        response = [space.to_ansible()]
     else:
         response = client.get("/api/2.0/spaces/").json
     return response
