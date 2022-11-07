@@ -170,7 +170,7 @@ class BlockDevice(MaasValueMapper):
         return block_device
 
     def __eq__(self, other):
-        """One vlan is equal to another if it has all attributes exactly the same"""
+        """One block device is equal to another if it has all attributes exactly the same"""
         return all(
             (
                 self.name == other.name,

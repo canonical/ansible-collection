@@ -126,7 +126,7 @@ class Partition(MaasValueMapper):
         return partition
 
     def __eq__(self, other):
-        """One vlan is equal to another if it has all attributes exactly the same"""
+        """One partition is equal to another if it has all attributes exactly the same"""
         return all(
             (
                 self.block_device_id == other.block_device_id,
