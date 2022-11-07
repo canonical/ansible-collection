@@ -21,7 +21,7 @@ class Tag:
         ).json
 
     @staticmethod
-    def sent_untag_request(client, machine_id, tag_name):
+    def send_untag_request(client, machine_id, tag_name):
         payload = dict(remove=machine_id)
         client.post(
             f"/api/2.0/tags/{tag_name}/",

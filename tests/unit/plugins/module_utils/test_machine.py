@@ -17,6 +17,7 @@ import pytest
 
 import json
 from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
+from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
 )
@@ -32,7 +33,6 @@ class TestGet:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
         ).return_value = None
-        client.get.return_value = Response(200, "{}")
         results = Machine.get_by_id(id, client)
         assert results is None
 
@@ -169,6 +169,56 @@ class TestGet:
             power_type="lxd",
             architecture="amd64",
         )
+
+    def test_get_id_from_fqdn(self, client, mocker):
+        fqdns = ["one", "two"]
+        machine1 = Machine(fqdn="one")
+        machine2 = Machine(fqdn="two")
+        machine_list = [machine1, machine2]
+        client.get.return_value = Response(200, '[{"fqdn":"one"}, {"fqdn":"two"}]')
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+        ).side_effect = [machine_list[0], machine_list[1]]
+        results = Machine.get_id_from_fqdn(client, *fqdns)
+        assert results == machine_list
+
+    def test_get_id_from_fqdn_when_error(self, client, mocker):
+        fqdns = ["one", "two", "three"]
+        machine1 = Machine(fqdn="one")
+        machine2 = Machine(fqdn="two")
+        machine_list = [machine1, machine2]
+        client.get.return_value = Response(200, '[{"fqdn":"one"}, {"fqdn":"two"}]')
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+        ).side_effect = [machine_list[0], machine_list[1]]
+        with pytest.raises(
+            errors.MaasError,
+            match="Machine - three - not found.",
+        ):
+            Machine.get_id_from_fqdn(client, *fqdns)
+
+    def test_get_by_tag(self, client, mocker):
+        tag_name = "first"
+        client.get.return_value = Response(
+            200,
+            '[{"fqdn":"one", "tag_names":["first", "second"]}, {"fqdn":"two", "tag_names":["first", "second"]}]',
+        )
+        machine1 = Machine(fqdn="one", tags=["first", "second"])
+        machine2 = Machine(fqdn="two", tags=["first", "second"])
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+        ).side_effect = [machine1, machine2]
+        results = Machine.get_by_tag(client, tag_name)
+        assert results == [machine1, machine2]
+
+    def test_get_by_tag_empty_list(self, client, mocker):
+        tag_name = "first"
+        client.get.return_value = Response(200, "[]")
+        mocker.patch(
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+        ).side_effect = []
+        results = Machine.get_by_tag(client, tag_name)
+        assert results == []
 
 
 class TestPayloadForCompose:

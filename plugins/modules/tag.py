@@ -133,7 +133,7 @@ def remove_tag_from_machine(client, module, machine_list, existing_tag, before, 
         if existing_tag["name"] in machine.tags:
             before.append(dict(machine=machine.fqdn, tags=machine.tags))
             # Request in a loop is not optimal design, but API does not support sending in a list.
-            Tag.sent_untag_request(client, machine.id, module.params["name"])
+            Tag.send_untag_request(client, machine.id, module.params["name"])
             after.append(machine.fqdn)
     return before, after
 

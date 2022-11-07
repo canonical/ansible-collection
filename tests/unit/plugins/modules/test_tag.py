@@ -389,7 +389,7 @@ class TestUtils:
         existing_tag = {"name": "this_tag"}
         after.append(machine2.fqdn)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.tag.Tag.sent_untag_request"
+            "ansible_collections.canonical.maas.plugins.module_utils.tag.Tag.send_untag_request"
         ).return_value = None
         results = tag.remove_tag_from_machine(
             client, module, machine_list, existing_tag, before, after
