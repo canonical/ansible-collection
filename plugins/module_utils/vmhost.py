@@ -88,6 +88,7 @@ class VMHost(MaasValueMapper):
     def delete(self, client):
         client.delete(f"/api/2.0/vm-hosts/{self.id}/")
 
+    # Used because we don't store all the data in an object
     def get(self, client):
         return client.get(f"/api/2.0/vm-hosts/{self.id}/").json
 
