@@ -167,73 +167,24 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         # Try getting variables from env
         try:
-            host = os.getenv("MAAS_HOST")
-            token_key = os.getenv("MAAS_TOKEN_KEY")
-            token_secret = os.getenv("MAAS_TOKEN_SECRET")
-            customer_key = os.getenv("MAAS_CUSTOMER_KEY")
+            host = "http://10.44.240.10:5240/MAAS"
+            token_key = "kDcKvtWX7fXLB7TvB2"
+            token_secret = "ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk"
+            customer_key = "tqDErtYzyzRVdUb9hS"
         except KeyError:
             raise errors.MaasError(
                 "Missing parameters: MAAS_HOST, MAAS_TOKEN_KEY, MAAS_TOKEN_SECRET, MAAS_CUSTOMER_KEY."
             )
         client = Client(host, token_key, token_secret, customer_key)
 
-        vms = client.get("/api/2.0/machines/")
+        machine_list = client.get("/api/2.0/machines/").json
 
-        for vm in vms:
-            groups = []
-            ansible_user = None
-            ansible_port = None
-            ansible_ssh_private_key_file = None
+        # machine fqdn is ansible_host
+        # machine domain is ansible_group
+        for machine in machine_list:
             include = True
-            tags = vm["tags"].split(",")
-            if (
-                "look_for_ansible_enable" in cfg
-                and cfg["look_for_ansible_enable"]
-                and "look_for_ansible_disable" in cfg
-                and cfg["look_for_ansible_disable"]
-            ):
-                include = False
-                if "ansible_enable" in tags:
-                    include = True
-                if "ansible_disable" in tags:
-                    include = False
-            elif "look_for_ansible_enable" in cfg and cfg["look_for_ansible_enable"]:
-                include = False
-                if "ansible_enable" in tags:
-                    include = True
-            elif "look_for_ansible_disable" in cfg and cfg["look_for_ansible_disable"]:
-                include = True
-                if "ansible_disable" in tags:
-                    include = False
-            for tag in tags:
-                if (
-                    tag.startswith("ansible_group__")
-                    and tag[len("ansible_group__") :] not in groups
-                ):
-                    groups.append(tag[len("ansible_group__") :])
-                elif tag.startswith("ansible_user__"):
-                    ansible_user = tag[len("ansible_user__") :]
-                elif tag.startswith("ansible_port__"):
-                    ansible_port = int(tag[len("ansible_port__") :])
-                elif tag.startswith("ansible_ssh_private_key_file"):
-                    ansible_ssh_private_key_file = tag[
-                        len("ansible_ssh_private_key_file__") :
-                    ]
             if include:
-                # Group
-                inventory = self.add_group(inventory, groups, vm["name"])
-                ansible_host = vm["name"]
-                # Find ansible_host
-                # For time being, just use the very first IP address.
-                # Later - get smarter. Use IP address from specific VLAN maybe.
-                # But end user is always most smart - use tag ansible_host if it is set;
-                # this will allow use of arbitrary IP or even DNS name.
-                for nic in vm["netDevs"]:
-                    if nic["ipv4Addresses"]:
-                        ansible_host = nic["ipv4Addresses"][0]
-                        break
-                for tag in tags:
-                    if tag.startswith("ansible_host__"):
-                        ansible_host = tag[len("ansible_host__") :]
+                ansible_host = machine["fqdn"]
+                ansible_group = machine["domain"]
                 # Host
                 inventory = self.add_host(inventory, ansible_host, vm["name"])
