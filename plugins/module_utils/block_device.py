@@ -117,14 +117,14 @@ class BlockDevice(MaasValueMapper):
         return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
             query={"op": "add_tag"},
-            data=tag,
+            data=dict(tag=tag),
         ).json
 
     def remove_tag(self, client, tag):
         return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
             query={"op": "remove_tag"},
-            data=tag,
+            data=dict(tag=tag),
         ).json
 
     def mount(self, client, payload):
@@ -138,6 +138,7 @@ class BlockDevice(MaasValueMapper):
         return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
             query={"op": "unmount"},
+            data={},
         ).json
 
     def format(self, client, payload):
@@ -151,13 +152,15 @@ class BlockDevice(MaasValueMapper):
         return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
             query={"op": "unformat"},
+            data={},
         ).json
 
     def set_boot_disk(self, client):
         return client.post(
             f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
             query={"op": "set_boot_disk"},
-        ).json
+            data={},
+        )  # Response is OK
 
     @classmethod
     def create(cls, client, machine_id, payload):
