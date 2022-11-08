@@ -51,23 +51,23 @@ class TestMapper:
 
 
 class TestGet:
-    def test_get_by_id_200(self, client, mocker):
+    def test_get_by_id_200(self, client):
         id = 5
         machine_id = "machine-id"
         client.get.return_value = Response(
             200,
             '{"name":"my-block-device", "id":5, "system_id":"sgt3546", "model":"model", "serial":"serial", "id_path":"/dev/tmp",\
-                "block_size":512, "size":1024, "tags":"tag1, tag2"}',  # HOW IS LIST PRESENTED IN RESPONSE???
+                "block_size":512, "size":4000000, "tags":["tag1", "tag2"]}',
         )
         block_device = BlockDevice(
             name="my-block-device",
-            id=5014,
-            machine_id="machine-id",
+            id=5,
+            machine_id="sgt3546",
             model="model",
             serial="serial",
             id_path="/dev/tmp",
             block_size=512,
-            size=1024,
+            size=4000000,
             tags=["tag1", "tag2"],
         )
         results = BlockDevice.get_by_id(id, client, machine_id, must_exist=False)
@@ -77,7 +77,7 @@ class TestGet:
         )
         assert results == block_device
 
-    def test_get_by_id_404(self, client, mocker):
+    def test_get_by_id_404(self, client):
         id = 5
         machine_id = "machine-id"
         client.get.return_value = Response(404, "{}")
@@ -88,7 +88,7 @@ class TestGet:
         )
         assert results is None
 
-    def test_get_by_vid_404_must_exist(self, client, mocker):
+    def test_get_by_vid_404_must_exist(self, client):
         id = 5
         machine_id = "machine-id"
         client.get.return_value = Response(404, "{}")
@@ -116,53 +116,80 @@ class TestGet:
                 tags=["ssd"],
                 block_size=512,
                 is_boot_device=True,  # where in return is this seen?
-                partitions=dict(
-                    size_gigabytes=10,
-                    fs_type="ext4",
-                    label="media",
-                    mount_point="/media",
-                    bootable=True,
-                ),
-                size_gigabytes=dict(
-                    size_gigabytes=15,
-                    fs_type="ext4",
-                    mount_point="storage",
-                    bootable=False,
-                    tags="/dev/vdb",
-                ),
-            )
+                partitions=[
+                    dict(
+                        size_gigabytes=10,
+                        fs_type="ext4",
+                        label="media",
+                        mount_point="/media",
+                        bootable=True,
+                    ),
+                    dict(
+                        size_gigabytes=15,
+                        fs_type="ext4",
+                        mount_point="storage",
+                        bootable=False,
+                        tags="/dev/vdb",
+                    ),
+                ],
+            ),
         )
 
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
+            "ansible_collections.canonical.maas.plugins.module_utils.block_device.RestClient.get_record"
         ).return_value = dict(
-            name="vlan-name",
-            id=5014,
-            vid=5,
-            mtu=1000,
-            dhcp_on=True,
-            external_dhcp="external_dhcp",
-            relay_vlan="relay_vlan",
-            space="my-space",
-            fabric_id=10,
-            secondary_rack="secondary-rack",
-            fabric="fabric-10",
-            primary_rack="primary_rack",
-            resource_uri="/MAAS/api/2.0/vlans/5014/",
+            firmware_version=None,
+            system_id="y7388k",
+            block_size=102400,
+            available_size=1000000000,
+            model="fakemodel",
+            serial=123,
+            used_size=0,
+            tags=["tag-BGt1BR", "tag-1Fm39m", "tag-Hqbbak"],
+            partition_table_type=None,
+            partitions=[
+                dict(
+                    uuid="95f5d47d-0abd-408b-b3f1-c3f4df152609",
+                    size=7994343424,
+                    bootable=False,
+                    tags=[],
+                    path="/dev/disk/by-dname/vda-part1",
+                    system_id="ccrfnk",
+                    used_for="ext4 formatted filesystem mounted at /",
+                    filesystem=dict(
+                        fstype="ext4",
+                        label="root",
+                        uuid="f698b5ee-d53c-4538-86cf-ee4b23d37db6",
+                        mount_point="/",
+                        mount_options=None,
+                    ),
+                    id=1,
+                    type="partition",
+                    device_id=1,
+                    resource_uri="/MAAS/api/2.0/nodes/ccrfnk/blockdevices/1/partition/1",
+                ),
+            ],
+            path="/dev/disk/by-dname/newblockdevice",
+            size=1000000000,
+            id_path="/dev/tmp",
+            filesystem=None,
+            storage_pool=None,
+            name="newblockdevice",
+            used_for="Unused",
+            id=73,
+            type="physical",
+            uuid=None,
+            resource_uri="/MAAS/api/2.0/nodes/y7388k/blockdevices/73/",
         )
 
         assert BlockDevice.get_by_name(module, client, machine_id, True) == BlockDevice(
-            name="vlan-name",
-            id=5014,
-            vid=5,
-            mtu=1000,
-            dhcp_on=True,
-            external_dhcp="external_dhcp",
-            relay_vlan="relay_vlan",
-            space="my-space",
-            fabric_id=10,
-            secondary_rack="secondary-rack",
-            fabric="fabric-10",
-            primary_rack="primary_rack",
-            resource_uri="/MAAS/api/2.0/vlans/5014/",
+            name="newblockdevice",
+            id=73,
+            machine_id="y7388k",
+            model="fakemodel",
+            serial=123,
+            id_path="/dev/tmp",
+            block_size=102400,
+            size=1000000000,
+            tags=["tag-BGt1BR", "tag-1Fm39m", "tag-Hqbbak"],
         )
