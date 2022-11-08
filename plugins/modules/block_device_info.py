@@ -127,7 +127,7 @@ def run(module, client: Client):
             block_device.get(client)
         ]  # replace with to_ansible if all the data is stored in an object
     else:
-        response = client.get(f"/MAAS/api/2.0/nodes/{machine.id}/blockdevices/").json
+        response = client.get(f"/api/2.0/nodes/{machine.id}/blockdevices/").json
     return response
 
 

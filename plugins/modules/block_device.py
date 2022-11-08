@@ -107,7 +107,7 @@ options:
     serial:
       description:
         - Serial number of the block device.
-        - Required together with with I(model).
+        - Required together with I(model).
         - Mutually exclusive with I(id_path).
         - This argument is computed if it's not given.
       type: str
@@ -132,22 +132,20 @@ EXAMPLES = r"""
     state: present
     id_path: /dev/vdb
     size_gigabytes: 27
-    tags: "ssd"
+    tags:
+      - ssd
     block_size: 512
     is_boot_device: false
     partitions:
       - size_gigabytes: 10
-        fs_type: "ext4"
-        label: "media"
-        mount_point: "/media"
+        fs_type: ext4
+        label: media
+        mount_point: /media
       - size_gigabytes: 15
-        fs_type: "ext4"
-        mount_point: "/storage"
+        fs_type: ext4
+        mount_point: /storage
         bootable: false
         tags: my_partition
-    model:
-    serial:
-    id_path:
 
 - name: Delete block device
   canonical.maas.block_device:
