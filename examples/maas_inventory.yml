@@ -1,15 +1,6 @@
 ---
 plugin: canonical.maas.maas
 
-# Add ansible_enable or ansible_disable tag to the VMs in order to use this part
-# which tag does hypercore_inventory look for, if both are true then disable takes priority
-# ansible_enable and ansible_disable tags are retrieved from VMs
-# look_for_ansible_enable
-# - if missing, all VMs are included into inventory
-# - if set, then only VMs with "ansible_enable" tag are included into inventory
-# look_for_ansible_disable
-# - if missing, no VMs are excluded into inventory
-# - if set, then VMs with "ansible_disable" tag are not included into inventory
-# VM with both set:
-# - will be excluded from inventory
+# Can filter inventory based on machine status.
+# If status is set, then only machines with that specific status will be included.
 status: ready

@@ -30,93 +30,78 @@ options:
       - If missing, all VMs are included into inventory.
       - If set, then only VMs with selected status are included into inventory.
     type: str
-    choices: [ ready, broken, new ]
+    choices: [ ready, broken, new, allocated, deployed, comissioning, testing, failed_comissioning, failed_deployment ]
 """
 EXAMPLES = r"""
 # A trivial example that creates a list of all VMs.
-# No groups will be created - all the resulting hosts are ungrouped.
+# VMs are grouped based on their domains.
+# In the example, two domains are being used: "maas" and "test".
 
 plugin: canonical.maas.maas
 
-# `ansible-inventory -i examples/hypercore_inventory.yaml --graph` output:
+# `ansible-inventory -i examples/maas_inventory.yaml --graph` output:
 #@all:
-#  |--@grp0:
-#  |  |--ci-inventory-vm4
-#  |  |--ci-inventory-vm6
-#  |--@grp1:
-#  |  |--ci-inventory-vm5
-#  |  |--ci-inventory-vm6
+#  |--@maas:
+#  |  |--first.maas
+#  |--@test:
+#  |  |--second.test
 #  |--@ungrouped:
-#  |  |--ci-inventory-vm2
-#  |  |--ci-inventory-vm3
 
+# `ansible-inventory -i maas_inventory.yaml --list` output:
+#{
+#    "_meta": {
+#        "hostvars": {}
+#    },
+#    "all": {
+#        "children": [
+#            "maas",
+#            "test",
+#            "ungrouped"
+#        ]
+#    },
+#    "maas": {
+#        "hosts": [
+#            "first.maas"
+#        ]
+#    },
+#    "test": {
+#        "hosts": [
+#            "second.test"
+#        ]
+#    }
+#}
 
 # Example with all available parameters and how to set them.
-# A group "my-group" is created where all the VMs with "ansbile_enable" tag are added.
-# For VM "ci-inventory-vm6" we added values for host and user, every other VM has default values.
+# A group "test" is created based on the domain name "test".
+# Only VMs with status "ready", are added to the group.
 
 plugin: canonical.maas.maas
 
 status: ready
 
-# `ansible-inventory -i hypercore_inventory.yaml --list` output:
+# `ansible-inventory -i examples/maas_inventory.yaml --graph` output:
+#@all:
+#  |--@test:
+#  |  |--second.test
+#  |--@ungrouped:
+
+# `ansible-inventory -i maas_inventory.yaml --list` output:
 #{
 #    "_meta": {
-#        "hostvars": {
-#            "ci-inventory-vm2": {
-#                "ansible_host": "10.0.0.2",
-#               "ansible_port": 22,
-#                "ansible_user": "root"
-#            },
-#            "ci-inventory-vm3": {
-#               "ansible_host": "10.0.0.3",
-#               "ansible_port": 22,
-#               "ansible_user": "root"
-#            },
-#            "ci-inventory-vm4": {
-#               "ansible_host": "10.0.0.4",
-#               "ansible_port": 22,
-#               "ansible_user": "root"
-#            },
-#            "ci-inventory-vm5": {
-#               "ansible_host": "ci-inventory-vm5",
-#               "ansible_port": 22,
-#               "ansible_user": "root"
-#            },
-#            "ci-inventory-vm6": {
-#               "ansible_host": "ci-inventory-vm6",
-#               "ansible_port": 22,
-#               "ansible_user": "root"
-#           }
-#       }
+#        "hostvars": {}
 #    },
 #    "all": {
 #        "children": [
-#           "grp0",
-#           "grp1",
-#           "ungrouped"
+#            "test",
+#            "ungrouped"
 #        ]
 #    },
-#   "grp0": {
+#    "test": {
 #        "hosts": [
-#           "ci-inventory-vm4",
-#           "ci-inventory-vm6"
+#            "second.test"
 #        ]
-#   },
-#    "grp1": {
-#        "hosts": [
-#            "ci-inventory-vm5",
-#            "ci-inventory-vm6"
-#        ]
-#    },
-#    "ungrouped": {
-#        "hosts": [
-#            "ci-inventory-vm2",
-#           "ci-inventory-vm3"
-#        ]
-#   }
+#    }
 #}
-
 
 """
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
@@ -179,12 +164,15 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         machine_list = client.get("/api/2.0/machines/").json
 
-        # machine fqdn is ansible_host
-        # machine domain is ansible_group
         for machine in machine_list:
-            include = True
+            include = False
+            if (
+                "status" in cfg
+                and cfg["status"].lower() == machine["status_name"].lower()
+            ):
+                include = True
             if include:
-                ansible_host = machine["fqdn"]
-                ansible_group = machine["domain"]
+                # Group
+                inventory.add_group(machine["domain"]["name"])
                 # Host
-                inventory = self.add_host(inventory, ansible_host, vm["name"])
+                inventory.add_host(machine["fqdn"], group=machine["domain"]["name"])
