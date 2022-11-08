@@ -115,21 +115,21 @@ class TestGet:
                 size_gigabytes=27,
                 tags=["ssd"],
                 block_size=512,
-                is_boot_device=True, # where in return is this seen?
+                is_boot_device=True,  # where in return is this seen?
                 partitions=dict(
                     size_gigabytes=10,
                     fs_type="ext4",
                     label="media",
                     mount_point="/media",
                     bootable=True,
-                )
+                ),
                 size_gigabytes=dict(
                     size_gigabytes=15,
                     fs_type="ext4",
                     mount_point="storage",
                     bootable=False,
                     tags="/dev/vdb",
-                )
+                ),
             )
         )
 

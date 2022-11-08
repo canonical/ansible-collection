@@ -11,7 +11,7 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.vlan import Vlan
+from ansible_collections.canonical.maas.plugins.module_utils.partition import Partition
 from ansible_collections.canonical.maas.plugins.module_utils.client import Response
 from ansible_collections.canonical.maas.plugins.module_utils import errors
 
@@ -22,181 +22,64 @@ pytestmark = pytest.mark.skipif(
 
 class TestMapper:
     def test_from_maas(self):
-        maas_vlan_dict = dict(
-            name="vlan-name",
-            id=5014,
-            vid=5,
-            mtu=1000,
-            dhcp_on=True,
-            external_dhcp="external_dhcp",
-            relay_vlan="relay_vlan",
-            space="my-space",
-            fabric_id=10,
-            secondary_rack="secondary-rack",
-            fabric="fabric-10",
-            primary_rack="primary_rack",
-            resource_uri="/MAAS/api/2.0/vlans/5014/",
+        partition_maas_dict = dict(
+            id=5014, system_id="machine-id", partitions=[dict(id=1)]
         )
-        vlan = Vlan(
-            maas_vlan_dict["name"],
-            maas_vlan_dict["id"],
-            maas_vlan_dict["vid"],
-            maas_vlan_dict["mtu"],
-            maas_vlan_dict["dhcp_on"],
-            maas_vlan_dict["external_dhcp"],
-            maas_vlan_dict["relay_vlan"],
-            maas_vlan_dict["space"],
-            maas_vlan_dict["fabric_id"],
-            maas_vlan_dict["secondary_rack"],
-            maas_vlan_dict["fabric"],
-            maas_vlan_dict["primary_rack"],
-            maas_vlan_dict["resource_uri"],
+        partition = Partition(
+            partition_maas_dict["partitions"][0]["id"],  # partition id
+            partition_maas_dict["system_id"],  # machine id
+            partition_maas_dict["id"],  # block device id
         )
-        results = Vlan.from_maas(maas_vlan_dict)
-        assert results == vlan
-
-    def test_to_ansible(self):
-        vlan = Vlan(
-            name="vlan-name",
-            id=5014,
-            vid=5,
-            mtu=1000,
-            dhcp_on=True,
-            external_dhcp="external_dhcp",
-            relay_vlan="relay_vlan",
-            space="my-space",
-            fabric_id=10,
-            secondary_rack="secondary-rack",
-            fabric="fabric-10",
-            primary_rack="primary_rack",
-            resource_uri="/MAAS/api/2.0/vlans/5014/",
-        )
-
-        ansible_dict = dict(
-            name="vlan-name",
-            id=5014,
-            vid=5,
-            mtu=1000,
-            dhcp_on=True,
-            external_dhcp="external_dhcp",
-            relay_vlan="relay_vlan",
-            space="my-space",
-            fabric_id=10,
-            secondary_rack="secondary-rack",
-            fabric="fabric-10",
-            primary_rack="primary_rack",
-            resource_uri="/MAAS/api/2.0/vlans/5014/",
-        )
-
-        results = vlan.to_ansible()
-        assert results == ansible_dict
+        results = Partition.from_maas(partition_maas_dict)
+        assert results == partition
 
 
 class TestGet:
-    def test_get_by_vid_200(self, client, mocker):
-        vid = 5
-        fabric_id = 10
+    def test_get_by_id_200(self, client, mocker):
+        id = 5
+        machine_id = "machine-id"
+        block_device_id = 10
         client.get.return_value = Response(
             200,
-            '{"name":"vlan-name", "id":5014, "vid":5, "mtu":1000, "dhcp_on":true, "external_dhcp":"external_dhcp", "relay_vlan":"relay_vlan",\
-                "space":"my-space", "fabric_id":10, "secondary_rack":"secondary-rack", "fabric":"fabric-10", "primary_rack":"primary_rack",\
-                    "resource_uri":"/MAAS/api/2.0/vlans/5014/"}',
+            '{"id":10, "system_id":"machine-id","partitions":5014}',  # CHECK HOW LIST IS PRESENTED IN RESPONSE
         )
-        vlan = Vlan(
-            name="vlan-name",
-            id=5014,
-            vid=5,
-            mtu=1000,
-            dhcp_on=True,
-            external_dhcp="external_dhcp",
-            relay_vlan="relay_vlan",
-            space="my-space",
-            fabric_id=10,
-            secondary_rack="secondary-rack",
-            fabric="fabric-10",
-            primary_rack="primary_rack",
-            resource_uri="/MAAS/api/2.0/vlans/5014/",
+        partition = Partition(
+            id=5,
+            machine_id="machine-id",
+            block_device_id=10,
         )
-        results = Vlan.get_by_vid(vid, client, fabric_id, must_exist=False)
+        results = Partition.get_by_id(
+            id, client, machine_id, block_device_id, must_exist=False
+        )
 
         client.get.assert_called_with(
-            "/api/2.0/fabrics/10/vlans/5/",
+            "/api/2.0/nodes/machine-id/blockdevices/10/partition/5",
         )
-        assert results == vlan
+        assert results == partition
 
-    def test_get_by_vid_404(self, client, mocker):
-        vid = 5
-        fabric_id = 10
+    def test_get_by_id_404(self, client, mocker):
+        id = 5
+        machine_id = "machine-id"
+        block_device_id = 10
         client.get.return_value = Response(404, "{}")
-        results = Vlan.get_by_vid(vid, client, fabric_id, must_exist=False)
+        results = Partition.get_by_id(
+            id, client, machine_id, block_device_id, must_exist=False
+        )
 
         client.get.assert_called_with(
-            "/api/2.0/fabrics/10/vlans/5/",
+            "/api/2.0/nodes/machine-id/blockdevices/10/partition/5",
         )
         assert results is None
 
-    def test_get_by_vid_404_must_exist(self, client, mocker):
-        vid = 5
-        fabric_id = 10
+    def test_get_by_id_404_must_exist(self, client, mocker):
+        id = 5
+        machine_id = "machine-id"
+        block_device_id = 10
         client.get.return_value = Response(404, "{}")
 
-        with pytest.raises(errors.VlanNotFound) as exc:
-            Vlan.get_by_vid(vid, client, fabric_id, must_exist=True)
-
-        assert "VLAN - 5 - not found" in str(exc.value)
-
-    def test_get_by_name(self, create_module, mocker, client):
-        fabric_id = 10
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    token_key="URCfn6EhdZ",
-                    token_secret="PhXz3ncACvkcK",
-                    customer_key="nzW4EBWjyDe",
-                ),
-                state="present",
-                fabric_name="fabric-10",
-                vid=5,
-                vlan_name="vlan_name",
-                new_vlan_name=None,
-                description="vlan description",
-                mtu=1000,
-                dhcp_on=True,
-                space="my-space",
+        with pytest.raises(errors.PartitionNotFound) as exc:
+            Partition.get_by_id(
+                id, client, machine_id, block_device_id, must_exist=True
             )
-        )
 
-        mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
-        ).return_value = dict(
-            name="vlan-name",
-            id=5014,
-            vid=5,
-            mtu=1000,
-            dhcp_on=True,
-            external_dhcp="external_dhcp",
-            relay_vlan="relay_vlan",
-            space="my-space",
-            fabric_id=10,
-            secondary_rack="secondary-rack",
-            fabric="fabric-10",
-            primary_rack="primary_rack",
-            resource_uri="/MAAS/api/2.0/vlans/5014/",
-        )
-
-        assert Vlan.get_by_name(module, client, fabric_id, True) == Vlan(
-            name="vlan-name",
-            id=5014,
-            vid=5,
-            mtu=1000,
-            dhcp_on=True,
-            external_dhcp="external_dhcp",
-            relay_vlan="relay_vlan",
-            space="my-space",
-            fabric_id=10,
-            secondary_rack="secondary-rack",
-            fabric="fabric-10",
-            primary_rack="primary_rack",
-            resource_uri="/MAAS/api/2.0/vlans/5014/",
-        )
+        assert "Partition - 5 - not found" in str(exc.value)
