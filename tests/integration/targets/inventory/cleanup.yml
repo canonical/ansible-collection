@@ -1,0 +1,18 @@
+---
+- name: Cleanup test environment
+  hosts: localhost
+  gather_facts: false
+  environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+  tasks:
+    - name: Delete machine
+      canonical.maas.instance:
+        fqdn: "{{ item }}"
+        state: absent
+      loop:
+        - inventory-test-1.maas
+        - inventory-test-2.maas

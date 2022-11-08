@@ -1,0 +1,4 @@
+---
+plugin: canonical.maas.maas
+
+status: ready

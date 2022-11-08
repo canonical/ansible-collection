@@ -1,0 +1,15 @@
+---
+- name: Run MAAS inventory tests
+  hosts: localhost
+  gather_facts: false
+  environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+  tasks:
+    - block:
+        - include_tasks: "{{ item }}"
+          with_fileglob:
+            - "tests/*_ready.yml"
