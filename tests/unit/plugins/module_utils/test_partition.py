@@ -22,13 +22,11 @@ pytestmark = pytest.mark.skipif(
 
 class TestMapper:
     def test_from_maas(self):
-        partition_maas_dict = dict(
-            id=5014, system_id="machine-id", partitions=[dict(id=1)]
-        )
+        partition_maas_dict = dict(id=5014, system_id="machine-id", device_id=12)
         partition = Partition(
-            partition_maas_dict["partitions"][0]["id"],  # partition id
-            partition_maas_dict["system_id"],  # machine id
-            partition_maas_dict["id"],  # block device id
+            partition_maas_dict["id"],
+            partition_maas_dict["system_id"],
+            partition_maas_dict["device_id"],
         )
         results = Partition.from_maas(partition_maas_dict)
         assert results == partition
@@ -41,7 +39,7 @@ class TestGet:
         block_device_id = 10
         client.get.return_value = Response(
             200,
-            '{"id":10, "system_id":"machine-id","partitions":5014}',  # CHECK HOW LIST IS PRESENTED IN RESPONSE
+            '{"id":5, "system_id":"machine-id","device_id":10}',
         )
         partition = Partition(
             id=5,

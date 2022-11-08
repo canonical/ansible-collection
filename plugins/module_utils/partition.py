@@ -30,7 +30,7 @@ class Partition(MaasValueMapper):
         cls, id, client: Client, machine_id, block_device_id, must_exist=False
     ):
         response = client.get(
-            f"/api/2.0/nodes/{machine_id}/blockdevices/{block_device_id}/partition/{id}/"
+            f"/api/2.0/nodes/{machine_id}/blockdevices/{block_device_id}/partition/{id}"
         )
         if response.status == 404:
             if must_exist:
@@ -48,12 +48,8 @@ class Partition(MaasValueMapper):
     def from_maas(cls, maas_dict):
         obj = cls()
         try:
-            obj.block_device_id = maas_dict[
-                "id"
-            ]  # or read from partition maas_dict["partitions"][0]["device_id"] - check if it is 0 element!
-            obj.id = maas_dict["partitions"][0][
-                "id"
-            ]  # - check if it is 0 element or it needs to be searched by id??
+            obj.block_device_id = maas_dict["device_id"]
+            obj.id = maas_dict["id"]
             obj.machine_id = maas_dict["system_id"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
@@ -67,52 +63,55 @@ class Partition(MaasValueMapper):
 
     def delete(self, client):
         client.delete(
-            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/"
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}"
         )
 
     def get(self, client):
-        return client.get(
-            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/"
-        ).json
+        response = client.get(
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}"
+        )
+        raise Exception(response)
 
     def add_tag(self, client, tag):
         return client.post(
-            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}",
             query={"op": "add_tag"},
-            data=tag,
+            data=dict(tag=tag),
         ).json
 
     def remove_tag(self, client, tag):
         return client.post(
-            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}",
             query={"op": "remove_tag"},
-            data=tag,
+            data=dict(tag=tag),
         ).json
 
     def format(self, client, payload):
         return client.post(
-            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}",
             query={"op": "format"},
             data=payload,
         ).json
 
     def unformat(self, client):
         return client.post(
-            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}",
             query={"op": "unformat"},
+            data={},
         ).json
 
     def mount(self, client, payload):
         return client.post(
-            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}",
             query={"op": "mount"},
             data=payload,
         ).json
 
     def unmount(self, client):
         return client.post(
-            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}/",
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.block_device_id}/partition/{self.id}",
             query={"op": "unmount"},
+            data={},
         ).json
 
     @classmethod
