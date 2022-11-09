@@ -168,10 +168,10 @@ record:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
-from ..module_utils.client import Client
 from ..module_utils.vmhost import VMHost
 from ..module_utils.machine import Machine
 from ..module_utils.utils import is_changed, required_one_of
+from ..module_utils.cluster_instance import get_oauth1_client
 
 
 def prepare_network_data(module):
@@ -287,13 +287,7 @@ def main():
             list_suboptions=["name", "subnet_cidr", "fabric", "vlan", "ip_address"],
         )
 
-        cluster_instance = module.params["cluster_instance"]
-        host = cluster_instance["host"]
-        consumer_key = cluster_instance["customer_key"]
-        token_key = cluster_instance["token_key"]
-        token_secret = cluster_instance["token_secret"]
-
-        client = Client(host, token_key, token_secret, consumer_key)
+        client = get_oauth1_client(module.params)
         changed, record, diff = run(module, client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as e:
