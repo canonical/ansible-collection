@@ -52,7 +52,7 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Crated or deleted network interface.
+    - Get information from nic.
   returned: success
   type: dict
   sample:
