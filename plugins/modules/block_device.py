@@ -49,7 +49,6 @@ options:
     description:
       - The size of the block device (in GB).
     type: int
-    required: True
   block_size:
     description:
       - The block size of the block device. Defaults to 512.
@@ -62,8 +61,8 @@ options:
     description:
       - List of partition resources created for the new block device.
       - It is computed if it's not given.
-    type: list #CHECK
-    elements: dict #CHECK
+    type: list
+    elements: dict
     suboptions:
       size_gigabytes:
         description:
@@ -77,7 +76,8 @@ options:
       tags:
         description:
           - The tags assigned to the new block device partition.
-        type: str
+        type: list
+        elements: str
       fs_type:
         description:
           - The file system type (e.g. ext4).
@@ -97,31 +97,32 @@ options:
         description:
           - The options used for the partition mount.
         type: str
-    model:
-      description:
-        - Model of the block device.
-        - Required together with I(serial).
-        - Mutually exclusive with I(id_path).
-        - This argument is computed if it's not given.
-      type: str
-    serial:
-      description:
-        - Serial number of the block device.
-        - Required together with I(model).
-        - Mutually exclusive with I(id_path).
-        - This argument is computed if it's not given.
-      type: str
-    id_path:
-      description:
-        - Only used if I(model) and I(serial) cannot be provided.
-        - This should be a path that is fixed and doesn't change depending on the boot order or kernel version.
-        - This argument is computed if it's not given.
-      type: path
-    tags:
-      description:
-        - A set of tag names assigned to the new block device.
-        - This argument is computed if it's not given.
-      type: list
+  model:
+    description:
+      - Model of the block device.
+      - Required together with I(serial).
+      - Mutually exclusive with I(id_path).
+      - This argument is computed if it's not given.
+    type: str
+  serial:
+    description:
+      - Serial number of the block device.
+      - Required together with I(model).
+      - Mutually exclusive with I(id_path).
+      - This argument is computed if it's not given.
+    type: str
+  id_path:
+    description:
+      - Only used if I(model) and I(serial) cannot be provided.
+      - This should be a path that is fixed and doesn't change depending on the boot order or kernel version.
+      - This argument is computed if it's not given.
+    type: path
+  tags:
+    description:
+      - A set of tag names assigned to the new block device.
+      - This argument is computed if it's not given.
+    type: list
+    elements: str
 """
 
 EXAMPLES = r"""
@@ -161,27 +162,64 @@ record:
   returned: success
   type: dict
   sample:
-  - firmware_version: null
-    system_id: y7388k
-    block_size: 102400
-    available_size: 1000000000
-    model: fakemodel
-    serial: 123
-    used_size: 0
-    tags: []
-    partition_table_type: null
-    partitions: []
-    path: /dev/disk/by-dname/newblockdevice
-    size: 1000000000
-    id_path: ""
+    available_size: 0
+    block_size: 512
     filesystem: null
-    storage_pool: null
-    name: newblockdevice
-    used_for: Unused
-    id: 73
+    firmware_version: 2.5
+    id: 146
+    id_path: /dev/disk/by-id/scsi-SQEMU_QEMU_HARDDISK_lxd_root
+    model: QEMU HARDDISK
+    name: sda
+    numa_node: 0
+    partition_table_type: GPT
+    partitions:
+    - bootable: true
+      device_id: 146
+      filesystem:
+        fstype: fat32
+        label: efi
+        mount_options: null
+        mount_point: /boot/efi
+        uuid: 42901672-60cb-44a3-bb8d-14f3314869c2
+      id: 83
+      path: /dev/disk/by-dname/sda-part1
+      resource_uri: /MAAS/api/2.0/nodes/grydgf/blockdevices/146/partition/83
+      size: 536870912
+      system_id: grydgf
+      tags: []
+      type: partition
+      used_for: fat32 formatted filesystem mounted at /boot/efi
+      uuid: 6f3259e0-7aba-442b-9c31-5b6bafb4796a
+    - bootable: false
+      device_id: 146
+      filesystem:
+        fstype: ext4
+        label: root
+        mount_options: null
+        mount_point: /
+        uuid: f74d9bc7-a2f1-4078-991c-68696794ee27
+      id: 84
+      path: /dev/disk/by-dname/sda-part2
+      resource_uri: /MAAS/api/2.0/nodes/grydgf/blockdevices/146/partition/84
+      size: 7457472512
+      system_id: grydgf
+      tags: []
+      type: partition
+      used_for: ext4 formatted filesystem mounted at /
+      uuid: eeba59a0-be8a-4be3-be15-e2858afa8487
+    path: /dev/disk/by-dname/sda
+    resource_uri: /MAAS/api/2.0/nodes/grydgf/blockdevices/146/
+    serial: lxd_root
+    size: 8000004096
+    storage_pool: default
+    system_id: grydgf
+    tags:
+      rotary
+      1rpm
     type: physical
+    used_for: GPT partitioned with 2 partitions
+    used_size: 7999586304
     uuid: null
-    resource_uri: /MAAS/api/2.0/nodes/y7388k/blockdevices/73/
 """
 
 
@@ -190,7 +228,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.machine import Machine
-from ..module_utils.state import MachineTaskState
 from ..module_utils.partition import Partition
 from ..module_utils.block_device import BlockDevice
 
@@ -198,7 +235,7 @@ from ..module_utils.block_device import BlockDevice
 def data_for_create_block_device(module):
     data = {}
     data["name"] = module.params["name"]  # required
-    data["size"] = module.params["size_gigabytes"]  # required
+    data["size"] = module.params["size_gigabytes"] * 1000000  # required
     data["block_size"] = 512  # default
     if module.params["block_size"]:
         data["block_size"] = module.params["block_size"]
@@ -219,7 +256,7 @@ def create_block_device(module, client: Client, machine_id):
     if module.params["tags"]:
         for tag in module.params["tags"]:
             block_device.add_tag(client, tag)
-    if module.params["is_boot_device"]:  # if it is true
+    if module.params["is_boot_device"]:
         block_device.set_boot_disk(client)
     block_device_maas_dict = block_device.get(client)
     return (
@@ -232,18 +269,17 @@ def create_block_device(module, client: Client, machine_id):
 def data_for_create_partition(partition):
     data = {}
     if partition["size_gigabytes"]:
-        data["size"] = partition["size_gigabytes"]
+        data["size"] = partition["size_gigabytes"] * 1000000
     if partition["bootable"]:
-        data["bootalbe"] = partition["bootable"]
+        data["bootable"] = partition["bootable"]
+    return data
 
 
 def create_partition(module, client, machine_id, block_device_id):
     for partition in module.params["partitions"]:
         data = data_for_create_partition(partition)
         new_partition = Partition.create(client, machine_id, block_device_id, data)
-        if partition[
-            "fs_type"
-        ]:  # If this is not set, the partition is unformatted. - CHECK IF IT REALLY NEEDS TO BE UNFOMRATED WHEN CREATING NEW PARTITION
+        if partition["fs_type"]:
             data = {}
             data["fstype"] = partition["fs_type"]
             if partition["label"]:
@@ -262,7 +298,7 @@ def create_partition(module, client, machine_id, block_device_id):
                 new_partition.add_tag(client, tag)
 
 
-def data_for_update_block_device(module, block_device, machine, client):
+def data_for_update_block_device(module, block_device):
     """
     Machines must have a status of Ready to have access to all options.
     Machines with Deployed status can only have the name, model, serial, and/or id_path updated for a block device.
@@ -281,13 +317,12 @@ def data_for_update_block_device(module, block_device, machine, client):
     if module.params["id_path"]:
         if block_device.id_path != module.params["id_path"]:
             data["id_path"] = module.params["id_path"]
-    if machine.status == MachineTaskState.ready.value:
-        if module.params["block_size"]:
-            if block_device.block_size != module.params["block_size"]:
-                data["block_size"] = module.params["block_size"]
-        if module.params["size_gigabytes"]:
-            if block_device.size != module.params["size_gigabytes"]:
-                data["size"] = module.params["size_gigabytes"]
+    if module.params["block_size"]:
+        if block_device.block_size != module.params["block_size"]:
+            data["block_size"] = module.params["block_size"]
+    if module.params["size_gigabytes"]:
+        if block_device.size != module.params["size_gigabytes"] * 1000000:
+            data["size"] = module.params["size_gigabytes"] * 1000000
     return data
 
 
@@ -300,16 +335,17 @@ def update_block_device(module, client: Client, machine):
         name_field_ansible="name",
     )
     block_device_maas_dict = block_device.get(client)
-    data = data_for_update_block_device(module, machine)
+    data = data_for_update_block_device(module, block_device)
     if data:
         block_device.update(client, data)
-    if module.params["tags"]:  # tags can be added but not removed!!
+    if module.params["tags"]:  # tags can be added but not removed
         for tag in module.params["tags"]:
             if tag not in block_device.tags:
                 block_device.add_tag(client, tag)
-    if module.params["is_boot_device"]:  # if it is true
+    if module.params["is_boot_device"]:
         block_device.set_boot_disk(client)
-    # check if create_partition works if partition are already created on the device
+    if module.params["partitions"]:  # partitions can be added but not removed
+        create_partition(module, client, machine.id, block_device.id)
     updated_block_device_maas_dict = block_device.get(client)
     if updated_block_device_maas_dict == block_device_maas_dict:
         return (

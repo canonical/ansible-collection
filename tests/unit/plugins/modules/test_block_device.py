@@ -14,11 +14,6 @@ from ansible_collections.canonical.maas.plugins.modules import block_device
 from ansible_collections.canonical.maas.plugins.module_utils.block_device import (
     BlockDevice,
 )
-from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
-from ansible_collections.canonical.maas.plugins.module_utils.state import (
-    MachineTaskState,
-)
-
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -274,10 +269,8 @@ class TestDataForUpdateBlockDevice:
             block_size=512,
             size=12000000,
         )
-        machine = Machine(status=MachineTaskState.ready.value)
-        data = block_device.data_for_update_block_device(
-            module, old_block_device, machine
-        )
+
+        data = block_device.data_for_update_block_device(module, old_block_device)
 
         assert data == dict(
             name="my-block-device-updated",
@@ -286,62 +279,4 @@ class TestDataForUpdateBlockDevice:
             id_path="/dev/vdb",
             block_size=600,
             size=27000000,
-        )
-
-    def test_data_for_update_block_device_machine_not_ready(self, create_module):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    token_key="URCfn6EhdZ",
-                    token_secret="PhXz3ncACvkcK",
-                    customer_key="nzW4EBWjyDe",
-                ),
-                machine_fqdn="block-device-test.maas",
-                name="my-block-device",
-                new_name="my-block-device-updated",
-                state="present",
-                id_path="/dev/vdb",
-                size_gigabytes=27,
-                is_boot_device=True,
-                partitions=[
-                    dict(
-                        size_gigabytes=10,
-                        fs_type="ext4",
-                        label="media",
-                        mount_point="/media",
-                        bootable=True,
-                    ),
-                    dict(
-                        size_gigabytes=15,
-                        fs_type="ext4",
-                        mount_point="storage",
-                        bootable=False,
-                        tags="/dev/vdb",
-                    ),
-                ],  # partitions need id to be updated
-                tags=["ssd"],
-                block_size=600,
-                model="new_model",
-                serial="new_serial",
-            )
-        )
-        old_block_device = BlockDevice(
-            name="my-block-device",
-            model="old_model",
-            serial="old_serial",
-            id_path="old_path",
-            block_size=512,
-            size=12000000,
-        )
-        machine = Machine(status=MachineTaskState.failed_comissioning.value)
-        data = block_device.data_for_update_block_device(
-            module, old_block_device, machine
-        )
-
-        assert data == dict(
-            name="my-block-device-updated",
-            model="new_model",
-            serial="new_serial",
-            id_path="/dev/vdb",
         )

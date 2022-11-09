@@ -8,52 +8,58 @@
 
   block:
     # ----------------------------------Cleanup------------------------------------
-    # - name: Delete machine
-    #   canonical.maas.machine: &delete-machine
-    #     fqdn: block-device-test.maas
-    #     state: absent
-  
-    # - name: Delete block device
-    #   canonical.maas.block_device: &delete-block-device
-    #     machine_fqdn: block-device-test.maas
-    #     name: my-block-device
-    #     state: absent
+    - name: Delete machine
+      canonical.maas.machine: &delete-machine
+        fqdn: block-device-test.maas
+        state: absent
+
+    - name: Delete block device
+      canonical.maas.block_device: &delete-block-device
+        machine_fqdn: block-device-test.maas
+        name: my-block-device
+        state: absent
+
+    - name: Delete block device
+      canonical.maas.block_device: &delete-block-device-updated
+        machine_fqdn: block-device-test.maas
+        name: my-block-device-updated
+        state: absent
 
     # -----------------------------------Info------------------------------------
-    # - name: List block devices of selected machine
-    #   canonical.maas.block_device_info:
-    #     machine_fqdn: block-device-test.maas
-    #   register: block_devices
+    - name: List block devices of selected machine
+      canonical.maas.block_device_info:
+        machine_fqdn: block-device-test.maas
+      register: block_devices
 
-    # - name: List specific block device of a specific machine
-    #   canonical.maas.block_device_info:
-    #     machine_fqdn: block-device-test.maas
-    #     name: "{{ block_devices.records.0.name }}"
-    #   register: block_device
-    # - ansible.builtin.assert:
-    #     that:
-    #       - block_device.records.0.name == block_devices.records.0.name
+    - name: List specific block device of a specific machine
+      canonical.maas.block_device_info:
+        machine_fqdn: block-device-test.maas
+        name: "{{ block_devices.records.0.name }}"
+      register: block_device
+    - ansible.builtin.assert:
+        that:
+          - block_device.records.0.name == block_devices.records.0.name
 
     # ------------------------------------Job------------------------------------
-    # - name: Create virtual machine with two disks and a network interface.
-    #   canonical.maas.vm_host_machine:
-    #     hostname: block-device-test
-    #     vm_host: crisp-skunk
-    #     cores: 1
-    #     memory: 2000
-    #     network_interfaces:
-    #       label_name: my_first
-    #       subnet_cidr: "10.10.10.0/24"
-    #     storage_disks:
-    #       - size_gigabytes: 8
-    #   register: initial_machine
-    # - ansible.builtin.assert:
-    #     that:
-    #       - initial_machine is changed
-    #       - initial_machine.record.hostname == "block-device-test"
-    #       - initial_machine.record.memory == 2000
-    #       - initial_machine.record.cores == 1
-    
+    - name: Create virtual machine
+      canonical.maas.vm_host_machine:
+        hostname: block-device-test
+        vm_host: crisp-skunk
+        cores: 4
+        memory: 4000
+        network_interfaces:
+          label_name: my_first
+          subnet_cidr: "10.10.10.0/24"
+        storage_disks:
+          - size_gigabytes: 8
+      register: initial_machine
+    - ansible.builtin.assert:
+        that:
+          - initial_machine is changed
+          - initial_machine.record.hostname == "block-device-test"
+          - initial_machine.record.memory == 4000
+          - initial_machine.record.cores == 4
+
     - name: Create block device on block-device-test - required together
       canonical.maas.block_device:
         machine_fqdn: block-device-test.maas
@@ -67,7 +73,7 @@
         that:
           - block_device is failed
           - "'parameters are required together: model, serial' in block_device.msg"
-    
+
     - name: Create block device on block-device-test - mutually exclusive
       canonical.maas.block_device:
         machine_fqdn: block-device-test.maas
@@ -84,89 +90,184 @@
           - "'parameters are mutually exclusive: model|id_path' in block_device.msg"
 
     - name: Create block device on block-device-test
-      canonical.maas.block_device: &create-block-device
+      canonical.maas.block_device:
         machine_fqdn: block-device-test.maas
         name: my-block-device
         state: present
         id_path: /dev/vdb
-        size_gigabytes: 27
-        tags: 
+        size_gigabytes: 40
+        tags:
           - ssd
-        # block_size: 512
+          - my-tag
         is_boot_device: true # where in return is this seen?
         partitions:
           - size_gigabytes: 10
             fs_type: ext4
             label: media
             mount_point: /media
+            mount_options: mount_options
             bootable: true
-          - size_gigabytes: 15
-            fs_type: ext4
-            mount_point: /storage
+            tags:
+              - bootable-partition
+              - my-partition
+          - size_gigabytes: 5
             bootable: false
-            tags: my_partition
+            tags:
+              - not-bootable-partition
       register: block_device
     - ansible.builtin.assert:
         that:
           - block_device is changed
           - block_device.record.name == "my-block-device"
-          - block_device.record.size == 27
+          - block_device.record.size == 40000000
           - block_device.record.block_size == 512
           - block_device.record.tags.0 == "ssd"
+          - block_device.record.tags.1 == "my-tag"
           - block_device.record.id_path == "/dev/vdb"
-    
-    - name: Create block device on block-device-test - idempotence
-      canonical.maas.block_device: &create-block-device
+          - block_device.record.serial == ""
+          - block_device.record.model == ""
+          - block_device.record.partitions.0.bootable == true
+          - block_device.record.partitions.0.size == 8388608
+          - block_device.record.partitions.0.tags.0 == "bootable-partition"
+          - block_device.record.partitions.0.tags.1 == "my-partition"
+          - block_device.record.partitions.0.filesystem.fstype == "ext4"
+          - block_device.record.partitions.0.filesystem.label == "media"
+          - block_device.record.partitions.0.filesystem.mount_point == "/media"
+          - block_device.record.partitions.0.filesystem.mount_options == "mount_options"
+          - block_device.record.partitions.1.bootable == false
+          - block_device.record.partitions.1.size == 4194304
+          - block_device.record.partitions.1.tags.0 == "not-bootable-partition"
+
+    - name: Update block device on block-device-test
+      canonical.maas.block_device: &update-block-device
+        machine_fqdn: block-device-test.maas
+        name: my-block-device
+        state: present
+        size_gigabytes: 30
+        tags:
+          - new-tag
+        block_size: 1024
+        is_boot_device: false # where in return is this seen?
+        serial: "serial"
+        model: "model"
+      register: block_device
+    - ansible.builtin.assert:
+        that:
+          - block_device is changed
+          - block_device.record.name == "my-block-device"
+          - block_device.record.size == 30000000
+          - block_device.record.block_size == 1024
+          - block_device.record.tags.0 == "ssd"
+          - block_device.record.tags.1 == "my-tag"
+          - block_device.record.tags.2 == "new-tag"
+          - block_device.record.id_path == "/dev/vdb"
+          - block_device.record.serial == "serial"
+          - block_device.record.model == "model"
+          - block_device.record.partitions.0.bootable == true
+          - block_device.record.partitions.0.size == 8388608
+          - block_device.record.partitions.0.filesystem.fstype == "ext4"
+          - block_device.record.partitions.0.filesystem.label == "media"
+          - block_device.record.partitions.0.filesystem.mount_point == "/media"
+          - block_device.record.partitions.0.filesystem.mount_options == "mount_options"
+          - block_device.record.partitions.1.bootable == false
+          - block_device.record.partitions.1.size == 4194304
+
+    - name: Update block device on block-device-test - idempotence
+      canonical.maas.block_device: *update-block-device
       register: block_device
     - ansible.builtin.assert:
         that:
           - block_device is not changed
           - block_device.record.name == "my-block-device"
-          - block_device.record.size == 27
-          - block_device.record.block_size == 512
+          - block_device.record.size == 30000000
+          - block_device.record.block_size == 1024
           - block_device.record.tags.0 == "ssd"
+          - block_device.record.tags.1 == "my-tag"
+          - block_device.record.tags.2 == "new-tag"
           - block_device.record.id_path == "/dev/vdb"
-      
-    - name: Update block device on block-device-test
-      canonical.maas.block_device: &create-block-device
+          - block_device.record.serial == "serial"
+          - block_device.record.model == "model"
+          - block_device.record.partitions.0.bootable == true
+          - block_device.record.partitions.0.size == 8388608
+          - block_device.record.partitions.0.filesystem.fstype == "ext4"
+          - block_device.record.partitions.0.filesystem.label == "media"
+          - block_device.record.partitions.0.filesystem.mount_point == "/media"
+          - block_device.record.partitions.0.filesystem.mount_options == "mount_options"
+          - block_device.record.partitions.1.bootable == false
+          - block_device.record.partitions.1.size == 4194304
+
+    - name: Update name of the block device
+      canonical.maas.block_device:
         machine_fqdn: block-device-test.maas
         name: my-block-device
         state: present
-        id_path: /dev/vdb
-        size_gigabytes: 27
-        tags: 
-          - ssd
-        # block_size: 512
-        is_boot_device: true # where in return is this seen?
-        partitions:
-          - size_gigabytes: 10
-            fs_type: ext4
-            label: media
-            mount_point: /media
-            bootable: true
-          - size_gigabytes: 15
-            fs_type: ext4
-            mount_point: /storage
-            bootable: false
-            tags: my_partition
+        new_name: my-block-device-updated
       register: block_device
     - ansible.builtin.assert:
         that:
           - block_device is changed
-          - block_device.record.name == "my-block-device"
-          - block_device.record.size == 27
-          - block_device.record.block_size == 512
+          - block_device.record.name == "my-block-device-updated"
+          - block_device.record.size == 30000000
+          - block_device.record.block_size == 1024
           - block_device.record.tags.0 == "ssd"
+          - block_device.record.tags.1 == "my-tag"
+          - block_device.record.tags.2 == "new-tag"
           - block_device.record.id_path == "/dev/vdb"
+          - block_device.record.serial == "serial"
+          - block_device.record.model == "model"
+          - block_device.record.partitions.0.bootable == true
+          - block_device.record.partitions.0.size == 8388608
+          - block_device.record.partitions.0.filesystem.fstype == "ext4"
+          - block_device.record.partitions.0.filesystem.label == "media"
+          - block_device.record.partitions.0.filesystem.mount_point == "/media"
+          - block_device.record.partitions.0.filesystem.mount_options == "mount_options"
+          - block_device.record.partitions.1.bootable == false
+          - block_device.record.partitions.1.size == 4194304
+
+    - name: Add another partition
+      canonical.maas.block_device:
+        machine_fqdn: block-device-test.maas
+        name: my-block-device-updated
+        state: present
+        partitions:
+          - fs_type: ext4
+            label: media2
+            mount_point: /media2
+            bootable: true
+            # if size_gigabytes is not specified, all available space is used
+      register: block_device
+    - ansible.builtin.assert:
+        that:
+          - block_device is changed
+          - block_device.record.name == "my-block-device-updated"
+          - block_device.record.size == 30000000
+          - block_device.record.block_size == 1024
+          - block_device.record.tags.0 == "ssd"
+          - block_device.record.tags.1 == "my-tag"
+          - block_device.record.tags.2 == "new-tag"
+          - block_device.record.id_path == "/dev/vdb"
+          - block_device.record.serial == "serial"
+          - block_device.record.model == "model"
+          - block_device.record.partitions.0.bootable == true
+          - block_device.record.partitions.0.size == 8388608
+          - block_device.record.partitions.0.filesystem.fstype == "ext4"
+          - block_device.record.partitions.0.filesystem.label == "media"
+          - block_device.record.partitions.0.filesystem.mount_point == "/media"
+          - block_device.record.partitions.0.filesystem.mount_options == "mount_options"
+          - block_device.record.partitions.1.bootable == false
+          - block_device.record.partitions.1.size == 4194304
+          - block_device.record.partitions.2.size == 8388608
+          - block_device.record.partitions.2.filesystem.fstype == "ext4"
+          - block_device.record.partitions.2.filesystem.label == "media2"
+          - block_device.record.partitions.2.filesystem.mount_point == "/media2"
+          - block_device.record.partitions.2.filesystem.mount_options == ""
 
     # # ----------------------------------Cleanup------------------------------------
-    # - name: Delete machine
-    #   canonical.maas.machine: &delete-machine
-    #     fqdn: block-device-test.maas
-    #     state: absent
-  
-    # - name: Delete block device
-    #   canonical.maas.block_device: &delete-block-device
-    #     machine_fqdn: block-device-test.maas
-    #     name: my-block-device
-    #     state: absent
+    - name: Delete machine
+      canonical.maas.machine: *delete-machine
+
+    - name: Delete block device
+      canonical.maas.block_device: *delete-block-device
+
+    - name: Delete block device - updated
+      canonical.maas.block_device: *delete-block-device-updated
