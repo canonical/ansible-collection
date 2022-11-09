@@ -1,5 +1,5 @@
 ---
-plugin: canonical.maas.maas
+plugin: canonical.maas.inventory
 
 # Can filter inventory based on machine status.
 # If status is set, then only machines with that specific status will be included.
