@@ -120,7 +120,7 @@ class LdapBaseException(Exception):
 
 
 class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
-    NAME = "maas"  # used internally by Ansible, it should match the file name but not required
+    NAME = "inventory"  # used internally by Ansible, it should match the file name but not required
 
     @classmethod
     def read_config_data(cls, path, env):
