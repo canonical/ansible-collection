@@ -1,0 +1,75 @@
+---
+# Create VMs needed for testing inventory plugin
+- name: Prepare test environment
+  hosts: localhost
+  gather_facts: false
+  environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+  tasks:
+    - name: Create VM inventory-test-1.
+      canonical.maas.vm_host_machine:
+        hostname: inventory-test-1
+        vm_host: crisp-skunk
+        cores: 2
+        memory: 2000
+        network_interfaces:
+          label_name: my_first
+          subnet_cidr: "10.10.10.0/24"
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is succeeded
+          - machine is changed
+
+    - name: Get info from inventory-test-1.
+      canonical.maas.machine_info:
+        fqdn: "{{ machine.record.fqdn }}"
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.fqdn == "inventory-test-1.maas"
+          - machine_info.records.0.cpu_count == 2
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+
+    - name: Create VM inventory-test-2.
+      canonical.maas.vm_host_machine:
+        hostname: inventory-test-2
+        vm_host: crisp-skunk
+        cores: 2
+        memory: 2000
+        network_interfaces:
+          label_name: my_first
+          subnet_cidr: "10.10.10.0/24"
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is succeeded
+          - machine is changed
+
+    - name: Get info from inventory-test-2.
+      canonical.maas.machine_info:
+        fqdn: "{{ machine.record.fqdn }}"
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.fqdn == "inventory-test-2.maas"
+          - machine_info.records.0.cpu_count == 2
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000

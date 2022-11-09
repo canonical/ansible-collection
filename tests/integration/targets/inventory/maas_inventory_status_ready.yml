@@ -1,0 +1,4 @@
+---
+plugin: canonical.maas.inventory
+
+status: ready
