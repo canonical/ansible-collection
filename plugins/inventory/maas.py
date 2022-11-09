@@ -30,7 +30,7 @@ options:
       - If missing, all VMs are included into inventory.
       - If set, then only VMs with selected status are included into inventory.
     type: str
-    choices: [ ready, broken, new, allocated, deployed, comissioning, testing, failed_comissioning, failed_deployment ]
+    choices: [ ready, broken, new, allocated, deployed, commissioning, testing, failed commissioning, failed deployment ]
 """
 EXAMPLES = r"""
 # A trivial example that creates a list of all VMs.
@@ -167,7 +167,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         for machine in machine_list:
             include = False
             if (
-                "status" in cfg
+                "status" not in cfg
+                or "status" in cfg
                 and cfg["status"].lower() == machine["status_name"].lower()
             ):
                 include = True
@@ -176,3 +177,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 inventory.add_group(machine["domain"]["name"])
                 # Host
                 inventory.add_host(machine["fqdn"], group=machine["domain"]["name"])
+                # Variables
+                inventory.set_variable(machine["fqdn"], "ansible_host", machine["fqdn"])
+                inventory.set_variable(
+                    machine["fqdn"], "ansible_group", machine["domain"]["name"]
+                )

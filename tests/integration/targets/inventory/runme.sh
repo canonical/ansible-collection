@@ -37,7 +37,8 @@ ansible-playbook -e "@$vars_file" cleanup.yml
 ansible-playbook -e "@$vars_file" prepare.yml
 
 # Add more inventory files to test other possible machine status.
+ansible-playbook -i localhost, -i maas_inventory_status_commissioning.yml -e "@$vars_file" run_status_commissioning_test.yml
 ansible-playbook -i localhost, -i maas_inventory_status_ready.yml -e "@$vars_file" run_status_ready_test.yml
-ansible-playbook -i localhost, -i maas_inventory_not_status.yml -e "@$vars_file" run_no_status_test.yml
+ansible-playbook -i localhost, -i maas_inventory_no_status.yml -e "@$vars_file" run_no_status_test.yml
 
 ansible-playbook -e "@$vars_file" cleanup.yml
