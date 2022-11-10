@@ -318,6 +318,7 @@ def must_update_partitions(module, block_device):
         ):
             return True
         n += 1
+    return False
 
 
 def delete_partitions(client, block_device):
@@ -336,6 +337,7 @@ def update_partitions(module, client, block_device):
 def must_update_tags(module, block_device):
     if module.params["tags"] != block_device.tags:
         return True
+    return False
 
 
 def delete_tags(client, block_device):
