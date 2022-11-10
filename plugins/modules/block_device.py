@@ -310,9 +310,6 @@ def must_update_partitions(module, block_device):
             block_device.partitions[n].size
             != partition["size_gigabytes"] * 1024 * 1024 * 1024
         ):
-            raise Exception(
-                f'{block_device.partitions[n].size},{partition["size_gigabytes"] * 1024 * 1024 * 1024}'
-            )
             return True
         if block_device.partitions[n].bootable != partition["bootable"]:
             return True
