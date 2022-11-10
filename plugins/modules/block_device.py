@@ -247,9 +247,7 @@ def create_partitions(module, client, block_device):
                 if partition["label"]:
                     data["label"] = partition["label"]
                 new_partition.format(client, data)
-                if partition[
-                    "mount_point"
-                ]:  # This is used only if the partition is formatted
+                if partition["mount_point"]:  # used only if the partition is formatted
                     data = {}
                     data["mount_point"] = partition["mount_point"]
                     if partition["mount_options"]:
@@ -302,26 +300,22 @@ def create_block_device(module, client: Client, machine_id):
 
 
 def must_update_partitions(module, block_device):
-    n = 0
     if len(module.params["partitions"]) != len(block_device.partitions):
         return True
+    n = 0
     for partition in module.params["partitions"]:
         if (
-            block_device.partitions[n].size
-            != partition["size_gigabytes"] * 1024 * 1024 * 1024
+            (
+                block_device.partitions[n].size
+                != partition["size_gigabytes"] * 1024 * 1024 * 1024
+            )
+            or block_device.partitions[n].bootable != partition["bootable"]
+            or block_device.partitions[n].tags != partition["tags"]
+            or block_device.partitions[n].fstype != partition["fs_type"]
+            or block_device.partitions[n].label != partition["label"]
+            or block_device.partitions[n].mount_point != partition["mount_point"]
+            or block_device.partitions[n].mount_options != partition["mount_options"]
         ):
-            return True
-        if block_device.partitions[n].bootable != partition["bootable"]:
-            return True
-        if block_device.partitions[n].tags != partition["tags"]:
-            return True
-        if block_device.partitions[n].fstype != partition["fs_type"]:
-            return True
-        if block_device.partitions[n].label != partition["label"]:
-            return True
-        if block_device.partitions[n].mount_point != partition["mount_point"]:
-            return True
-        if block_device.partitions[n].mount_options != partition["mount_options"]:
             return True
         n += 1
 
@@ -329,9 +323,7 @@ def must_update_partitions(module, block_device):
 def delete_partitions(client, block_device):
     if block_device.partitions:  # if partitions exist, delete them
         for partition in block_device.partitions:
-            client.delete(
-                f"/api/2.0/nodes/{block_device.machine_id}/blockdevices/{block_device.id}/partition/{partition.id}"
-            )
+            partition.delete(client)
 
 
 def update_partitions(module, client, block_device):
@@ -341,18 +333,22 @@ def update_partitions(module, client, block_device):
             create_partitions(module, client, block_device)
 
 
+def must_update_tags(module, block_device):
+    if module.params["tags"] != block_device.tags:
+        return True
+
+
 def delete_tags(client, block_device):
-    if block_device.tags:
+    if block_device.tags:  # if tags exist, delete them
         for tag in block_device.tags:
             block_device.remove_tag(client, tag)
 
 
 def update_tags(module, client, block_device):
     if module.params["tags"]:
-        if module.params["tags"] != block_device.tags:
+        if must_update_tags(module, block_device):
             delete_tags(client, block_device)
-            for tag in module.params["tags"]:
-                block_device.add_tag(client, tag)
+            create_tags(module, client, block_device)
 
 
 def data_for_update_block_device(module, block_device):
