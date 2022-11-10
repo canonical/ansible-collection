@@ -99,7 +99,7 @@
         tags:
           - ssd
           - my-tag
-        is_boot_device: true # where in return is this seen?
+        is_boot_device: true
         partitions:
           - size_gigabytes: 10
             fs_type: ext4

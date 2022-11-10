@@ -16,7 +16,6 @@ from ansible_collections.canonical.maas.plugins.module_utils.block_device import
 )
 from ansible_collections.canonical.maas.plugins.module_utils.client import Response
 from ansible_collections.canonical.maas.plugins.module_utils import errors
-from ansible_collections.canonical.maas.plugins.module_utils.partition import Partition
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
