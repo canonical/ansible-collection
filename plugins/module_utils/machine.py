@@ -329,7 +329,7 @@ class Machine(MaasValueMapper):
                     MachineTaskState.failed_deployment.value,
                 ]:
                     raise errors.MaasError(
-                        f"Machine - {maas_dict['hostname']} - Failed to commision or deploy"
+                        f"Machine - {maas_dict['hostname']} - Failed to commission or deploy"
                     )
                 sleep(10)
             except errors.MaasError:
