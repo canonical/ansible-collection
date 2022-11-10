@@ -16,6 +16,7 @@ from ansible_collections.canonical.maas.plugins.module_utils.block_device import
 )
 from ansible_collections.canonical.maas.plugins.module_utils.client import Response
 from ansible_collections.canonical.maas.plugins.module_utils import errors
+from ansible_collections.canonical.maas.plugins.module_utils.partition import Partition
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -34,6 +35,22 @@ class TestMapper:
             block_size=512,
             size=1024,
             tags=["tag1", "tag2"],
+            partitions=[
+                dict(
+                    device_id=5014,
+                    id=15,
+                    system_id="sgt3546",
+                    size=1000000,
+                    bootable=True,
+                    tags=["my-tag", "my-tag2"],
+                    filesystem=dict(
+                        fstype="ext4",
+                        label="media",
+                        mount_point="/media",
+                        mount_options="options",
+                    ),
+                )
+            ],
         )
         block_device = BlockDevice(
             block_device_maas_dict["name"],
@@ -45,6 +62,7 @@ class TestMapper:
             block_device_maas_dict["block_size"],
             block_device_maas_dict["size"],
             block_device_maas_dict["tags"],
+            block_device_maas_dict["partitions"],
         )
         results = BlockDevice.from_maas(block_device_maas_dict)
         assert results == block_device
@@ -57,7 +75,7 @@ class TestGet:
         client.get.return_value = Response(
             200,
             '{"name":"my-block-device", "id":5, "system_id":"sgt3546", "model":"model", "serial":"serial", "id_path":"/dev/tmp",\
-                "block_size":512, "size":4000000, "tags":["tag1", "tag2"]}',
+                "block_size":512, "size":4000000, "tags":["tag1", "tag2"], "partitions": []}',
         )
         block_device = BlockDevice(
             name="my-block-device",
@@ -69,6 +87,7 @@ class TestGet:
             block_size=512,
             size=4000000,
             tags=["tag1", "tag2"],
+            partitions=None,
         )
         results = BlockDevice.get_by_id(id, client, machine_id, must_exist=False)
 
