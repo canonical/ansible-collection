@@ -19,11 +19,24 @@ class Partition(MaasValueMapper):
         id=None,
         machine_id=None,
         block_device_id=None,
+        size=None,
+        bootable=None,
+        tags=None,
+        fstype=None,
+        label=None,
+        mount_point=None,
+        mount_options=None,
     ):
-
         self.id = id
         self.machine_id = machine_id
         self.block_device_id = block_device_id
+        self.size = size
+        self.bootable = bootable
+        self.tags = tags
+        self.fstype = fstype
+        self.label = label
+        self.mount_point = mount_point
+        self.mount_options = mount_options
 
     @classmethod
     def get_by_id(
@@ -51,6 +64,14 @@ class Partition(MaasValueMapper):
             obj.block_device_id = maas_dict["device_id"]
             obj.id = maas_dict["id"]
             obj.machine_id = maas_dict["system_id"]
+            obj.size = maas_dict["size"]
+            obj.bootable = maas_dict["bootable"]
+            obj.tags = maas_dict["tags"]
+            if maas_dict["filesystem"]:
+                obj.fstype = maas_dict["filesystem"]["fstype"]
+                obj.label = maas_dict["filesystem"]["label"]
+                obj.mount_point = maas_dict["filesystem"]["mount_point"]
+                obj.mount_options = maas_dict["filesystem"]["mount_options"]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj
@@ -115,9 +136,9 @@ class Partition(MaasValueMapper):
         ).json
 
     @classmethod
-    def create(cls, client, machine_id, block_device_id, payload):
+    def create(cls, client, block_device, payload):
         partition_maas_dict = client.post(
-            f"/api/2.0/nodes/{machine_id}/blockdevices/{block_device_id}/partitions/",
+            f"/api/2.0/nodes/{block_device.machine_id}/blockdevices/{block_device.id}/partitions/",
             data=payload,
             timeout=60,  # Sometimes we get timeout error thus changing timeout from 20s to 60s
         ).json
@@ -131,5 +152,12 @@ class Partition(MaasValueMapper):
                 self.block_device_id == other.block_device_id,
                 self.id == other.id,
                 self.machine_id == other.machine_id,
+                self.size == other.size,
+                self.bootable == other.bootable,
+                self.tags == other.tags,
+                self.fstype == other.fstype,
+                self.label == other.label,
+                self.mount_point == other.mount_point,
+                self.mount_options == other.mount_options,
             )
         )

@@ -19,7 +19,7 @@
         name: my-block-device
         state: absent
 
-    - name: Delete block device
+    - name: Delete block device updated
       canonical.maas.block_device: &delete-block-device-updated
         machine_fqdn: block-device-test.maas
         name: my-block-device-updated
@@ -110,16 +110,16 @@
             tags:
               - bootable-partition
               - my-partition
-          - size_gigabytes: 5
-            bootable: false
+          - bootable: false
             tags:
               - not-bootable-partition
+              - takes-all-of-the-rest-space
       register: block_device
     - ansible.builtin.assert:
         that:
           - block_device is changed
           - block_device.record.name == "my-block-device"
-          - block_device.record.size == 40000000
+          - block_device.record.size == 42949672960
           - block_device.record.block_size == 512
           - block_device.record.tags.0 == "ssd"
           - block_device.record.tags.1 == "my-tag"
@@ -127,7 +127,7 @@
           - block_device.record.serial == ""
           - block_device.record.model == ""
           - block_device.record.partitions.0.bootable == true
-          - block_device.record.partitions.0.size == 8388608
+          - block_device.record.partitions.0.size == 10737418240
           - block_device.record.partitions.0.tags.0 == "bootable-partition"
           - block_device.record.partitions.0.tags.1 == "my-partition"
           - block_device.record.partitions.0.filesystem.fstype == "ext4"
@@ -135,8 +135,9 @@
           - block_device.record.partitions.0.filesystem.mount_point == "/media"
           - block_device.record.partitions.0.filesystem.mount_options == "mount_options"
           - block_device.record.partitions.1.bootable == false
-          - block_device.record.partitions.1.size == 4194304
+          - block_device.record.partitions.1.size == 32203866112
           - block_device.record.partitions.1.tags.0 == "not-bootable-partition"
+          - block_device.record.partitions.1.tags.1 == "takes-all-of-the-rest-space"
 
     - name: Update block device on block-device-test
       canonical.maas.block_device: &update-block-device
@@ -147,7 +148,16 @@
         tags:
           - new-tag
         block_size: 1024
-        is_boot_device: false # where in return is this seen?
+        # is_boot_device: false # not in return
+        partitions:
+          - size_gigabytes: 20
+            fs_type: ext4
+            label: media3
+            mount_point: /media3
+            mount_options: mount_options3
+            bootable: true
+            tags:
+              - my-partition3
         serial: "serial"
         model: "model"
       register: block_device
@@ -155,22 +165,19 @@
         that:
           - block_device is changed
           - block_device.record.name == "my-block-device"
-          - block_device.record.size == 30000000
+          - block_device.record.size == 32212254720
           - block_device.record.block_size == 1024
-          - block_device.record.tags.0 == "ssd"
-          - block_device.record.tags.1 == "my-tag"
-          - block_device.record.tags.2 == "new-tag"
+          - block_device.record.tags.0 == "new-tag"
           - block_device.record.id_path == "/dev/vdb"
           - block_device.record.serial == "serial"
           - block_device.record.model == "model"
           - block_device.record.partitions.0.bootable == true
-          - block_device.record.partitions.0.size == 8388608
+          - block_device.record.partitions.0.size == 21474836480
+          - block_device.record.partitions.0.tags.0 == "my-partition3"
           - block_device.record.partitions.0.filesystem.fstype == "ext4"
-          - block_device.record.partitions.0.filesystem.label == "media"
-          - block_device.record.partitions.0.filesystem.mount_point == "/media"
-          - block_device.record.partitions.0.filesystem.mount_options == "mount_options"
-          - block_device.record.partitions.1.bootable == false
-          - block_device.record.partitions.1.size == 4194304
+          - block_device.record.partitions.0.filesystem.label == "media3"
+          - block_device.record.partitions.0.filesystem.mount_point == "/media3"
+          - block_device.record.partitions.0.filesystem.mount_options == "mount_options3"
 
     - name: Update block device on block-device-test - idempotence
       canonical.maas.block_device: *update-block-device
@@ -179,22 +186,20 @@
         that:
           - block_device is not changed
           - block_device.record.name == "my-block-device"
-          - block_device.record.size == 30000000
+          - block_device.record.size == 32212254720
           - block_device.record.block_size == 1024
-          - block_device.record.tags.0 == "ssd"
-          - block_device.record.tags.1 == "my-tag"
-          - block_device.record.tags.2 == "new-tag"
+          - block_device.record.tags.0 == "new-tag"
           - block_device.record.id_path == "/dev/vdb"
           - block_device.record.serial == "serial"
           - block_device.record.model == "model"
           - block_device.record.partitions.0.bootable == true
-          - block_device.record.partitions.0.size == 8388608
+          - block_device.record.partitions.0.size == 21474836480
+          - block_device.record.partitions.0.tags.0 == "my-partition3"
           - block_device.record.partitions.0.filesystem.fstype == "ext4"
-          - block_device.record.partitions.0.filesystem.label == "media"
-          - block_device.record.partitions.0.filesystem.mount_point == "/media"
-          - block_device.record.partitions.0.filesystem.mount_options == "mount_options"
-          - block_device.record.partitions.1.bootable == false
-          - block_device.record.partitions.1.size == 4194304
+          - block_device.record.partitions.0.filesystem.label == "media3"
+          - block_device.record.partitions.0.filesystem.mount_point == "/media3"
+          - block_device.record.partitions.0.filesystem.mount_options == "mount_options3"
+
 
     - name: Update name of the block device
       canonical.maas.block_device:
@@ -207,60 +212,6 @@
         that:
           - block_device is changed
           - block_device.record.name == "my-block-device-updated"
-          - block_device.record.size == 30000000
-          - block_device.record.block_size == 1024
-          - block_device.record.tags.0 == "ssd"
-          - block_device.record.tags.1 == "my-tag"
-          - block_device.record.tags.2 == "new-tag"
-          - block_device.record.id_path == "/dev/vdb"
-          - block_device.record.serial == "serial"
-          - block_device.record.model == "model"
-          - block_device.record.partitions.0.bootable == true
-          - block_device.record.partitions.0.size == 8388608
-          - block_device.record.partitions.0.filesystem.fstype == "ext4"
-          - block_device.record.partitions.0.filesystem.label == "media"
-          - block_device.record.partitions.0.filesystem.mount_point == "/media"
-          - block_device.record.partitions.0.filesystem.mount_options == "mount_options"
-          - block_device.record.partitions.1.bootable == false
-          - block_device.record.partitions.1.size == 4194304
-
-    - name: Add another partition
-      canonical.maas.block_device:
-        machine_fqdn: block-device-test.maas
-        name: my-block-device-updated
-        state: present
-        partitions:
-          - fs_type: ext4
-            label: media2
-            mount_point: /media2
-            bootable: true
-            # if size_gigabytes is not specified, all available space is used
-      register: block_device
-    - ansible.builtin.assert:
-        that:
-          - block_device is changed
-          - block_device.record.name == "my-block-device-updated"
-          - block_device.record.size == 30000000
-          - block_device.record.block_size == 1024
-          - block_device.record.tags.0 == "ssd"
-          - block_device.record.tags.1 == "my-tag"
-          - block_device.record.tags.2 == "new-tag"
-          - block_device.record.id_path == "/dev/vdb"
-          - block_device.record.serial == "serial"
-          - block_device.record.model == "model"
-          - block_device.record.partitions.0.bootable == true
-          - block_device.record.partitions.0.size == 8388608
-          - block_device.record.partitions.0.filesystem.fstype == "ext4"
-          - block_device.record.partitions.0.filesystem.label == "media"
-          - block_device.record.partitions.0.filesystem.mount_point == "/media"
-          - block_device.record.partitions.0.filesystem.mount_options == "mount_options"
-          - block_device.record.partitions.1.bootable == false
-          - block_device.record.partitions.1.size == 4194304
-          - block_device.record.partitions.2.size == 8388608
-          - block_device.record.partitions.2.filesystem.fstype == "ext4"
-          - block_device.record.partitions.2.filesystem.label == "media2"
-          - block_device.record.partitions.2.filesystem.mount_point == "/media2"
-          - block_device.record.partitions.2.filesystem.mount_options == ""
 
     # # ----------------------------------Cleanup------------------------------------
     - name: Delete machine

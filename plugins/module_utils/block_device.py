@@ -15,6 +15,7 @@ from ..module_utils.utils import (
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
 from ..module_utils.client import Client
+from ..module_utils.partition import Partition
 
 
 class BlockDevice(MaasValueMapper):
@@ -29,6 +30,7 @@ class BlockDevice(MaasValueMapper):
         block_size=None,
         size=None,
         tags=None,
+        partitions=None,
     ):
         self.name = name
         self.id = id
@@ -39,6 +41,7 @@ class BlockDevice(MaasValueMapper):
         self.block_size = block_size
         self.size = size
         self.tags = tags
+        self.partitions = partitions
 
     @classmethod
     def get_by_name(
@@ -90,6 +93,10 @@ class BlockDevice(MaasValueMapper):
             obj.block_size = maas_dict["block_size"]
             obj.size = maas_dict["size"]
             obj.tags = maas_dict["tags"]
+            obj.partitions = [
+                Partition.from_maas(partition)
+                for partition in maas_dict["partitions"] or []
+            ]
         except KeyError as e:
             raise errors.MissingValueMAAS(e)
         return obj

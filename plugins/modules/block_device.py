@@ -232,10 +232,49 @@ from ..module_utils.partition import Partition
 from ..module_utils.block_device import BlockDevice
 
 
+def create_partitions(module, client, block_device):
+    if module.params["partitions"]:
+        for partition in module.params["partitions"]:
+            data = {}
+            if partition["size_gigabytes"]:
+                data["size"] = partition["size_gigabytes"] * 1024 * 1024 * 1024
+            if partition["bootable"]:
+                data["bootable"] = partition["bootable"]
+            new_partition = Partition.create(client, block_device, data)
+            if partition["fs_type"]:
+                data = {}
+                data["fstype"] = partition["fs_type"]
+                if partition["label"]:
+                    data["label"] = partition["label"]
+                new_partition.format(client, data)
+                if partition[
+                    "mount_point"
+                ]:  # This is used only if the partition is formatted
+                    data = {}
+                    data["mount_point"] = partition["mount_point"]
+                    if partition["mount_options"]:
+                        data["mount_options"] = partition["mount_options"]
+                    new_partition.mount(client, data)
+            if partition["tags"]:
+                for tag in partition["tags"]:
+                    new_partition.add_tag(client, tag)
+
+
+def create_tags(module, client, block_device):
+    if module.params["tags"]:
+        for tag in module.params["tags"]:
+            block_device.add_tag(client, tag)
+
+
+def set_boot_disk(module, client, block_device):
+    if module.params["is_boot_device"]:
+        block_device.set_boot_disk(client)
+
+
 def data_for_create_block_device(module):
     data = {}
     data["name"] = module.params["name"]  # required
-    data["size"] = module.params["size_gigabytes"] * 1000000  # required
+    data["size"] = module.params["size_gigabytes"] * 1024 * 1024 * 1024  # required
     data["block_size"] = 512  # default
     if module.params["block_size"]:
         data["block_size"] = module.params["block_size"]
@@ -251,13 +290,9 @@ def data_for_create_block_device(module):
 def create_block_device(module, client: Client, machine_id):
     data = data_for_create_block_device(module)
     block_device = BlockDevice.create(client, machine_id, data)
-    if module.params["partitions"]:
-        create_partition(module, client, machine_id, block_device.id)
-    if module.params["tags"]:
-        for tag in module.params["tags"]:
-            block_device.add_tag(client, tag)
-    if module.params["is_boot_device"]:
-        block_device.set_boot_disk(client)
+    create_partitions(module, client, block_device)
+    create_tags(module, client, block_device)
+    set_boot_disk(module, client, block_device)
     block_device_maas_dict = block_device.get(client)
     return (
         True,
@@ -266,44 +301,64 @@ def create_block_device(module, client: Client, machine_id):
     )
 
 
-def data_for_create_partition(partition):
-    data = {}
-    if partition["size_gigabytes"]:
-        data["size"] = partition["size_gigabytes"] * 1000000
-    if partition["bootable"]:
-        data["bootable"] = partition["bootable"]
-    return data
-
-
-def create_partition(module, client, machine_id, block_device_id):
+def must_update_partitions(module, block_device):
+    n = 0
+    if len(module.params["partitions"]) != len(block_device.partitions):
+        return True
     for partition in module.params["partitions"]:
-        data = data_for_create_partition(partition)
-        new_partition = Partition.create(client, machine_id, block_device_id, data)
-        if partition["fs_type"]:
-            data = {}
-            data["fstype"] = partition["fs_type"]
-            if partition["label"]:
-                data["label"] = partition["label"]
-            new_partition.format(client, data)
-            if partition[
-                "mount_point"
-            ]:  # This is used only if the partition is formatted
-                data = {}
-                data["mount_point"] = partition["mount_point"]
-                if partition["mount_options"]:
-                    data["mount_options"] = partition["mount_options"]
-                new_partition.mount(client, data)
-        if partition["tags"]:
-            for tag in partition["tags"]:
-                new_partition.add_tag(client, tag)
+        if (
+            block_device.partitions[n].size
+            != partition["size_gigabytes"] * 1024 * 1024 * 1024
+        ):
+            raise Exception(
+                f'{block_device.partitions[n].size},{partition["size_gigabytes"] * 1024 * 1024 * 1024}'
+            )
+            return True
+        if block_device.partitions[n].bootable != partition["bootable"]:
+            return True
+        if block_device.partitions[n].tags != partition["tags"]:
+            return True
+        if block_device.partitions[n].fstype != partition["fs_type"]:
+            return True
+        if block_device.partitions[n].label != partition["label"]:
+            return True
+        if block_device.partitions[n].mount_point != partition["mount_point"]:
+            return True
+        if block_device.partitions[n].mount_options != partition["mount_options"]:
+            return True
+        n += 1
+
+
+def delete_partitions(client, block_device):
+    if block_device.partitions:  # if partitions exist, delete them
+        for partition in block_device.partitions:
+            client.delete(
+                f"/api/2.0/nodes/{block_device.machine_id}/blockdevices/{block_device.id}/partition/{partition.id}"
+            )
+
+
+def update_partitions(module, client, block_device):
+    if module.params["partitions"]:
+        if must_update_partitions(module, block_device):
+            delete_partitions(client, block_device)
+            create_partitions(module, client, block_device)
+
+
+def delete_tags(client, block_device):
+    if block_device.tags:
+        for tag in block_device.tags:
+            block_device.remove_tag(client, tag)
+
+
+def update_tags(module, client, block_device):
+    if module.params["tags"]:
+        if module.params["tags"] != block_device.tags:
+            delete_tags(client, block_device)
+            for tag in module.params["tags"]:
+                block_device.add_tag(client, tag)
 
 
 def data_for_update_block_device(module, block_device):
-    """
-    Machines must have a status of Ready to have access to all options.
-    Machines with Deployed status can only have the name, model, serial, and/or id_path updated for a block device.
-    This is intented to allow a bad block device to be replaced while the machine remains deployed.
-    """
     data = {}
     if module.params["new_name"]:
         if block_device.name != module.params["new_name"]:
@@ -321,31 +376,19 @@ def data_for_update_block_device(module, block_device):
         if block_device.block_size != module.params["block_size"]:
             data["block_size"] = module.params["block_size"]
     if module.params["size_gigabytes"]:
-        if block_device.size != module.params["size_gigabytes"] * 1000000:
-            data["size"] = module.params["size_gigabytes"] * 1000000
+        if block_device.size != module.params["size_gigabytes"] * 1024 * 1024 * 1024:
+            data["size"] = module.params["size_gigabytes"] * 1024 * 1024 * 1024
     return data
 
 
-def update_block_device(module, client: Client, machine):
-    block_device = BlockDevice.get_by_name(
-        module,
-        client,
-        machine.id,
-        must_exist=True,
-        name_field_ansible="name",
-    )
+def update_block_device(module, client: Client, block_device):
     block_device_maas_dict = block_device.get(client)
     data = data_for_update_block_device(module, block_device)
     if data:
         block_device.update(client, data)
-    if module.params["tags"]:  # tags can be added but not removed
-        for tag in module.params["tags"]:
-            if tag not in block_device.tags:
-                block_device.add_tag(client, tag)
-    if module.params["is_boot_device"]:
-        block_device.set_boot_disk(client)
-    if module.params["partitions"]:  # partitions can be added but not removed
-        create_partition(module, client, machine.id, block_device.id)
+    update_tags(module, client, block_device)
+    set_boot_disk(module, client, block_device)  # we don't get this in return
+    update_partitions(module, client, block_device)
     updated_block_device_maas_dict = block_device.get(client)
     if updated_block_device_maas_dict == block_device_maas_dict:
         return (
@@ -360,8 +403,7 @@ def update_block_device(module, client: Client, machine):
     )
 
 
-def delete_block_device(module, client: Client, machine_id):
-    block_device = BlockDevice.get_by_name(module, client, machine_id)
+def delete_block_device(client: Client, block_device):
     if block_device:
         block_device_maas_dict = block_device.get(client)
         block_device.delete(client)
@@ -373,14 +415,14 @@ def run(module, client: Client):
     machine = Machine.get_by_fqdn(
         module, client, must_exist=True, name_field_ansible="machine_fqdn"
     )
+    block_device = BlockDevice.get_by_name(module, client, machine.id)
     if module.params["state"] == "present":
-        block_device = BlockDevice.get_by_name(module, client, machine.id)
         if block_device:
-            return update_block_device(module, client, machine)
+            return update_block_device(module, client, block_device)
         else:
             return create_block_device(module, client, machine.id)
     if module.params["state"] == "absent":
-        return delete_block_device(module, client, machine.id)
+        return delete_block_device(client, block_device)
 
 
 def main():
