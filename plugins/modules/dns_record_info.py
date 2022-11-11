@@ -82,10 +82,31 @@ from ..module_utils.client import Client
 from ..module_utils.cluster_instance import get_oauth1_client
 
 
+def to_ansible(record):
+    resource_records = record.get("resource_records", [])
+    if resource_records:
+        item = resource_records[0]
+        return {
+            "type": item["rrtype"],
+            "data": item["rrdata"],
+            "fqdn": item["fqdn"],
+            "ttl": item["ttl"],
+        }
+
+    return {
+        "type": "A/AAAA",
+        "data": record["ip_addresses"][0]["ip"],
+        "fqdn": record["fqdn"],
+        "ttl": record["address_ttl"],
+    }
+
+
 def run(module, client: Client):
     query = {"all": True} if module.params["all"] else None
-    response = client.get("/api/2.0/dnsresources/", query)
-    return response.json
+    response = client.get("/api/2.0/dnsresources/", query).json
+
+    result = [to_ansible(item) for item in response]
+    return result
 
 
 def main():
