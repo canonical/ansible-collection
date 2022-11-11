@@ -29,7 +29,7 @@ options:
 """
 
 EXAMPLES = r"""
-- name: Get list of all network spaces
+- name: Get list of all network fabrics
   canonical.maas.fabric_info:
     cluster_instance:
       host: host-ip
@@ -37,28 +37,41 @@ EXAMPLES = r"""
       token_secret: token-secret
       customer_key: customer-key
 
-- name: Get info about a specific network space
+- name: Get info about a specific network fabric
   canonical.maas.fabric_info:
     cluster_instance:
       host: host-ip
       token_key: token-key
       token_secret: token-secret
       customer_key: customer-key
-    name: my-network-space
+    name: my-network-fabric
 """
 
-RETURN = r""" # TODO: UPDATE RETURN!
+RETURN = r"""
 records:
   description:
-    - Network space info list.
+    - Network fabric info list.
   returned: success
   type: list
   sample:
-    name=None
-    id=None
-    vlans=[]
-    resource_uri=None
-    class_type= #
+    class_type: null
+    id: 7
+    name: fabric-7
+    resource_uri: /MAAS/api/2.0/fabrics/7/
+    vlans:
+    - dhcp_on: false
+      external_dhcp: null
+      fabric: fabric-0
+      fabric_id: 0
+      id: 5001
+      mtu: 1500
+      name: untagged
+      primary_rack: null
+      relay_vlan: null
+      resource_uri: /MAAS/api/2.0/vlans/5001/
+      secondary_rack: null
+      space: undefined
+      vid: 0
 """
 
 
@@ -67,12 +80,13 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.fabric import Fabric
+from ..module_utils.cluster_instance import get_oauth1_client
 
 
 def run(module, client: Client):
     if module.params["name"]:
-        space = Fabric.get_by_name(module, client, must_exist=True)
-        response = [space.get(client)]
+        fabric = Fabric.get_by_name(module, client, must_exist=True)
+        response = [fabric.to_ansible()]
     else:
         response = client.get("/api/2.0/fabrics/").json
     return response
@@ -88,13 +102,7 @@ def main():
     )
 
     try:
-        cluster_instance = module.params["cluster_instance"]
-        host = cluster_instance["host"]
-        consumer_key = cluster_instance["customer_key"]
-        token_key = cluster_instance["token_key"]
-        token_secret = cluster_instance["token_secret"]
-
-        client = Client(host, token_key, token_secret, consumer_key)
+        client = get_oauth1_client(module.params)
         records = run(module, client)
         module.exit_json(changed=False, records=records)
     except errors.MaasError as e:

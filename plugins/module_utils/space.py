@@ -39,12 +39,12 @@ class Space(MaasValueMapper):
             name_field_ansible,
             ansible_maas_map={name_field_ansible: "name"},
         )
-        maas_dict = rest_client.get_record(
+        space_maas_dict = rest_client.get_record(
             "/api/2.0/spaces/", query, must_exist=must_exist
         )
-        if maas_dict:
-            vmhost_from_maas = cls.from_maas(maas_dict)
-            return vmhost_from_maas
+        if space_maas_dict:
+            space = cls.from_maas(space_maas_dict)
+            return space
 
     @classmethod
     def from_ansible(cls, module):
@@ -77,9 +77,6 @@ class Space(MaasValueMapper):
 
     def delete(self, client):
         client.delete(f"/api/2.0/spaces/{self.id}/")
-
-    def get(self, client):
-        return client.get(f"/api/2.0/spaces/{self.id}/").json
 
     def update(self, client, payload):
         return client.put(f"/api/2.0/spaces/{self.id}/", data=payload).json

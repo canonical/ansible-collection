@@ -1,0 +1,109 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+  # ----------------------------------Cleanup---------------------------------------------------------------------------------
+    - name: Delete user John
+      canonical.maas.user:
+        state: absent
+        name: John
+  # ----------------------------------Job-------------------------------------------------------------------------------------
+    - name: Create user John
+      canonical.maas.user:
+        state: present
+        name: John
+        password: john123
+        email: john.smith@email.com
+        is_admin: false
+      register: new_user
+    - ansible.builtin.assert:
+        that:
+          - new_user is succeeded
+          - new_user is changed
+
+    - name: Get info from user John
+      canonical.maas.user_info:
+        name: John
+      register: new_user_info
+    - ansible.builtin.assert:
+        that:
+          - new_user_info is succeeded
+          - new_user_info is not changed
+          - new_user_info.record
+          - new_user_info.record.username == "John"
+          - new_user_info.record.email == "john.smith@email.com"
+          - new_user_info.record.is_superuser == 0
+
+  # ----------------------------------Idempotence check------------------------------------------------------------------------
+    - name: Create user John (Idempotence)
+      canonical.maas.user:
+        state: present
+        name: John
+        password: john123
+        email: john.smith@email.com
+        is_admin: false
+      register: new_user
+    - ansible.builtin.assert:
+        that:
+          - new_user is succeeded
+          - new_user is not changed
+
+    - name: Get info from user John (Idempotence)
+      canonical.maas.user_info:
+        name: John
+      register: new_user_info
+    - ansible.builtin.assert:
+        that:
+          - new_user_info is succeeded
+          - new_user_info is not changed
+          - new_user_info.record
+          - new_user_info.record.username == "John"
+          - new_user_info.record.email == "john.smith@email.com"
+          - new_user_info.record.is_superuser == 0
+
+  # ----------------------------------Job-------------------------------------------------------------------------------------
+    - name: Delete user John
+      canonical.maas.user:
+        state: absent
+        name: John
+      register: deleted_user
+    - ansible.builtin.assert:
+        that:
+          - deleted_user is succeeded
+          - deleted_user is changed
+
+    - name: Get info from user John after delete
+      canonical.maas.user_info:
+        name: John
+      register: deleted_user_info
+    - ansible.builtin.assert:
+        that:
+          - deleted_user_info is succeeded
+          - deleted_user_info is not changed
+          - deleted_user_info.record == None
+
+  # ----------------------------------Idempotence check------------------------------------------------------------------------
+    - name: Delete user John (Idempotence)
+      canonical.maas.user:
+        state: absent
+        name: John
+      register: deleted_user
+    - ansible.builtin.assert:
+        that:
+          - deleted_user is succeeded
+          - deleted_user is not changed
+
+    - name: Get info from user John after delete (Idempotence)
+      canonical.maas.user_info:
+        name: John
+      register: deleted_user_info
+    - ansible.builtin.assert:
+        that:
+          - deleted_user_info is succeeded
+          - deleted_user_info is not changed
+          - deleted_user_info.record == None

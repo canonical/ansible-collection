@@ -67,16 +67,56 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Added space.
+    - Created or updated network space.
   returned: success
   type: dict
   sample:
-    name="my-space"
-    id=7
-    vlans=[]
-    resource_uri="/MAAS/api/2.0/spaces/7/"
-    subnets=[]
-    description="my space"
+    id: -1
+    name: undefined
+    resource_uri: /MAAS/api/2.0/spaces/-1/
+    subnets:
+    - name: 10.10.10.0/24
+      description: ""
+      vlan:
+        vid: 0
+        mtu: 1500
+        dhcp_on: true
+        external_dhcp: null
+        relay_vlan: null
+        fabric: fabric-1
+        id: 5002
+        space: undefined
+        fabric_id: 1
+        name: untagged
+        primary_rack: kwxmgm
+        secondary_rack: null
+        resource_uri: /MAAS/api/2.0/vlans/5002/
+      cidr: 10.10.10.0/24
+      rdns_mode: 2
+      gateway_ip: 10.10.10.1
+      dns_servers: []
+      allow_dns: true
+      allow_proxy: true
+      active_discovery: false
+      managed: true
+      disabled_boot_architectures: []
+      id: 2
+      space: undefined
+      resource_uri: /MAAS/api/2.0/subnets/2/
+    vlans:
+    - vid: 0
+      mtu: 1500
+      dhcp_on: true
+      external_dhcp: null
+      relay_vlan: null
+      fabric: fabric-1
+      id: 5002
+      space: undefined
+      fabric_id: 1
+      name: untagged
+      primary_rack: kwxmgm
+      secondary_rack: null
+      resource_uri: /MAAS/api/2.0/vlans/5002/
 """
 
 
@@ -85,6 +125,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.space import Space
+from ..module_utils.cluster_instance import get_oauth1_client
 
 
 def data_for_create_space(module):
@@ -171,13 +212,7 @@ def main():
     )
 
     try:
-        cluster_instance = module.params["cluster_instance"]
-        host = cluster_instance["host"]
-        consumer_key = cluster_instance["customer_key"]
-        token_key = cluster_instance["token_key"]
-        token_secret = cluster_instance["token_secret"]
-
-        client = Client(host, token_key, token_secret, consumer_key)
+        client = get_oauth1_client(module.params)
         changed, record, diff = run(module, client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as e:

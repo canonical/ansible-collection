@@ -1,0 +1,641 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+# ----------------------------------Cleanup----------------------------------------------------------------------------
+    - name: Delete machines
+      canonical.maas.instance: &delete-machines
+        fqdn: "{{ item }}"
+        state: absent
+      loop:
+        - integration-test-tag.maas
+        - integration-test-tag-2.maas
+
+# ----------------------------------Setup------------------------------------------------------------------------------
+    - name: Create virtual machine integration-test-tag.maas
+      canonical.maas.vm_host_machine:
+        vm_host: crisp-skunk
+        hostname: integration-test-tag
+        cores: 1
+        memory: 2000
+        network_interfaces:
+          label_name: my_first
+          subnet_cidr: "10.10.10.0/24"
+        storage_disks:
+          - size_gigabytes: 3
+          - size_gigabytes: 5
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is succeeded
+          - machine is changed
+
+    - name: Create virtual machine integration-test-tag-2.maas
+      canonical.maas.vm_host_machine:
+        vm_host: crisp-skunk
+        hostname: integration-test-tag-2
+        cores: 1
+        memory: 2000
+        network_interfaces:
+          label_name: my_first
+          subnet_cidr: "10.10.10.0/24"
+        storage_disks:
+          - size_gigabytes: 3
+          - size_gigabytes: 5
+      register: machine
+    - ansible.builtin.assert:
+        that:
+          - machine is succeeded
+          - machine is changed
+
+    - name: Get info from created machine.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+
+    - name: Get info from created machine.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+
+# ----------------------------------Job--------------------------------------------------------------------------------
+    - name: Create new tag 'test1' and place it on VMs
+      canonical.maas.tag:
+        state: present
+        name: test1
+        machines:
+          - integration-test-tag.maas
+          - integration-test-tag-2.maas
+      register: tag
+    - ansible.builtin.assert:
+        that:
+          - tag is succeeded
+          - tag is changed
+
+    - name: Get info from integration-test-tag after create.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+    - name: Get info from integration-test-tag-2 after create.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------
+    - name: Create new tag 'test1' and place it on VMs - (idempotence)
+      canonical.maas.tag:
+        state: present
+        name: test1
+        machines:
+          - integration-test-tag.maas
+          - integration-test-tag-2.maas
+      register: tag
+    - ansible.builtin.assert:
+        that:
+          - tag is succeeded
+          - tag is not changed
+
+    - name: Get info from integration-test-tag after create - (idempotence).
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+    - name: Get info from integration-test-tag-2 after create - (idempotence).
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+# ----------------------------------Job--------------------------------------------------------------------------------
+    - name: Delete tag 'test1' from VMs
+      canonical.maas.tag:
+        state: absent
+        name: test1
+        machines:
+          - integration-test-tag.maas
+          - integration-test-tag-2.maas
+      register: tag
+    - ansible.builtin.assert:
+        that:
+          - tag is succeeded
+          - tag is changed
+
+    - name: Get info from integration-test-tag after delete.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 2
+          - machine_info.records.0.tag_names.0 != "test1"
+          - machine_info.records.0.tag_names.1 != "test1"
+
+    - name: Get info from integration-test-tag-2 after delete.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 2
+          - machine_info.records.0.tag_names.0 != "test1"
+          - machine_info.records.0.tag_names.1 != "test1"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------
+    - name: Delete tag 'test1' from VMs - (Idempotence)
+      canonical.maas.tag:
+        state: absent
+        name: test1
+        machines:
+          - integration-test-tag.maas
+          - integration-test-tag-2.maas
+      register: tag
+    - ansible.builtin.assert:
+        that:
+          - tag is succeeded
+          - tag is not changed
+
+    - name: Get info from integration-test-tag after delete. - (Idempotence)
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 2
+          - machine_info.records.0.tag_names.0 != "test1"
+          - machine_info.records.0.tag_names.1 != "test1"
+
+    - name: Get info from integration-test-tag-2 after delete. - (Idempotence)
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 2
+          - machine_info.records.0.tag_names.0 != "test1"
+          - machine_info.records.0.tag_names.1 != "test1"
+
+# ----------------------------------Job--------------------------------------------------------------------------------
+    - name: Set tag 'test1' to VMs
+      canonical.maas.tag:
+        state: set
+        name: test1
+        machines:
+          - integration-test-tag.maas
+          - integration-test-tag-2.maas
+      register: tag
+    - ansible.builtin.assert:
+        that:
+          - tag is succeeded
+          - tag is changed
+
+    - name: Get info from integration-test-tag after set.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+    - name: Get info from integration-test-tag-2 after set.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------
+    - name: Set tag 'test1' to VMs - (idempotence)
+      canonical.maas.tag:
+        state: set
+        name: test1
+        machines:
+          - integration-test-tag.maas
+          - integration-test-tag-2.maas
+      register: tag
+    - ansible.builtin.assert:
+        that:
+          - tag is succeeded
+          - tag is not changed
+
+    - name: Get info from integration-test-tag after set - (idempotence).
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+    - name: Get info from integration-test-tag-2 after set - (idempotence).
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+# ----------------------------------Job--------------------------------------------------------------------------------
+    - name: Set tag 'test1' on first VM
+      canonical.maas.tag:
+        state: set
+        name: test1
+        machines:
+          - integration-test-tag.maas
+      register: tag
+    - ansible.builtin.assert:
+        that:
+          - tag is succeeded
+          - tag is changed
+
+    - name: Get info from integration-test-tag after set first.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+    - name: Get info from integration-test-tag-2 after set first.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 2
+          - machine_info.records.0.tag_names.0 != "test1"
+          - machine_info.records.0.tag_names.1 != "test1"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------
+    - name: Set tag 'test1' on first VM - idempotence.
+      canonical.maas.tag:
+        state: set
+        name: test1
+        machines:
+          - integration-test-tag.maas
+      register: tag
+    - ansible.builtin.assert:
+        that:
+          - tag is succeeded
+          - tag is not changed
+
+    - name: Get info from integration-test-tag after set first - idempotence.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+    - name: Get info from integration-test-tag-2 after set first - idempotence.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 2
+          - machine_info.records.0.tag_names.0 != "test1"
+          - machine_info.records.0.tag_names.1 != "test1"
+
+# ----------------------------------Job--------------------------------------------------------------------------------
+    - name: Set tag 'test1' on second VM
+      canonical.maas.tag:
+        state: set
+        name: test1
+        machines:
+          - integration-test-tag-2.maas
+      register: tag
+    - ansible.builtin.assert:
+        that:
+          - tag is succeeded
+          - tag is changed
+
+    - name: Get info from integration-test-tag after set second.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 2
+          - machine_info.records.0.tag_names.0 != "test1"
+          - machine_info.records.0.tag_names.1 != "test1"
+
+    - name: Get info from integration-test-tag-2 after set second.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------
+    - name: Set tag 'test1' on second VM - idempotence
+      canonical.maas.tag:
+        state: set
+        name: test1
+        machines:
+          - integration-test-tag-2.maas
+      register: tag
+    - ansible.builtin.assert:
+        that:
+          - tag is succeeded
+          - tag is not changed
+
+    - name: Get info from integration-test-tag after set second - idempotence.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 2
+          - machine_info.records.0.tag_names.0 != "test1"
+          - machine_info.records.0.tag_names.1 != "test1"
+
+    - name: Get info from integration-test-tag-2 after set second - idempotence.
+      canonical.maas.machine_info:
+        fqdn: integration-test-tag-2.maas
+      register: machine_info
+    - ansible.builtin.assert:
+        that:
+          - machine_info is succeeded
+          - machine_info is not changed
+          - machine_info.records
+          - machine_info.records | length == 1
+          - machine_info.records.0.hostname == "integration-test-tag-2"
+          - machine_info.records.0.blockdevice_set | length == 2
+          - machine_info.records.0.cpu_count == 1
+          - machine_info.records.0.interface_set | length == 1
+          - machine_info.records.0.interface_set.0.name == "my_first"
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
+          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names.2 == "test1"
+
+# ----------------------------------Cleanup----------------------------------------------------------------------------
+    - name: Delete machines
+      canonical.maas.instance: *delete-machines
+      loop:
+        - integration-test-tag.maas
+        - integration-test-tag-2.maas

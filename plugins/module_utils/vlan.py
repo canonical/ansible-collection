@@ -50,7 +50,12 @@ class Vlan(MaasValueMapper):
 
     @classmethod
     def get_by_name(
-        cls, module, client, fabric_id, must_exist=False, name_field_ansible="vlan_name"
+        cls,
+        module,
+        client: Client,
+        fabric_id,
+        must_exist=False,
+        name_field_ansible="vlan_name",
     ):
         rest_client = RestClient(client=client)
         query = get_query(
@@ -66,11 +71,12 @@ class Vlan(MaasValueMapper):
             return vlan_from_maas
 
     @classmethod
-    def get_by_vid(cls, module, client: Client, fabric_id):
-        response = client.get(
-            f"/api/2.0/fabrics/{fabric_id}/vlans/{module.params['vid']}/"
-        )
+    def get_by_vid(cls, vid, client: Client, fabric_id, must_exist=False):
+        response = client.get(f"/api/2.0/fabrics/{fabric_id}/vlans/{vid}/")
+        # Also possible: client.get(f"/api/2.0/vlans/{self.id}/").json
         if response.status == 404:
+            if must_exist:
+                raise errors.VlanNotFound(vid)
             return None
         vlan_maas_dict = response.json
         vlan = cls.from_maas(vlan_maas_dict)
@@ -124,10 +130,6 @@ class Vlan(MaasValueMapper):
     def delete(self, client):
         client.delete(f"/api/2.0/fabrics/{self.fabric_id}/vlans/{self.vid}/")
 
-    def get(self, client):
-        return client.get(f"/api/2.0/fabrics/{self.fabric_id}/vlans/{self.vid}/").json
-        # Also possible: client.get(f"/api/2.0/vlans/{self.id}/").json
-
     def update(self, client, payload):
         return client.put(
             f"/api/2.0/fabrics/{self.fabric_id}/vlans/{self.vid}/", data=payload
@@ -135,16 +137,16 @@ class Vlan(MaasValueMapper):
 
     @classmethod
     def create(cls, client, fabric_id, payload):
-        space_maas_dict = client.post(
+        vlan_maas_dict = client.post(
             f"/api/2.0/fabrics/{fabric_id}/vlans/",
             data=payload,
             timeout=60,  # Sometimes we get timeout error thus changing timeout from 20s to 60s
         ).json
-        space = cls.from_maas(space_maas_dict)
-        return space
+        vlan = cls.from_maas(vlan_maas_dict)
+        return vlan
 
     def __eq__(self, other):
-        """One space is equal to another if it has all attributes exactly the same"""
+        """One vlan is equal to another if it has all attributes exactly the same"""
         return all(
             (
                 self.name == other.name,

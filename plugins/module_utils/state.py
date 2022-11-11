@@ -27,6 +27,12 @@ class NicState(str, enum.Enum):
     absent = "absent"
 
 
+class TagState(str, enum.Enum):
+    present = "present"
+    absent = "absent"
+    set = "set"
+
+
 class MachineTaskState(str, enum.Enum):
     allocated = "Allocated"
     new = "New"
@@ -40,3 +46,8 @@ class MachineTaskState(str, enum.Enum):
     testing = "Testing"
     failed_comissioning = "Failed commissioning"
     failed_deployment = "Failed deployment"
+
+
+class UserState(str, enum.Enum):
+    present = "present"
+    absent = "absent"

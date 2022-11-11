@@ -69,10 +69,10 @@ EXAMPLES = r"""
     name: updated-fabric
 """
 
-RETURN = r""" # TODO: UPDATE RETURN when description is added
+RETURN = r"""
 record:
   description:
-    - Added fabric.
+    - Created or updated fabric.
   returned: success
   type: dict
   sample:
@@ -81,18 +81,18 @@ record:
     name: fabric-7
     resource_uri: /MAAS/api/2.0/fabrics/7/
     vlans:
-    - dhcp_on: false,
-      external_dhcp: null,
-      fabric: fabric-0,
-      fabric_id: 0,
-      id: 5001,
-      mtu: 1500,
-      name: untagged,
-      primary_rack: null,
-      relay_vlan: null,
-      resource_uri: /MAAS/api/2.0/vlans/5001/,
-      secondary_rack: null,
-      space: undefined,
+    - dhcp_on: false
+      external_dhcp: null
+      fabric: fabric-0
+      fabric_id: 0
+      id: 5001
+      mtu: 1500
+      name: untagged
+      primary_rack: null
+      relay_vlan: null
+      resource_uri: /MAAS/api/2.0/vlans/5001/
+      secondary_rack: null
+      space: undefined
       vid: 0
 """
 
@@ -102,6 +102,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.fabric import Fabric
+from ..module_utils.cluster_instance import get_oauth1_client
 
 
 def data_for_create_fabric(module):
@@ -194,13 +195,7 @@ def main():
     )
 
     try:
-        cluster_instance = module.params["cluster_instance"]
-        host = cluster_instance["host"]
-        consumer_key = cluster_instance["customer_key"]
-        token_key = cluster_instance["token_key"]
-        token_secret = cluster_instance["token_secret"]
-
-        client = Client(host, token_key, token_secret, consumer_key)
+        client = get_oauth1_client(module.params)
         changed, record, diff = run(module, client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.MaasError as e:
