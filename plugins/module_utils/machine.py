@@ -335,7 +335,7 @@ class Machine(MaasValueMapper):
             except errors.MaasError:
                 raise errors.MachineNotFound(id)
 
-    def deploy(self, client, payload, timeout=20):
+    def deploy(self, client, payload, timeout=60):
         return client.post(
             f"/api/2.0/machines/{self.id}/",
             query={"op": "deploy"},

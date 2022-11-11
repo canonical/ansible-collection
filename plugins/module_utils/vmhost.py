@@ -93,18 +93,18 @@ class VMHost(MaasValueMapper):
         return client.get(f"/api/2.0/vm-hosts/{self.id}/").json
 
     @classmethod
-    def create(cls, client, payload):
+    def create(cls, client, payload, timeout=60):
         vm_host_maas_dict = client.post(
             "/api/2.0/vm-hosts/",
             data=payload,
-            timeout=60,  # Sometimes we get timeout error thus changing toimeout from 20s to 60s
+            timeout=timeout,
         ).json
         vm_host = cls.from_maas(vm_host_maas_dict)
         return vm_host, vm_host_maas_dict
 
-    def update(self, client, payload):
+    def update(self, client, payload, timeout=60):
         return client.put(
             f"/api/2.0/vm-hosts/{self.id}/",
             data=payload,
-            timeout=60,  # Sometimes we get timeout error thus changing toimeout from 20s to 60s
+            timeout=timeout,
         ).json
