@@ -45,34 +45,19 @@ record:
   returned: success
   type: list
   sample:
-    - address_ttl: null
-      fqdn: maas.maas
-      id: -1
-      ip_addresses: null
-      resource_records:
-      - dnsdata_id: null
-        dnsresource_id: null
-        node_type: 4
-        rrdata: 10.157.248.49
-        rrtype: A
-        system_id: kwxmgm
-        ttl: null
-        user_id: null
-      resource_uri: /MAAS/api/2.0/dnsresources/-1/
-    - address_ttl: null
-      fqdn: lxdbr0.maas
-      id: -1
-      ip_addresses: null
-      resource_records:
-      - dnsdata_id: null
-        dnsresource_id: null
-        node_type: 4
-        rrdata: 10.10.10.1
-        rrtype: A
-        system_id: kwxmgm
-        ttl: null
-        user_id: 1
-      resource_uri: /MAAS/api/2.0/dnsresources/-1/
+    - records:
+    - data: maas.io
+      fqdn: cname-record.maas
+      ttl: null
+      type: CNAME
+    - data: 192.168.0.1
+      fqdn: test.maas
+      ttl: 15
+      type: A/AAAA
+    - data: 10.0.0.1 10.0.0.2
+      fqdn: test2.maas
+      ttl: 5
+      type: A/AAAA
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -93,19 +78,22 @@ def to_ansible(record):
             "ttl": item["ttl"],
         }
 
-    return {
-        "type": "A/AAAA",
-        "data": record["ip_addresses"][0]["ip"],
-        "fqdn": record["fqdn"],
-        "ttl": record["address_ttl"],
-    }
+    if record["ip_addresses"]:
+        return {
+            "type": "A/AAAA",
+            "data": " ".join(x["ip"] for x in record["ip_addresses"]),
+            "fqdn": record["fqdn"],
+            "ttl": record["address_ttl"],
+        }
+    return None
 
 
 def run(module, client: Client):
     query = {"all": True} if module.params["all"] else None
     response = client.get("/api/2.0/dnsresources/", query).json
 
-    result = [to_ansible(item) for item in response]
+    parsed = [to_ansible(item) for item in response]
+    result = [x for x in parsed if x]
     return result
 
 
