@@ -250,6 +250,7 @@ from ..module_utils.client import Client
 from ..module_utils.machine import Machine
 from ..module_utils.vmhost import VMHost
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.state import MachineTaskState
 
 
 def data_for_create_vm_host(module):
@@ -316,7 +317,7 @@ def data_for_deploy_machine_as_vm_host(machine):
 def deploy_machine_as_vm_host(module, client, timeout):
     machine = Machine.get_by_fqdn(
         module, client, must_exist=True, name_field_ansible="machine_fqdn"
-    )  # Replace with fqdn
+    )
     data = data_for_deploy_machine_as_vm_host(machine)
     machine.deploy(client, data, timeout)
     try:
