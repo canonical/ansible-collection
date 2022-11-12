@@ -322,20 +322,21 @@ class Machine(MaasValueMapper):
         while True:
             try:
                 maas_dict = client.get(f"/api/2.0/machines/{id}/").json
-                if maas_dict["status_name"] in states:  # IMPLEMENT TIMEOUT?
-                    return cls.from_maas(maas_dict)
-                if maas_dict["status_name"] in [
-                    MachineTaskState.failed_comissioning.value,
-                    MachineTaskState.failed_deployment.value,
-                ]:
-                    raise errors.MaasError(
-                        f"Machine - {maas_dict['hostname']} - Failed to commission or deploy"
-                    )
-                sleep(10)
             except errors.MaasError:
                 raise errors.MachineNotFound(id)
 
-    def deploy(self, client, payload, timeout=60):
+            if maas_dict["status_name"] in states:  # IMPLEMENT TIMEOUT?
+                return cls.from_maas(maas_dict)
+            if maas_dict["status_name"] in [
+                MachineTaskState.failed_comissioning.value,
+                MachineTaskState.failed_deployment.value,
+            ]:
+                raise errors.MaasError(
+                    f"Machine - {maas_dict['hostname']} - Failed to commission or deploy"
+                )
+            sleep(10)
+
+    def deploy(self, client, payload, timeout=20):
         return client.post(
             f"/api/2.0/machines/{self.id}/",
             query={"op": "deploy"},
