@@ -167,7 +167,7 @@
           - machine.record.memory == 8192
           - machine.record.cores == 4
     # TODO: update vm_host_machine to wait for ready state (otherwise task after will fail)
-    
+
     - name: Register known allready allocated machine as lxd VM host
       canonical.maas.vm_host:
         state: present

@@ -321,7 +321,9 @@ def deploy_machine_as_vm_host(module, client, timeout):
     data = data_for_deploy_machine_as_vm_host(machine)
     machine.deploy(client, data, timeout)
     try:
-        Machine.wait_for_state(machine.id, client, False, "Deployed")
+        Machine.wait_for_state(
+            machine.id, client, False, MachineTaskState.deployed.value
+        )
     except errors.MachineNotFound:  # when machine is deployed, machine is gone
         pass
     vm_host_obj = VMHost.get_by_name(
