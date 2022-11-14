@@ -46,6 +46,11 @@ options:
       - This option conflicts with I(power_parameters).
       - If machine is not found the task will FAIL.
     type: str
+  timeout:
+    description:
+      - Time in seconds to wait for server response when creating or updating vm host.
+      - Defaults to 60s.
+    type: int
   power_parameters:
     description:
       - Power parameters used for creating new VM host or updating existing VM host.
@@ -80,7 +85,7 @@ options:
         type: str
   new_vm_host_name:
     description:
-      - Update VM host name.
+      - Updated VM host name.
     type: str
   zone:
     description:
@@ -245,6 +250,7 @@ from ..module_utils.client import Client
 from ..module_utils.machine import Machine
 from ..module_utils.vmhost import VMHost
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.state import MachineTaskState
 
 
 def data_for_create_vm_host(module):
@@ -308,14 +314,16 @@ def data_for_deploy_machine_as_vm_host(machine):
     return data
 
 
-def deploy_machine_as_vm_host(module, client):
+def deploy_machine_as_vm_host(module, client, timeout):
     machine = Machine.get_by_fqdn(
         module, client, must_exist=True, name_field_ansible="machine_fqdn"
-    )  # Replace with fqdn
+    )
     data = data_for_deploy_machine_as_vm_host(machine)
-    machine.deploy(client, data, timeout=30)
+    machine.deploy(client, data, timeout)
     try:
-        Machine.wait_for_state(machine.id, client, False, "Deployed")
+        Machine.wait_for_state(
+            machine.id, client, False, MachineTaskState.deployed.value
+        )
     except errors.MachineNotFound:  # when machine is deployed, machine is gone
         pass
     vm_host_obj = VMHost.get_by_name(
@@ -323,7 +331,7 @@ def deploy_machine_as_vm_host(module, client):
     )
     data = data_for_update_vm_host(module, vm_host_obj)
     if data:
-        vm_host_dict = vm_host_obj.update(client, data)
+        vm_host_dict = vm_host_obj.update(client, data, timeout)
     else:
         vm_host_dict = vm_host_obj.get(client)
 
@@ -334,13 +342,12 @@ def deploy_machine_as_vm_host(module, client):
     )
 
 
-def create_vm_host(module, client: Client):
+def create_vm_host(module, client: Client, timeout):
     data = data_for_create_vm_host(module)
-    vm_host_obj, vm_host_dict = VMHost.create(client, data)
-
+    vm_host_obj, vm_host_dict = VMHost.create(client, data, timeout)
     data = data_for_update_vm_host(module, vm_host_obj)
     if data:
-        vm_host_dict = vm_host_obj.update(client, data)
+        vm_host_dict = vm_host_obj.update(client, data, timeout)
 
     return (
         True,
@@ -349,12 +356,11 @@ def create_vm_host(module, client: Client):
     )
 
 
-def update_vm_host(module, client: Client, vm_host_obj):
+def update_vm_host(module, client: Client, vm_host_obj, timeout):
     data = data_for_update_vm_host(module, vm_host_obj)
     vm_host_dict_before = vm_host_obj.get(client)
-
     if data:
-        vm_host_dict = vm_host_obj.update(client, data)
+        vm_host_dict = vm_host_obj.update(client, data, timeout)
         return (
             True,
             vm_host_dict,
@@ -380,15 +386,16 @@ def delete_vm_host(module, client: Client):
 
 
 def run(module, client: Client):
+    timeout = module.params.get("timeout", 60)
     if module.params["state"] == "present":
         if module.params["machine_fqdn"]:
-            return deploy_machine_as_vm_host(module, client)
+            return deploy_machine_as_vm_host(module, client, timeout)
         vm_host_obj = VMHost.get_by_name(
             module, client, must_exist=False, name_field_ansible="vm_host_name"
         )
         if vm_host_obj:
-            return update_vm_host(module, client, vm_host_obj)
-        return create_vm_host(module, client)
+            return update_vm_host(module, client, vm_host_obj, timeout)
+        return create_vm_host(module, client, timeout)
     if module.params["state"] == "absent":
         return delete_vm_host(module, client)
 
@@ -400,6 +407,7 @@ def main():
             arguments.get_spec("cluster_instance"),
             vm_host_name=dict(type="str", required=True),
             machine_fqdn=dict(type="str"),
+            timeout=dict(type="int"),
             state=dict(type="str", required=True, choices=["present", "absent"]),
             power_parameters=dict(
                 type="dict",

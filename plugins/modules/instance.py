@@ -81,7 +81,7 @@ options:
         description: The OS release the machine will use.
         type: str
       timeout:
-        description: Time in seconds to wait for server response when deploying.
+        description: Time in seconds to wait for server response when deploying. Defaults to 60s.
         type: int
       hwe_kernel:
         description:
