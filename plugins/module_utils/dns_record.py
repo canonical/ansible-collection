@@ -9,8 +9,8 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
-def to_ansible(record):
-    resource_records = record.get("resource_records", [])
+def to_ansible(record, is_resource_record=False):
+    resource_records = [record] if is_resource_record else record.get("resource_records", [])
     name, domain = record["fqdn"].rsplit(".", 1)
 
     if resource_records:

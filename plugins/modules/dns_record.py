@@ -148,7 +148,8 @@ def ensure_present(module, client: Client):
 
     if not item:
         response_json = client.post(endpoint, cleaned_data).json
-        return True, response_json, dict(before={}, after=response_json)
+        as_ansible = to_ansible(response_json, not is_a)[0]
+        return True, as_ansible, dict(before={}, after=as_ansible)
 
     # check if update is needed at all
     items_as_ansible = to_ansible(item)
@@ -169,9 +170,9 @@ def ensure_present(module, client: Client):
     cleaned_data.pop("domain")
     id = item_as_ansible["id"]
     response_json = client.put(f"{endpoint}/{id}/", cleaned_data).json
-    response_as_ansible = to_ansible(response_json)[0]
+    response_as_ansible = to_ansible(response_json, not is_a)[0]
 
-    return True, response_json, dict(before=item_as_ansible, after=response_as_ansible)
+    return True, response_as_ansible, dict(before=item_as_ansible, after=response_as_ansible)
 
 
 def ensure_absent(module, client: Client):
