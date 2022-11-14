@@ -16,8 +16,8 @@
       canonical.maas.vm_host_machine:
         hostname: instance-test
         vm_host: crisp-skunk
-        cores: 2
-        memory: 2000
+        cores: 4
+        memory: 8192
         network_interfaces:
           label_name: my_first
           subnet_cidr: "10.10.10.0/24"
@@ -28,21 +28,23 @@
         that:
           - initial_machine is changed
           - initial_machine.record.hostname == "instance-test"
-          - initial_machine.record.memory == 2000
-          - initial_machine.record.cores == 2
+          - initial_machine.record.memory == 8192
+          - initial_machine.record.cores == 4
 
     - name: Deploy machine
       canonical.maas.instance: &deploy
         fqdn: instance-test.maas
         state: deployed
+        deploy_params:
+          timeout: 360
       register: machine
     - ansible.builtin.assert:
         that:
           - machine is changed
           - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
-          - machine.record.memory == 2048
-          - machine.record.cores == 2
+          - machine.record.memory == 8192
+          - machine.record.cores == 4
           - machine.record.osystem == "ubuntu"
           - machine.record.distro_series == "focal"
           - machine.record.status == "Deployed"
@@ -55,8 +57,8 @@
           - machine is not changed
           - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
-          - machine.record.memory == 2048
-          - machine.record.cores == 2
+          - machine.record.memory == 8192
+          - machine.record.cores == 4
           - machine.record.osystem == "ubuntu"
           - machine.record.distro_series == "focal"
           - machine.record.status == "Deployed"
@@ -71,8 +73,8 @@
           - machine is changed
           - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
-          - machine.record.memory == 2048
-          - machine.record.cores == 2
+          - machine.record.memory == 8192
+          - machine.record.cores == 4
           - machine.record.status == "Ready"
 
     - name: Release machine - idempotence
@@ -83,8 +85,8 @@
           - machine is not changed
           - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
-          - machine.record.memory == 2048
-          - machine.record.cores == 2
+          - machine.record.memory == 8192
+          - machine.record.cores == 4
           - machine.record.status == "Ready"
 
     - name: Deploy machine with another OS
@@ -94,13 +96,14 @@
         deploy_params:
           osystem: ubuntu
           distro_series: jammy
+          timeout: 360
     - ansible.builtin.assert:
         that:
           - machine is changed
           - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
-          - machine.record.memory == 2048
-          - machine.record.cores == 2
+          - machine.record.memory == 8192
+          - machine.record.cores == 4
           - machine.record.osystem == "ubuntu"
           - machine.record.distro_series == "jammy"
           - machine.record.status == "Deployed"
@@ -113,8 +116,8 @@
           - machine is changed
           - machine.record.fqdn == "instance-test.maas"
           - machine.record.hostname == "instance-test"
-          - machine.record.memory == 2048
-          - machine.record.cores == 2
+          - machine.record.memory == 8192
+          - machine.record.cores == 4
           - machine.record.status == "Ready"
 
     - name: Delete machine
@@ -139,8 +142,8 @@
     # - ansible.builtin.assert:
     #     that:
     #       - machine is changed
-    #       - machine.record.memory == 2048
-    #       - machine.record.cores == 1
+    #       - machine.record.memory == 8192
+    #       - machine.record.cores == 4
     #       - machine.record.osystem == "ubuntu"
     #       - machine.record.distro_series == "focal"
     #       - machine.record.status == "Deployed"
