@@ -119,7 +119,7 @@
           - test_domain.record is none
 
     # Ensure deleting of something that does not exist just returns
-    - name: Reelete domain
+    - name: Redelete domain
       canonical.maas.dns_domain: *delete
       register: test_domain
 
