@@ -14,6 +14,7 @@
         name: "{{ domain_name }}"
         state: present
 
+    # CNAME record
     - name: Create CNAME record
       canonical.maas.dns_record:
         fqdn: "cname.{{ domain_name }}"
@@ -48,9 +49,43 @@
         type: CNAME
         data: maas.io
 
+    # A/AAAA record
+    - name: Create A/AAAA record
+      canonical.maas.dns_record:
+        fqdn: "cname.{{ domain_name }}"
+        state: present
+        type: A/AAAA
+        data: 1.2.3.4
+      register: created
+
+    - ansible.builtin.debug:
+        var: created
+
+    - ansible.builtin.assert:
+        that:
+          created.record.data == "1.2.3.4"
+
+    - name: Edit A/AAAA record
+      canonical.maas.dns_record:
+        fqdn: "cname.{{ domain_name }}"
+        state: present
+        type: A/AAAA
+        data: 1.2.3.5
+      register: edited
+
+    - ansible.builtin.assert:
+        that:
+          edited.record.data == "1.2.3.5"
+
+    - name: Remove A/AAAA record
+      canonical.maas.dns_record:
+        fqdn: "cname.{{ domain_name }}"
+        state: absent
+        type: A/AAAA
+        data: maas.io
+
     # Ensure that we start with clean environment
     - name: Delete domain - to have clean environment
       canonical.maas.dns_domain:
         name: "{{ domain_name }}"
         state: absent
-

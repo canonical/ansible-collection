@@ -122,20 +122,24 @@ def ensure_present(module, client: Client):
         "domain": domain,
         "ttl": module.params["ttl"],
         "data": module.params["data"],
-        "type": module.params["type"]
+        "type": module.params["type"],
     }
 
-    data = {
-        "name": common_reperesentation["name"],
-        "domain": common_reperesentation["domain"],
-        "address_ttl": common_reperesentation["ttl"],
-        "ip_addresses": common_reperesentation["data"],
-    } if is_a else {
-        "name": common_reperesentation["name"],
-        "domain": common_reperesentation["domain"],
-        "rrtype": common_reperesentation["type"],
-        "rrdata": common_reperesentation["data"],
-    }
+    data = (
+        {
+            "name": common_reperesentation["name"],
+            "domain": common_reperesentation["domain"],
+            "address_ttl": common_reperesentation["ttl"],
+            "ip_addresses": common_reperesentation["data"],
+        }
+        if is_a
+        else {
+            "name": common_reperesentation["name"],
+            "domain": common_reperesentation["domain"],
+            "rrtype": common_reperesentation["type"],
+            "rrdata": common_reperesentation["data"],
+        }
+    )
     cleaned_data = clean_data(data)
 
     # check if domain exist so we can print nicer errors - better than 404 Not found.
@@ -154,17 +158,25 @@ def ensure_present(module, client: Client):
     # check if update is needed at all
     items_as_ansible = to_ansible(item)
     if len(items_as_ansible) != 1:
-        raise errors.MaasError("Case not covered yet. Can be reached with A and TXT objects")
+        raise errors.MaasError(
+            "Case not covered yet. Can be reached with A and TXT objects"
+        )
     item_as_ansible = items_as_ansible[0]
 
     item_changed = must_update(item_as_ansible, common_reperesentation)
     if not item_changed:
-        return False, item_as_ansible, dict(before=item_as_ansible, after=item_as_ansible)
+        return (
+            False,
+            item_as_ansible,
+            dict(before=item_as_ansible, after=item_as_ansible),
+        )
 
     # update only if allowed operation
     if item_as_ansible["type"] != dns_type:
         old_type = item_as_ansible["type"]
-        raise errors.MaasError(f"Type of DNS record may not be changed. Change from {old_type} to {dns_type}.")
+        raise errors.MaasError(
+            f"Type of DNS record may not be changed. Change from {old_type} to {dns_type}."
+        )
 
     cleaned_data.pop("name")
     cleaned_data.pop("domain")
@@ -172,7 +184,11 @@ def ensure_present(module, client: Client):
     response_json = client.put(f"{endpoint}/{id}/", cleaned_data).json
     response_as_ansible = to_ansible(response_json, not is_a)[0]
 
-    return True, response_as_ansible, dict(before=item_as_ansible, after=response_as_ansible)
+    return (
+        True,
+        response_as_ansible,
+        dict(before=item_as_ansible, after=response_as_ansible),
+    )
 
 
 def ensure_absent(module, client: Client):
