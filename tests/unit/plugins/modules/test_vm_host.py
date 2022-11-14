@@ -31,6 +31,7 @@ class TestMain:
             ),
             vm_host_name="my-vm-host",
             machine_fqdn="my-machine.maas",
+            timeout=100,
             state="present",
             power_parameters=dict(
                 power_type="virsh",

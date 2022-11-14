@@ -81,7 +81,7 @@ options:
         description: The OS release the machine will use.
         type: str
       timeout:
-        description: Time in seconds to wait for server response when deploying.
+        description: Time in seconds to wait for server response when deploying. Defaults to 60s.
         type: int
       hwe_kernel:
         description:
@@ -314,7 +314,7 @@ def deploy(module, client: Client):
         # commissioning will bring machine to the ready state
         Machine.wait_for_state(machine.id, client, False, "Ready")
     data = {}
-    timeout = 20  # seconds
+    timeout = 60  # seconds
     if module.params["deploy_params"]:
         if module.params["deploy_params"]["osystem"]:
             data["osystem"] = module.params["deploy_params"]["osystem"]
