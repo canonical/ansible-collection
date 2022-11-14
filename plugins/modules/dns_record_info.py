@@ -46,18 +46,18 @@ record:
   type: list
   sample:
     - records:
-    - data: maas.io
-      fqdn: cname-record.maas
-      ttl: null
-      type: CNAME
-    - data: 192.168.0.1
-      fqdn: test.maas
-      ttl: 15
-      type: A/AAAA
-    - data: 10.0.0.1 10.0.0.2
-      fqdn: test2.maas
-      ttl: 5
-      type: A/AAAA
+      - data: maas.io
+        fqdn: cname-record.maas
+        ttl: null
+        type: CNAME
+      - data: 192.168.0.1
+        fqdn: test.maas
+        ttl: 15
+        type: A/AAAA
+      - data: 10.0.0.1 10.0.0.2
+        fqdn: test2.maas
+        ttl: 5
+        type: A/AAAA
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -65,34 +65,18 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.cluster_instance import get_oauth1_client
-
-
-def to_ansible(record):
-    resource_records = record.get("resource_records", [])
-    if resource_records:
-        item = resource_records[0]
-        return {
-            "type": item["rrtype"],
-            "data": item["rrdata"],
-            "fqdn": item["fqdn"],
-            "ttl": item["ttl"],
-        }
-
-    if record["ip_addresses"]:
-        return {
-            "type": "A/AAAA",
-            "data": " ".join(x["ip"] for x in record["ip_addresses"]),
-            "fqdn": record["fqdn"],
-            "ttl": record["address_ttl"],
-        }
-    return None
+from ..module_utils.dns_record import to_ansible
 
 
 def run(module, client: Client):
     query = {"all": True} if module.params["all"] else None
     response = client.get("/api/2.0/dnsresources/", query).json
+    parsed = []
+    for items in response:
+        partial = to_ansible(items)
+        for item in partial:
+            parsed.append(item)
 
-    parsed = [to_ansible(item) for item in response]
     result = [x for x in parsed if x]
     return result
 
