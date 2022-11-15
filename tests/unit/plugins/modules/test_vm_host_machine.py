@@ -342,7 +342,7 @@ class TestEnsureReady:
             "ansible_collections.canonical.maas.plugins.module_utils.vmhost.VMHost.send_compose_request"
         ).return_value = task
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_id"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.wait_for_state"
         ).return_value = machine_obj
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_ansible"
@@ -425,7 +425,7 @@ class TestEnsureReady:
             "ansible_collections.canonical.maas.plugins.module_utils.vmhost.VMHost.send_compose_request"
         ).return_value = task
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_id"
+            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.wait_for_state"
         ).return_value = machine_obj
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_ansible"
