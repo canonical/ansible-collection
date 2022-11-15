@@ -111,8 +111,14 @@ def must_update(old_data, new_data):
 
 def ensure_present(module, client: Client):
     # extract all data from ansible task
-    resource_name = module.params["fqdn"]
-    name, domain = resource_name.rsplit(".", 1)
+    if module.params["fqdn"]:
+        resource_name = module.params["fqdn"]
+        name, domain = resource_name.rsplit(".", 1)
+    else:
+        name = module.params["name"]
+        domain = module.params["domain"]
+        resource_name = f"{name}.{domain}"
+
     dns_type = module.params["type"]
     is_a = dns_type == "A/AAAA"
     endpoint = ENDPOINT_A if is_a else ENDPOINT_OTHER
@@ -192,9 +198,12 @@ def ensure_present(module, client: Client):
 
 
 def ensure_absent(module, client: Client):
-    resource_name = module.params["fqdn"]
+    resource_name = (
+        module.params["fqdn"] or f"{module.params['name']}.{module.params['domain']}"
+    )
 
     items = client.get(ENDPOINT_A).json
+
     item = get_match(items, "fqdn", resource_name)
     if not item:
         return False, None, dict(before={}, after={})
@@ -220,7 +229,9 @@ def main():
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             state=dict(type="str", required=True, choices=["present", "absent"]),
-            fqdn=dict(type="str", required=True),
+            fqdn=dict(type="str"),
+            name=dict(type="str"),
+            domain=dict(type="str"),
             type=dict(
                 type="str",
                 choices=["A/AAAA", "CNAME", "MX", "NS", "SRV", "SSHFP", "TXT"],
@@ -228,8 +239,12 @@ def main():
             data=dict(type="str"),
             ttl=dict(type="int", required=False),
         ),
-        required_if=[
-            ("state", "present", ("type", "data"), False),
+        required_if=[("state", "present", ("type", "data"), False)],
+        required_together=[
+            ("name", "domain"),
+        ],
+        mutually_exclusive=[
+            ("fqdn", "name"),
         ],
     )
 

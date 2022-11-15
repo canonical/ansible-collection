@@ -6,9 +6,8 @@
     MAAS_CUSTOMER_KEY: "{{ customer_key }}"
   vars:
     - domain_name: test-domain-for-dns-records
-
   block:
-    # Ensure that creating new domain reports changed
+    # Ensure that doamin exist
     - name: Create domain
       canonical.maas.dns_domain:
         name: "{{ domain_name }}"
@@ -17,7 +16,8 @@
     # CNAME record
     - name: Create CNAME record
       canonical.maas.dns_record:
-        fqdn: "cname.{{ domain_name }}"
+        name: "cname"
+        domain: "{{ domain_name }}"
         state: present
         type: CNAME
         data: maas.io
@@ -42,17 +42,30 @@
         that:
           edited.record.data == "maas.io2"
 
-    - name: Remove CNAME record
+    - name: Change CNAME record to A/AAAA record - should fail
       canonical.maas.dns_record:
         fqdn: "cname.{{ domain_name }}"
+        state: present
+        type: A/AAAA
+        data: maas.a
+      register: not_possible_transition
+      failed_when: not_possible_transition is not failed
+
+    - name: Remove CNAME record
+      canonical.maas.dns_record:
+        name: "cname"
+        domain: "{{ domain_name }}"
         state: absent
-        type: CNAME
-        data: maas.io
+      register: delete_succed
+
+    - ansible.builtin.assert:
+        that:
+          delete_succed is changed
 
     # A/AAAA record
     - name: Create A/AAAA record
       canonical.maas.dns_record:
-        fqdn: "cname.{{ domain_name }}"
+        fqdn: "aaaa.{{ domain_name }}"
         state: present
         type: A/AAAA
         data: 1.2.3.4
@@ -67,25 +80,41 @@
 
     - name: Edit A/AAAA record
       canonical.maas.dns_record:
-        fqdn: "cname.{{ domain_name }}"
+        fqdn: "aaaa.{{ domain_name }}"
         state: present
         type: A/AAAA
-        data: 1.2.3.5
+        data: 1.2.3.4 1.2.3.6
       register: edited
 
     - ansible.builtin.assert:
         that:
-          edited.record.data == "1.2.3.5"
+          edited.record.data == "1.2.3.4 1.2.3.6"
+
+    - name: Delete domain - should fail because not empty
+      canonical.maas.dns_domain:
+        name: "{{ domain_name }}"
+        state: absent
+      register: not_empty_domain_deleted
+      failed_when: not_empty_domain_deleted is not failed
 
     - name: Remove A/AAAA record
       canonical.maas.dns_record:
+        fqdn: "aaaa.{{ domain_name }}"
+        state: absent
+
+  always:
+    # clean up environment after tests
+    - name: Remove CNAME record
+      canonical.maas.dns_record:
         fqdn: "cname.{{ domain_name }}"
         state: absent
-        type: A/AAAA
-        data: maas.io
 
-    # Ensure that we start with clean environment
-    - name: Delete domain - to have clean environment
+    - name: Remove A/AAAA record
+      canonical.maas.dns_record:
+        fqdn: "aaaa.{{ domain_name }}"
+        state: absent
+
+    - name: Delete domain - to have clean environment after tests
       canonical.maas.dns_domain:
         name: "{{ domain_name }}"
         state: absent
