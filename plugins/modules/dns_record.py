@@ -36,7 +36,15 @@ options:
   fqdn:
     description: The fully qualified domain name of the new DNS record.
     type: str
-    required: true
+    required: false
+  domain:
+    description: Domain name.
+    type: str
+    required: false
+  name:
+    description: Hostname (without domain).
+    type: str
+    required: false
   ttl:
     type: int
     description: The TTL for the DNS record.
