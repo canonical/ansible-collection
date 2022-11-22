@@ -1,0 +1,60 @@
+name: CI tests
+on:
+  - push
+env:
+  WORKDIR: /work-dir/ansible_collections/canonical/maas
+jobs:
+  docs:
+    runs-on: [self-hosted]
+    container: python:3.10-slim-buster
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+      - run: apt update
+      - run: apt install -y git make
+        # ansible-test needs special directory structure.
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
+        #
+      - run: cd $WORKDIR && make docs
+      - run: cd $WORKDIR && ls -al docs/build/html
+
+  sanity-test:
+    runs-on: [self-hosted]
+    container: python:3.10-slim-buster
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+      - run: apt update
+      - run: apt install -y git make
+      - run: pip install ansible-core==2.13.1
+        # ansible-test needs special directory structure.
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
+        # Same as "make sanity"
+        # TODO reuse Makefile
+      - run: cd $WORKDIR && black -t py38 --check --diff --color plugins tests/unit
+      - run: cd $WORKDIR && ansible-lint
+      - run: cd $WORKDIR && flake8 --exclude tests/output/
+      - run: cd $WORKDIR && ansible-test sanity
+
+  units-test:
+    runs-on: [self-hosted]
+    container: python:3.10-slim-buster
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+      - run: apt update
+      - run: apt install -y git make
+      - run: pip install ansible-core==2.13.1
+        # ansible-test needs special directory structure.
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
+        # Same as "make units"
+        # TODO reuse Makefile
+      - run: cd $WORKDIR && ansible-test units --coverage
+      - run: cd $WORKDIR && ansible-test coverage html --requirements
+      - run: cd $WORKDIR && ansible-test coverage report --omit 'tests/*' --show-missing

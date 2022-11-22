@@ -172,6 +172,7 @@ from ..module_utils.vmhost import VMHost
 from ..module_utils.machine import Machine
 from ..module_utils.utils import is_changed, required_one_of
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.state import MachineTaskState
 
 
 def prepare_network_data(module):
@@ -195,7 +196,11 @@ def ensure_ready(module, client, vm_host_obj):
     machine_obj = Machine.from_ansible(module)
     payload = machine_obj.payload_for_compose(module)
     task = vm_host_obj.send_compose_request(module, client, payload)
-    after = (Machine.get_by_id(task["system_id"], client)).to_ansible()
+    after = (
+        Machine.wait_for_state(
+            task["system_id"], client, False, MachineTaskState.ready.value
+        )
+    ).to_ansible()
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
