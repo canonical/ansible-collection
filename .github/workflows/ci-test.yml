@@ -1,6 +1,7 @@
 name: CI tests
 on:
   - push
+  - pull_request
 env:
   WORKDIR: /work-dir/ansible_collections/canonical/maas
 jobs:
