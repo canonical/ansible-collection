@@ -66,18 +66,22 @@ def filter_dict(input, *field_names):
     return output
 
 
-def is_superset(superset, subset):
+def is_superset(superset, subset, attr="name"):
     if not subset:
         return True
     for k, v in subset.items():
-        if k in superset and superset[k] == v:
+        if k in superset and (
+            superset[k][attr] == v
+            if isinstance(superset[k], dict)
+            else superset[k] == v
+        ):
             continue
         return False
     return True
 
 
-def filter_results(results, filter_data):
-    return [element for element in results if is_superset(element, filter_data)]
+def filter_results(results, filter_data, attr):
+    return [element for element in results if is_superset(element, filter_data, attr)]
 
 
 def get_query(module, *field_names, ansible_maas_map):
