@@ -1,0 +1,125 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+    - name: Delete static route
+      canonical.maas.static_route:
+        source: "subnet-1"
+        destination: "subnet-2"
+        gateway_ip: "172.16.31.1"
+        metric: 100
+        state: absent
+
+    - name: Delete static route
+      canonical.maas.static_route:
+        source: "subnet-1"
+        destination: "subnet-2"
+        gateway_ip: "172.16.31.254"
+        metric: 100
+        state: absent
+
+    - name: Add static route - missing parameter
+      canonical.maas.static_route:
+      ignore_errors: true
+      register: static_route
+
+    - name: Add static route - missing parameter
+      ansible.builtin.assert:
+        that:
+          - static_route is failed
+          - "'missing required arguments: destination, gateway_ip, source, state' in static_route.msg"
+
+    - name: Add static route - without metric
+      canonical.maas.static_route:
+        state: present
+        source: "subnet-1"
+        destination: "subnet-2"
+        gateway_ip: "172.16.31.254"
+      register: static_route
+
+    - name: Add static route - without metric
+      ansible.builtin.assert:
+        that:
+          - static_route is changed
+          - static_route.record.source["name"] == "subnet-1"
+          - static_route.record.destination["name"] == "subnet-2"
+          - static_route.record.gateway_ip == "172.16.31.254"
+
+    - name: Delete static route
+      canonical.maas.static_route:
+        source: "subnet-1"
+        destination: "subnet-2"
+        gateway_ip: "172.16.31.254"
+        state: absent
+      register: static_route
+
+    - name: Delete static route
+      ansible.builtin.assert:
+        that:
+          - static_route is changed
+
+    - name: Add static route - with metric
+      canonical.maas.static_route:
+        state: present
+        source: "subnet-1"
+        destination: "subnet-2"
+        gateway_ip: "172.16.31.254"
+        metric: 100
+      register: static_route
+
+    - name: Add static route - with metric
+      ansible.builtin.assert:
+        that:
+          - static_route is changed
+          - static_route.record.source["name"] == "subnet-1"
+          - static_route.record.destination["name"] == "subnet-2"
+          - static_route.record.gateway_ip == "172.16.31.254"
+          - static_route.record.metric == 100
+
+    - name: Update static route
+      canonical.maas.static_route:
+        state: present
+        source: "subnet-1"
+        destination: "subnet-2"
+        gateway_ip: "172.16.31.254"
+        metric: 10
+      register: static_route
+
+    - name: Update static route
+      ansible.builtin.assert:
+        that:
+          - static_route is changed
+          - static_route.record.source["name"] == "subnet-1"
+          - static_route.record.destination["name"] == "subnet-2"
+          - static_route.record.gateway_ip == "172.16.31.254"
+          - static_route.record.metric == 10
+
+    - name: Update static_route - idempotence
+      canonical.maas.static_route:
+        state: present
+        source: "subnet-1"
+        destination: "subnet-2"
+        gateway_ip: "172.16.31.254"
+        metric: 10
+      register: static_route
+
+    - name: Update static_route - idempotence
+      ansible.builtin.assert:
+        that:
+          - static_route is not changed
+          - static_route.record.source["name"] == "subnet-1"
+          - static_route.record.destination["name"] == "subnet-2"
+          - static_route.record.gateway_ip == "172.16.31.254"
+          - static_route.record.metric == 10
+
+    - name: Delete static route
+      canonical.maas.static_route:
+        source: "subnet-1"
+        destination: "subnet-2"
+        gateway_ip: "172.16.31.1"
+        state: absent
