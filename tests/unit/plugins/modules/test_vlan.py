@@ -35,6 +35,7 @@ class TestMain:
             description="vlan description",
             mtu=1500,
             dhcp_on=True,
+            relay_vlan=17,
             space="my-space",
         )
 
@@ -101,6 +102,7 @@ class TestDataForCreateSpace:
                 mtu=1500,
                 dhcp_on=True,
                 space="my-space",
+                relay_vlan=17,
             )
         )
         data = vlan.data_for_create_vlan(module)
@@ -111,6 +113,7 @@ class TestDataForCreateSpace:
             description="vlan description",
             mtu=1500,
             space="my-space",
+            relay_vlan=17,
         )
 
 
@@ -132,6 +135,7 @@ class TestDataForUpdateSpace:
                 mtu=2000,
                 dhcp_on=True,
                 space="new-space",
+                relay_vlan=17,
             )
         )
         old_vlan = Vlan(
@@ -149,4 +153,5 @@ class TestDataForUpdateSpace:
             mtu=2000,
             space="new-space",
             dhcp_on=True,
+            relay_vlan=17,
         )

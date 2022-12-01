@@ -71,6 +71,10 @@ options:
       - The network space this VLAN should be placed in.
       - Passing in an empty string will cause the VLAN to be placed in the undefined space.
     type: str
+  relay_vlan:
+    description:
+      - Relay VLAN ID.
+    type: int
 """
 
 EXAMPLES = r"""
@@ -83,6 +87,7 @@ EXAMPLES = r"""
     description: VLAN on fabric-10
     mtu: 1500
     dhcp_on: false
+    relay_vlan: 10
     space: network-space-10
 
 - name: Update VLAN - using vid as identifier
@@ -163,13 +168,17 @@ def data_for_create_vlan(module):
         data["mtu"] = module.params["mtu"]
     if module.params["space"]:
         data["space"] = module.params["space"]
+    if module.params["relay_vlan"]:
+        data["relay_vlan"] = module.params["relay_vlan"]
     return data
 
 
 def create_vlan(module, client: Client, fabric_id):
     data = data_for_create_vlan(module)
     vlan = Vlan.create(client, fabric_id, data)
-    if module.params["dhcp_on"]:  # this parameter can only be set with put
+    if (
+        module.params["dhcp_on"] or module.params["relay_vlan"]
+    ):  # this parameter can only be set with put
         data = data_for_update_vlan(module, vlan)
         vlan.update(client, data)
     return (
@@ -192,6 +201,11 @@ def data_for_update_vlan(module, vlan):
     if module.params["dhcp_on"]:
         if vlan.dhcp_on != module.params["dhcp_on"]:
             data["dhcp_on"] = module.params["dhcp_on"]
+    if module.params["relay_vlan"]:
+        if not vlan.relay_vlan or vlan.relay_vlan["id"] != module.params["relay_vlan"]:
+            data["relay_vlan"] = module.params["relay_vlan"]
+    if not module.params["relay_vlan"] and vlan.relay_vlan:
+        data["relay_vlan"] = ""
     if (
         module.params["space"] is not None
     ):  # we want a possibility to write empty string to get "undefined" space
@@ -263,6 +277,7 @@ def main():
             mtu=dict(type="int"),
             dhcp_on=dict(type="bool"),
             space=dict(type="str"),
+            relay_vlan=dict(type="int"),
         ),
         required_one_of=[
             ("vid", "vlan_name"),
