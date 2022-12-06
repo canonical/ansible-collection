@@ -1,0 +1,51 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+    - name: Set completed_intro to false
+      canonical.maas.maas_server_config:
+        name: "completed_intro"
+        value: "false"
+
+    - name: Update configuration - missing parameter
+      canonical.maas.maas_server_config:
+      ignore_errors: true
+      register: config
+
+    - name: Update configuration - missing parameter
+      ansible.builtin.assert:
+        that:
+          - config is failed
+          - "'missing required arguments: name' in config.msg"
+
+    - name: Update configuration
+      canonical.maas.maas_server_config:
+        name: "completed_intro"
+        value: "true"
+      ignore_errors: true
+      register: config
+
+    - name: Update configuration
+      ansible.builtin.assert:
+        that:
+          - config is changed
+          - config.record.name == "completed_intro"
+          - config.record.value == "true"
+
+    - name: Update configuration - without value
+      canonical.maas.maas_server_config:
+        name: "completed_intro"
+      ignore_errors: true
+      register: config
+
+    - name: Update configuration - without value
+      ansible.builtin.assert:
+        that:
+          - config is not changed
+          - config.record.name == "completed_intro"
+          - config.record.value == "true"
