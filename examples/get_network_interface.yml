@@ -1,15 +1,16 @@
+---
 - name: Get list of all nics from a machine
   hosts: localhost
   tasks:
-  - name: List nics from instance machine
-    canonical.maas.network_interface_info:
-      cluster_instance:
-        host: http://10.44.240.10:5240/MAAS
-        token_key: kDcKvtWX7fXLB7TvB2
-        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-        customer_key: tqDErtYzyzRVdUb9hS
-      machine: instance.maas
-      # mac_address: 00:16:3e:46:25:e3 # Use this field to get specific nic on a machine
-    register: nic_info
-  - ansible.builtin.debug:
-      var: nic_info
+    - name: List nics from instance machine
+      canonical.maas.network_interface_info:
+        cluster_instance:
+          host: http://10.44.240.10:5240/MAAS
+          token_key: kDcKvtWX7fXLB7TvB2
+          token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+          customer_key: tqDErtYzyzRVdUb9hS
+        machine: instance.maas
+        # mac_address: 00:16:3e:46:25:e3 # Use this field to get specific nic on a machine
+      register: nic_info
+    - ansible.builtin.debug:
+        var: nic_info
