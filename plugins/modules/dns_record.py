@@ -55,31 +55,31 @@ options:
 
 EXAMPLES = r"""
 - name: Add domain
-  cannonical.maas.dns_domain_info:
+  cannonical.maas.dns_record:
     cluster_instance:
       host: ...
       token_key: ...
       token_secret: ...
       customer_key: ...
-    name: dns_domain_name
     state: present
-
-    ttl: 3600
-    authoritative: true
+    domain: maas
+    name: test2
+    data: 10.0.0.1 10.0.0.2
+    ttl: 5
+    type: A/AAAA
 """
 
 RETURN = r"""
 record:
   description:
-    - Added domain.
+    - Added DNS record.
   returned: success
   type: dict
   sample:
-    authoritative: true
-    id: 0
-    is_default: true
-    name: maas
-    ttl: null
+    data: 10.0.0.1 10.0.0.2
+    fqdn: test2.maas
+    ttl: 5
+    type: A/AAAA
 """
 
 from ansible.module_utils.basic import AnsibleModule
