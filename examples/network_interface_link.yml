@@ -17,5 +17,5 @@
         ip_address: 10.10.10.4
       register: nic_info
 
-    - debug:
+    - ansible.builtin.debug:
         var: nic_info

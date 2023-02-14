@@ -20,7 +20,7 @@
         vlan: 5002
       register: nic_info
 
-    - debug:
+    - ansible.builtin.debug:
         var: nic_info
 
     - name: Delete nic from machine calm-guinea on host sunny-raptor
@@ -35,5 +35,5 @@
         mac_address: '00:16:3e:ae:78:75'
       register: nic_info
 
-    - debug:
+    - ansible.builtin.debug:
         var: nic_info
