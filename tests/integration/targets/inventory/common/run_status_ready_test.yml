@@ -12,4 +12,4 @@
     - block:
         - include_tasks: "{{ item }}"
           with_fileglob:
-            - "tests/*_no.yml"
+            - "../tests/*_ready.yml"

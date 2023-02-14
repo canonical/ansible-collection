@@ -51,7 +51,7 @@
         pool: default
         zone: default
         min_hwe_kernel: hwe-20.04
-      ignore_errors: true   # Here we get error: "Unexpected response - 503 b'No rack controllers can access the BMC of node machine-test'"
+      failed_when: false   # Here we get error: "Unexpected response - 503 b'No rack controllers can access the BMC of node machine-test'"
     #   register: machine
     # - ansible.builtin.assert:
     #     that:
