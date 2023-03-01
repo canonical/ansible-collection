@@ -5,7 +5,7 @@
     MAAS_TOKEN_SECRET: "{{ token_secret }}"
     MAAS_CUSTOMER_KEY: "{{ customer_key }}"
   vars:
-    - domain_name: test-domain-for-dns-records
+    domain_name: test-domain-for-dns-records
   block:
     # Ensure that doamin exist
     - name: Create domain

@@ -1,14 +1,15 @@
+---
 - name: Test query machines
   hosts: localhost
   tasks:
-  - name: List machines
-    canonical.maas.vm_host_info:
-      cluster_instance:
-        host: http://10.44.240.10:5240/MAAS
-        token_key: kDcKvtWX7fXLB7TvB2
-        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-        customer_key: tqDErtYzyzRVdUb9hS
-    register: machines
+    - name: List machines
+      canonical.maas.vm_host_info:
+        cluster_instance:
+          host: http://10.44.240.10:5240/MAAS
+          token_key: kDcKvtWX7fXLB7TvB2
+          token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+          customer_key: tqDErtYzyzRVdUb9hS
+      register: machines
 
-  - ansible.builtin.debug:
-      var: machines
+    - ansible.builtin.debug:
+        var: machines

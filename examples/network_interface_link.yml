@@ -1,20 +1,21 @@
+---
 - name: Connect nic to machine
   hosts: localhost
   tasks:
-  - name: Create new link on sunny-raptor host with VM new-machine
-    canonical.maas.network_interface_link:
-      cluster_instance:
-        host: http://10.44.240.10:5240/MAAS
-        token_key: kDcKvtWX7fXLB7TvB2
-        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-        customer_key: tqDErtYzyzRVdUb9hS
-      machine: integration-test-nic-link.maas
-      state: present
-      mode: AUTO
-      network_interface: test_nic
-      subnet: 10.10.10.0/24
-      ip_address: 10.10.10.4
-    register: nic_info
+    - name: Create new link on sunny-raptor host with VM new-machine
+      canonical.maas.network_interface_link:
+        cluster_instance:
+          host: http://10.44.240.10:5240/MAAS
+          token_key: kDcKvtWX7fXLB7TvB2
+          token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+          customer_key: tqDErtYzyzRVdUb9hS
+        machine: integration-test-nic-link.maas
+        state: present
+        mode: AUTO
+        network_interface: test_nic
+        subnet: 10.10.10.0/24
+        ip_address: 10.10.10.4
+      register: nic_info
 
-  - debug:
-      var: nic_info
+    - ansible.builtin.debug:
+        var: nic_info

@@ -49,7 +49,7 @@ options:
 
 EXAMPLES = r"""
 - name: Add domain
-  cannonical.maas.dns_domain_info:
+  cannonical.maas.dns_domain:
     cluster_instance:
       host: ...
       token_key: ...

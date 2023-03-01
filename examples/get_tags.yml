@@ -1,14 +1,15 @@
+---
 - name: Get list of all tags
   hosts: localhost
   tasks:
-  - name: List tags
-    canonical.maas.tag_info:
-      cluster_instance:
-        host: http://10.44.240.10:5240/MAAS
-        token_key: kDcKvtWX7fXLB7TvB2
-        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-        customer_key: tqDErtYzyzRVdUb9hS
-    register: tags
+    - name: List tags
+      canonical.maas.tag_info:
+        cluster_instance:
+          host: http://10.44.240.10:5240/MAAS
+          token_key: kDcKvtWX7fXLB7TvB2
+          token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+          customer_key: tqDErtYzyzRVdUb9hS
+      register: tags
 
-  - ansible.builtin.debug:
-      var: tags
+    - ansible.builtin.debug:
+        var: tags

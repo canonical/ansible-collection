@@ -10,6 +10,7 @@
 
   tasks:
     - block:
-        - include_tasks: "{{ item }}"
+        - ansible.builtin.include_tasks:
+            file: "{{ item }}"
           with_fileglob:
-            - "tests/*_ready.yml"
+            - "../tests/*_no.yml"

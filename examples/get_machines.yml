@@ -1,15 +1,16 @@
+---
 - name: Test query machines
   hosts: localhost
   tasks:
-  - name: List machines
-    canonical.maas.machine_info:
-      cluster_instance:
-        host: http://10.44.240.10:5240/MAAS
-        token_key: kDcKvtWX7fXLB7TvB2
-        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-        customer_key: tqDErtYzyzRVdUb9hS
-      fqdn: inventory-test-1.maas # Use this field to filter results by name.
-    register: machines
+    - name: List machines
+      canonical.maas.machine_info:
+        cluster_instance:
+          host: http://10.44.240.10:5240/MAAS
+          token_key: kDcKvtWX7fXLB7TvB2
+          token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+          customer_key: tqDErtYzyzRVdUb9hS
+        fqdn: inventory-test-1.maas # Use this field to filter results by name.
+      register: machines
 
-  - ansible.builtin.debug:
-      var: machines
+    - ansible.builtin.debug:
+        var: machines

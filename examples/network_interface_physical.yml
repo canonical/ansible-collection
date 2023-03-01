@@ -1,38 +1,39 @@
+---
 - name: Create nic and Delete nic
   hosts: localhost
   tasks:
-  - name: Create new nic on crisp-skunk host with VM new-machine
-    canonical.maas.network_interface_physical:
-      cluster_instance:
-        host: http://10.44.240.10:5240/MAAS
-        token_key: kDcKvtWX7fXLB7TvB2
-        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-        customer_key: tqDErtYzyzRVdUb9hS
-      machine: calm-guinea.maas
-      state: present
-      mac_address: '00:16:3e:ae:78:76'
-      name: test_nic
-      mtu: 1700
-      tags:
-        - first
-        - second
-      vlan: 5002
-    register: nic_info
+    - name: Create new nic on crisp-skunk host with VM new-machine
+      canonical.maas.network_interface_physical:
+        cluster_instance:
+          host: http://10.44.240.10:5240/MAAS
+          token_key: kDcKvtWX7fXLB7TvB2
+          token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+          customer_key: tqDErtYzyzRVdUb9hS
+        machine: calm-guinea.maas
+        state: present
+        mac_address: '00:16:3e:ae:78:76'
+        name: test_nic
+        mtu: 1700
+        tags:
+          - first
+          - second
+        vlan: 5002
+      register: nic_info
 
-  - debug:
-      var: nic_info
+    - ansible.builtin.debug:
+        var: nic_info
 
-  - name: Delete nic from machine calm-guinea on host sunny-raptor
-    canonical.maas.network_interface_physical:
-      cluster_instance:
-        host: http://10.44.240.10:5240/MAAS
-        token_key: kDcKvtWX7fXLB7TvB2
-        token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
-        customer_key: tqDErtYzyzRVdUb9hS
-      machine: calm-guinea.maas
-      state: absent
-      mac_address: '00:16:3e:ae:78:75'
-    register: nic_info
+    - name: Delete nic from machine calm-guinea on host sunny-raptor
+      canonical.maas.network_interface_physical:
+        cluster_instance:
+          host: http://10.44.240.10:5240/MAAS
+          token_key: kDcKvtWX7fXLB7TvB2
+          token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
+          customer_key: tqDErtYzyzRVdUb9hS
+        machine: calm-guinea.maas
+        state: absent
+        mac_address: '00:16:3e:ae:78:75'
+      register: nic_info
 
-  - debug:
-      var: nic_info
+    - ansible.builtin.debug:
+        var: nic_info
