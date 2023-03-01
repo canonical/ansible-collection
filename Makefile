@@ -68,6 +68,10 @@ units:  ## Run unit tests
 integration:  ## Run integration tests
 	ansible-test integration --docker --diff
 
+.PHONY: integration-local
+integration-local:
+	ansible-test integration --local --diff
+
 .PHONY: docs
 docs:  ## Build collection documentation
 	pip install -r docs.requirements
