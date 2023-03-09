@@ -118,7 +118,7 @@ class TestRun:
             params=dict(
                 instance=dict(
                     host="https://0.0.0.0",
-                    client_key="client key",
+                    customer_key="client key",
                     token_key="token key",
                     token_secret="token secret",
                 ),
@@ -139,7 +139,7 @@ class TestRun:
             params=dict(
                 instance=dict(
                     host="https://0.0.0.0",
-                    client_key="client key",
+                    customer_key="client key",
                     token_key="token key",
                     token_secret="token secret",
                 ),
@@ -162,7 +162,7 @@ class TestEnsurePresent:
             params=dict(
                 instance=dict(
                     host="https://0.0.0.0",
-                    client_key="client key",
+                    customer_key="client key",
                     token_key="token key",
                     token_secret="token secret",
                 ),
@@ -195,7 +195,7 @@ class TestEnsurePresent:
             params=dict(
                 instance=dict(
                     host="https://0.0.0.0",
-                    client_key="client key",
+                    customer_key="client key",
                     token_key="token key",
                     token_secret="token secret",
                 ),
@@ -229,7 +229,7 @@ class TestEnsurePresent:
             params=dict(
                 instance=dict(
                     host="https://0.0.0.0",
-                    client_key="client key",
+                    customer_key="client key",
                     token_key="token key",
                     token_secret="token secret",
                 ),
@@ -257,7 +257,7 @@ class TestEnsureAbsent:
             params=dict(
                 instance=dict(
                     host="https://0.0.0.0",
-                    client_key="client key",
+                    customer_key="client key",
                     token_key="token key",
                     token_secret="token secret",
                 ),
@@ -286,7 +286,7 @@ class TestEnsureAbsent:
             params=dict(
                 instance=dict(
                     host="https://0.0.0.0",
-                    client_key="client key",
+                    customer_key="client key",
                     token_key="token key",
                     token_secret="token secret",
                 ),
