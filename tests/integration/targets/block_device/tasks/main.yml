@@ -25,6 +25,26 @@
         name: my-block-device-updated
         state: absent
 
+    # --------------------------------Fixture------------------------------------
+    - name: Create virtual machine
+      canonical.maas.vm_host_machine:
+        hostname: block-device-test
+        vm_host: "{{ test_vm_host }}"
+        cores: 4
+        memory: 4096
+        network_interfaces:
+          label_name: my_first
+          subnet_cidr: "{{ test_subnet }}"
+        storage_disks:
+          - size_gigabytes: 8
+      register: initial_machine
+    - ansible.builtin.assert:
+        that:
+          - initial_machine is changed
+          - initial_machine.record.hostname == "block-device-test"
+          - initial_machine.record.memory == 4096
+          - initial_machine.record.cores == 4
+
     # -----------------------------------Info------------------------------------
     - name: List block devices of selected machine
       canonical.maas.block_device_info:
@@ -41,24 +61,6 @@
           - block_device.records.0.name == block_devices.records.0.name
 
     # ------------------------------------Job------------------------------------
-    - name: Create virtual machine
-      canonical.maas.vm_host_machine:
-        hostname: block-device-test
-        vm_host: crisp-skunk
-        cores: 4
-        memory: 4000
-        network_interfaces:
-          label_name: my_first
-          subnet_cidr: "10.10.10.0/24"
-        storage_disks:
-          - size_gigabytes: 8
-      register: initial_machine
-    - ansible.builtin.assert:
-        that:
-          - initial_machine is changed
-          - initial_machine.record.hostname == "block-device-test"
-          - initial_machine.record.memory == 4000
-          - initial_machine.record.cores == 4
 
     - name: Create block device on block-device-test - required together
       canonical.maas.block_device:

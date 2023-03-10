@@ -408,8 +408,17 @@ def delete_block_device(client: Client, block_device):
 
 def run(module, client: Client):
     machine = Machine.get_by_fqdn(
-        module, client, must_exist=True, name_field_ansible="machine_fqdn"
+        module,
+        client,
+        must_exist=module.params["state"] != "absent",
+        name_field_ansible="machine_fqdn",
     )
+    if not machine:
+        if module.params["state"] != "absent":
+            raise errors.BlockDeviceNotFound()
+        else:
+            return False, dict(), dict(before={}, after={})
+
     block_device = BlockDevice.get_by_name(module, client, machine.id)
     if module.params["state"] == "present":
         if block_device:

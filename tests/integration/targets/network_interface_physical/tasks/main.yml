@@ -17,12 +17,12 @@
     - name: Create virtual machine with name integration-test.
       canonical.maas.vm_host_machine:
         hostname: integration-test-nic
-        vm_host: crisp-skunk
+        vm_host: "{{ test_vm_host }}"
         cores: 2
-        memory: 2000
+        memory: 2048
         network_interfaces:
           label_name: my_first
-          subnet_cidr: "10.10.10.0/24"
+          subnet_cidr: "{{ test_subnet }}"
       register: machine
     - ansible.builtin.assert:
         that:
@@ -39,23 +39,23 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "integration-test-nic.maas"
+          - machine_info.records.0.fqdn == "integration-test-nic.{{ test_domain }}"
           - machine_info.records.0.cpu_count == 2
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test-nic. (Idempotence)
       canonical.maas.vm_host_machine:
         hostname: integration-test-nic
-        vm_host: crisp-skunk
+        vm_host: "{{ test_vm_host }}"
         cores: 2
-        memory: 2000
+        memory: 2048
         network_interfaces:
           label_name: my_first
-          subnet_cidr: "10.10.10.0/24"
+          subnet_cidr: "{{ test_subnet }}"
       register: machine_idempotence
     - ansible.builtin.assert:
         that:
@@ -72,12 +72,12 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "integration-test-nic.maas"
+          - machine_info.records.0.fqdn == "integration-test-nic.{{ test_domain }}"
           - machine_info.records.0.cpu_count == 2
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
 
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Create new_nic on machine with name integration-test.
@@ -92,6 +92,7 @@
         that:
           - nic is succeeded
           - nic is changed
+          - nic.record.mtu == 1700
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
@@ -103,11 +104,10 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "integration-test-nic.maas"
+          - machine_info.records.0.fqdn == "integration-test-nic.{{ test_domain }}"
           - machine_info.records.0.interface_set | length == 2
           - machine_info.records.0.interface_set.1.name == "new_nic"
           - machine_info.records.0.interface_set.1.mac_address == "00:16:3e:ae:78:75"
-          - machine_info.records.0.interface_set.1.mtu == 1700
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create new_nic on machine with name integration-test. (Idempotence)
@@ -133,11 +133,10 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "integration-test-nic.maas"
+          - machine_info.records.0.fqdn == "integration-test-nic.{{ test_domain }}"
           - machine_info.records.0.interface_set | length == 2
           - machine_info.records.0.interface_set.1.name == "new_nic"
           - machine_info.records.0.interface_set.1.mac_address == "00:16:3e:ae:78:75"
-          - machine_info.records.0.interface_set.1.mtu == 1700
 
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Update new_nic on machine with name integration-test.
@@ -152,6 +151,7 @@
         that:
           - nic is succeeded
           - nic is changed
+          - nic.record.mtu == 1500
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
@@ -163,11 +163,10 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "integration-test-nic.maas"
+          - machine_info.records.0.fqdn == "integration-test-nic.{{ test_domain }}"
           - machine_info.records.0.interface_set | length == 2
           - machine_info.records.0.interface_set.1.name == "new_nic"
           - machine_info.records.0.interface_set.1.mac_address == "00:16:3e:ae:78:75"
-          - machine_info.records.0.interface_set.1.mtu == 1500
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Update new_nic on machine with name integration-test. (Idempotence)
@@ -193,11 +192,10 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "integration-test-nic.maas"
+          - machine_info.records.0.fqdn == "integration-test-nic.{{ test_domain }}"
           - machine_info.records.0.interface_set | length == 2
           - machine_info.records.0.interface_set.1.name == "new_nic"
           - machine_info.records.0.interface_set.1.mac_address == "00:16:3e:ae:78:75"
-          - machine_info.records.0.interface_set.1.mtu == 1500
 
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Delete new_nic on machine with name integration-test.
@@ -222,7 +220,7 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "integration-test-nic.maas"
+          - machine_info.records.0.fqdn == "integration-test-nic.{{ test_domain }}"
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name != "new_nic"
           - machine_info.records.0.interface_set.0.mac_address != "00:16:3e:ae:78:75"
@@ -250,7 +248,7 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "integration-test-nic.maas"
+          - machine_info.records.0.fqdn == "integration-test-nic.{{ test_domain }}"
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name != "new_nic"
           - machine_info.records.0.interface_set.0.mac_address != "00:16:3e:ae:78:75"

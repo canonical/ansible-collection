@@ -44,7 +44,7 @@
         timeout: 180
         power_parameters:
           power_type: lxd
-          power_address: 172.16.117.70:8443
+          power_address: "{{ test_lxd_address }}"
         cpu_over_commit_ratio: 3
         memory_over_commit_ratio: 4
         default_macvlan_mode: bridge
@@ -70,7 +70,7 @@
         vm_host_name: lxd-test
         timeout: 180
         power_parameters:
-          power_address: 172.16.117.70:8444
+          power_address: "{{ test_lxd_address }}"
         new_vm_host_name: lxd-test-updated
         cpu_over_commit_ratio: 2
         memory_over_commit_ratio: 3
@@ -116,7 +116,7 @@
         timeout: 180
         power_parameters:
           power_type: virsh
-          power_address: qemu+ssh://172.16.99.2/system
+          power_address: "qemu+ssh://{{ test_virsh_host }}/system"
           power_user: user
           power_pass: pass
         cpu_over_commit_ratio: 1
@@ -150,12 +150,12 @@
     - name: Create virtual machine with two disks and a network interface.
       canonical.maas.vm_host_machine:
         hostname: machine
-        vm_host: crisp-skunk
+        vm_host: "{{ test_vm_host }}"
         cores: 4
         memory: 8192
         network_interfaces:
           label_name: my_first
-          subnet_cidr: "10.10.10.0/24"
+          subnet_cidr: "{{ test_subnet }}"
         storage_disks:
           - size_gigabytes: 8
       register: machine
@@ -171,7 +171,7 @@
     - name: Register known allready allocated machine as lxd VM host
       canonical.maas.vm_host:
         state: present
-        vm_host_name: vm-host-from-machine
+        vm_host_name: machine
         machine_fqdn: machine.maas
         timeout: 3600
         power_parameters:
@@ -179,10 +179,11 @@
         cpu_over_commit_ratio: 1
         memory_over_commit_ratio: 2
         default_macvlan_mode: bridge
+      register: vm_host
     - ansible.builtin.assert:
         that:
           - vm_host is changed
-          - vm_host.record.name == "vm_host_from_machine"
+          - vm_host.record.name == "machine"
           - vm_host.record.type == "lxd"
           - vm_host.record.cpu_over_commit_ratio == 1.0
           - vm_host.record.memory_over_commit_ratio == 2.0

@@ -15,12 +15,12 @@
     - name: Create virtual machine with two disks and a network interface.
       canonical.maas.vm_host_machine:
         hostname: instance-test
-        vm_host: crisp-skunk
+        vm_host: "{{ test_vm_host }}"
         cores: 4
         memory: 8192
         network_interfaces:
           label_name: my_first
-          subnet_cidr: "10.10.10.0/24"
+          subnet_cidr: "{{ test_subnet }}"
         storage_disks:
           - size_gigabytes: 8
       register: initial_machine
@@ -97,6 +97,7 @@
           osystem: ubuntu
           distro_series: jammy
           timeout: 360
+      register: machine
     - ansible.builtin.assert:
         that:
           - machine is changed

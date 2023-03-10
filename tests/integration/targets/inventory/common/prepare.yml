@@ -13,12 +13,12 @@
     - name: Create VM inventory-test-1.
       canonical.maas.vm_host_machine:
         hostname: inventory-test-1
-        vm_host: crisp-skunk
+        vm_host: "{{ test_vm_host }}"
         cores: 2
-        memory: 2000
+        memory: 2048
         network_interfaces:
           label_name: my_first
-          subnet_cidr: "10.10.10.0/24"
+          subnet_cidr: "{{ test_subnet }}"
       register: machine
     - ansible.builtin.assert:
         that:
@@ -35,22 +35,22 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "inventory-test-1.maas"
+          - machine_info.records.0.fqdn == "inventory-test-1.{{ test_domain }}"
           - machine_info.records.0.cpu_count == 2
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
 
     - name: Create VM inventory-test-2.
       canonical.maas.vm_host_machine:
         hostname: inventory-test-2
-        vm_host: crisp-skunk
+        vm_host: "{{ test_vm_host }}"
         cores: 2
-        memory: 2000
+        memory: 2048
         network_interfaces:
           label_name: my_first
-          subnet_cidr: "10.10.10.0/24"
+          subnet_cidr: "{{ test_subnet }}"
       register: machine
     - ansible.builtin.assert:
         that:
@@ -67,9 +67,9 @@
           - machine_info is not changed
           - machine_info.records
           - machine_info.records | length == 1
-          - machine_info.records.0.fqdn == "inventory-test-2.maas"
+          - machine_info.records.0.fqdn == "inventory-test-2.{{ test_domain }}"
           - machine_info.records.0.cpu_count == 2
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
