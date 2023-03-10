@@ -13,19 +13,19 @@
         fqdn: "{{ item }}"
         state: absent
       loop:
-        - integration-test-tag.maas
-        - integration-test-tag-2.maas
+        - "integration-test-tag.{{ test_domain }}"
+        - "integration-test-tag-2.{{ test_domain }}"
 
 # ----------------------------------Setup------------------------------------------------------------------------------
     - name: Create virtual machine integration-test-tag.maas
       canonical.maas.vm_host_machine:
-        vm_host: crisp-skunk
+        vm_host: "{{ test_vm_host }}"
         hostname: integration-test-tag
         cores: 1
-        memory: 2000
+        memory: 2048
         network_interfaces:
           label_name: my_first
-          subnet_cidr: "10.10.10.0/24"
+          subnet_cidr: "{{ test_subnet }}"
         storage_disks:
           - size_gigabytes: 3
           - size_gigabytes: 5
@@ -37,13 +37,13 @@
 
     - name: Create virtual machine integration-test-tag-2.maas
       canonical.maas.vm_host_machine:
-        vm_host: crisp-skunk
+        vm_host: "{{ test_vm_host }}"
         hostname: integration-test-tag-2
         cores: 1
-        memory: 2000
+        memory: 2048
         network_interfaces:
           label_name: my_first
-          subnet_cidr: "10.10.10.0/24"
+          subnet_cidr: "{{ test_subnet }}"
         storage_disks:
           - size_gigabytes: 3
           - size_gigabytes: 5
@@ -55,7 +55,7 @@
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -68,12 +68,12 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
 
     - name: Get info from created machine.
       canonical.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -86,8 +86,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
 
 # ----------------------------------Job--------------------------------------------------------------------------------
     - name: Create new tag 'test1' and place it on VMs
@@ -95,8 +95,8 @@
         state: present
         name: test1
         machines:
-          - integration-test-tag.maas
-          - integration-test-tag-2.maas
+          - "integration-test-tag.{{ test_domain }}"
+          - "integration-test-tag-2.{{ test_domain }}"
       register: tag
     - ansible.builtin.assert:
         that:
@@ -105,7 +105,7 @@
 
     - name: Get info from integration-test-tag after create.
       canonical.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -118,8 +118,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -138,8 +138,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -172,8 +172,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -192,8 +192,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -226,8 +226,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 2
           - machine_info.records.0.tag_names.0 != "test1"
           - machine_info.records.0.tag_names.1 != "test1"
@@ -247,8 +247,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 2
           - machine_info.records.0.tag_names.0 != "test1"
           - machine_info.records.0.tag_names.1 != "test1"
@@ -282,8 +282,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 2
           - machine_info.records.0.tag_names.0 != "test1"
           - machine_info.records.0.tag_names.1 != "test1"
@@ -303,8 +303,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 2
           - machine_info.records.0.tag_names.0 != "test1"
           - machine_info.records.0.tag_names.1 != "test1"
@@ -338,8 +338,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -358,8 +358,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -392,8 +392,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -412,8 +412,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -445,8 +445,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -465,8 +465,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 2
           - machine_info.records.0.tag_names.0 != "test1"
           - machine_info.records.0.tag_names.1 != "test1"
@@ -499,8 +499,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -519,8 +519,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 2
           - machine_info.records.0.tag_names.0 != "test1"
           - machine_info.records.0.tag_names.1 != "test1"
@@ -553,8 +553,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 2
           - machine_info.records.0.tag_names.0 != "test1"
           - machine_info.records.0.tag_names.1 != "test1"
@@ -574,8 +574,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
@@ -607,8 +607,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 2
           - machine_info.records.0.tag_names.0 != "test1"
           - machine_info.records.0.tag_names.1 != "test1"
@@ -628,8 +628,8 @@
           - machine_info.records.0.cpu_count == 1
           - machine_info.records.0.interface_set | length == 1
           - machine_info.records.0.interface_set.0.name == "my_first"
-          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "10.10.10.0/24"
-          - machine_info.records.0.memory == 2000
+          - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
+          - machine_info.records.0.memory == 2048
           - machine_info.records.0.tag_names | length == 3
           - machine_info.records.0.tag_names.2 == "test1"
 
