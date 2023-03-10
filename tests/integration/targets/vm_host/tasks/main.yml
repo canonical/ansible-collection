@@ -179,6 +179,7 @@
         cpu_over_commit_ratio: 1
         memory_over_commit_ratio: 2
         default_macvlan_mode: bridge
+      register: vm_host
     - ansible.builtin.assert:
         that:
           - vm_host is changed

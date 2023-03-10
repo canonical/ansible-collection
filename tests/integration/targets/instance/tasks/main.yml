@@ -97,6 +97,7 @@
           osystem: ubuntu
           distro_series: jammy
           timeout: 360
+      register: machine
     - ansible.builtin.assert:
         that:
           - machine is changed
