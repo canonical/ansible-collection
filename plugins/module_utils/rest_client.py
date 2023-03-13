@@ -28,7 +28,7 @@ class RestClient:
             records = self.client.get(path=endpoint, timeout=timeout).json
         except TimeoutError as e:
             raise errors.MaasError(f"Request timed out: {e}")
-        return utils.filter_results(records, query)
+        return utils.filter_results(records, query, "name")
 
     def get_record(self, endpoint, query=None, must_exist=False, timeout=None):
         records = self.list_records(endpoint=endpoint, query=query, timeout=timeout)
