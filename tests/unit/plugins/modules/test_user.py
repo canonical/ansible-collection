@@ -11,11 +11,8 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.modules import (
-    user,
-)
 from ansible_collections.canonical.maas.plugins.module_utils.user import User
-
+from ansible_collections.canonical.maas.plugins.modules import user
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -173,7 +170,9 @@ class TestEnsurePresent:
             )
         )
         user_obj = User.from_ansible(
-            dict(name="name", email="email", password="password", is_admin=False)
+            dict(
+                name="name", email="email", password="password", is_admin=False
+            )
         )
         after = user_obj.to_ansible()
         mocker.patch(
@@ -207,7 +206,9 @@ class TestEnsurePresent:
             )
         )
         user_obj = User.from_ansible(
-            dict(name="name", email="email", password="password", is_admin=True)
+            dict(
+                name="name", email="email", password="password", is_admin=True
+            )
         )
         after = user_obj.to_ansible()
         mocker.patch(
@@ -241,7 +242,9 @@ class TestEnsurePresent:
             )
         )
         user_obj = User.from_ansible(
-            dict(name="name", email="email", password="password", is_admin=True)
+            dict(
+                name="name", email="email", password="password", is_admin=True
+            )
         )
         after = None
         mocker.patch(
@@ -252,7 +255,9 @@ class TestEnsurePresent:
 
 
 class TestEnsureAbsent:
-    def test_ensure_absent_when_deleting_user(self, create_module, client, mocker):
+    def test_ensure_absent_when_deleting_user(
+        self, create_module, client, mocker
+    ):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -266,7 +271,9 @@ class TestEnsureAbsent:
             )
         )
         user_obj = User.from_ansible(
-            dict(name="name", email="email", password="password", is_admin=True)
+            dict(
+                name="name", email="email", password="password", is_admin=True
+            )
         )
         after = None
         before = user_obj.to_ansible()

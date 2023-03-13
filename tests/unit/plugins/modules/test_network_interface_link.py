@@ -11,13 +11,16 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.modules import network_interface_link
 from ansible_collections.canonical.maas.plugins.module_utils import errors
+from ansible_collections.canonical.maas.plugins.module_utils.machine import (
+    Machine,
+)
 from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
     NetworkInterface,
 )
-from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
-
+from ansible_collections.canonical.maas.plugins.modules import (
+    network_interface_link,
+)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -205,7 +208,9 @@ class TestRun:
         results = network_interface_link.run(module, client)
         assert results == expected
 
-    def test_run_with_present_ensure_present(self, create_module, client, mocker):
+    def test_run_with_present_ensure_present(
+        self, create_module, client, mocker
+    ):
         expected = (False, {}, {"before": {}, "after": {}})
         module = create_module(
             params=dict(
@@ -233,7 +238,9 @@ class TestRun:
         results = network_interface_link.run(module, client)
         assert results == expected
 
-    def test_run_with_absent_ensure_absent(self, create_module, client, mocker):
+    def test_run_with_absent_ensure_absent(
+        self, create_module, client, mocker
+    ):
         expected = (False, {}, {"before": {}, "after": {}})
         module = create_module(
             params=dict(
@@ -524,10 +531,14 @@ class TestEnsurePresent:
     @staticmethod
     def get_new_alias_ansible():
         return dict(
-            network_interface="this-interface", subnet="10.10.10.0/24", mode="AUTO"
+            network_interface="this-interface",
+            subnet="10.10.10.0/24",
+            mode="AUTO",
         )
 
-    def test_ensure_present_when_nic_not_found(self, create_module, client, mocker):
+    def test_ensure_present_when_nic_not_found(
+        self, create_module, client, mocker
+    ):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         new_alias_dict = self.get_new_alias_ansible()
@@ -611,7 +622,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = network_interface_link.ensure_present(module, client, machine_obj)
+        results = network_interface_link.ensure_present(
+            module, client, machine_obj
+        )
         assert results == expected
 
     def test_ensure_present_when_update_existing_alias_on_existing_nic(
@@ -674,10 +687,14 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = network_interface_link.ensure_present(module, client, machine_obj)
+        results = network_interface_link.ensure_present(
+            module, client, machine_obj
+        )
         assert results == expected
 
-    def test_ensure_present_when_no_changes_nic(self, create_module, client, mocker):
+    def test_ensure_present_when_no_changes_nic(
+        self, create_module, client, mocker
+    ):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         new_alias_dict = self.get_new_alias_ansible()
@@ -721,7 +738,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.alias_needs_update"
         ).return_value = False
-        results = network_interface_link.ensure_present(module, client, machine_obj)
+        results = network_interface_link.ensure_present(
+            module, client, machine_obj
+        )
         assert results == expected
 
 
@@ -893,10 +912,14 @@ class TestEsnureAbsent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_unlink_subnet_request"
         ).return_value = None
-        results = network_interface_link.ensure_absent(module, client, machine_obj)
+        results = network_interface_link.ensure_absent(
+            module, client, machine_obj
+        )
         assert results == expected
 
-    def test_ensure_absent_when_alias_not_exist(self, create_module, client, mocker):
+    def test_ensure_absent_when_alias_not_exist(
+        self, create_module, client, mocker
+    ):
         machine_dict = self.get_machine_updated()
         machine_obj = Machine.from_maas(machine_dict)
         existing_nic_dict = self.get_nic_existing()
@@ -928,5 +951,7 @@ class TestEsnureAbsent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_linked_alias_by_cidr"
         ).return_value = None
-        results = network_interface_link.ensure_absent(module, client, machine_obj)
+        results = network_interface_link.ensure_absent(
+            module, client, machine_obj
+        )
         assert results == expected

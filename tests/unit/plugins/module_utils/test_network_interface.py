@@ -5,7 +5,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
+from ansible_collections.canonical.maas.plugins.module_utils.machine import (
+    Machine,
+)
 
 __metaclass__ = type
 
@@ -13,14 +15,13 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
-    NetworkInterface,
-)
+from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
 )
-from ansible_collections.canonical.maas.plugins.module_utils import errors
-
+from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
+    NetworkInterface,
+)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -39,7 +40,9 @@ class TestMapper:
             effective_mtu=1500,
             links=[
                 dict(
-                    subnet=dict(cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1"))
+                    subnet=dict(
+                        cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1")
+                    )
                 )
             ],
         )
@@ -55,7 +58,9 @@ class TestMapper:
             effective_mtu=1500,
             discovered=[
                 dict(
-                    subnet=dict(cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1"))
+                    subnet=dict(
+                        cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1")
+                    )
                 )
             ],
             links=[],
@@ -71,7 +76,9 @@ class TestMapper:
             tags=[],
             discovered=[
                 dict(
-                    subnet=dict(cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1"))
+                    subnet=dict(
+                        cidr="ip", vlan=dict(name="vlan-1", fabric="fabric-1")
+                    )
                 )
             ],
         )
@@ -300,8 +307,12 @@ class TestSendRequestAndPayload:
         machine_dict = self.get_machine()
         machine_obj = Machine.from_maas(machine_dict)
         payload = nic_obj.payload_for_update()
-        client.put.return_value = Response(200, '{"system_id": 123, "machine_id": 123}')
-        results = nic_obj.send_update_request(client, machine_obj, payload, nic_obj.id)
+        client.put.return_value = Response(
+            200, '{"system_id": 123, "machine_id": 123}'
+        )
+        results = nic_obj.send_update_request(
+            client, machine_obj, payload, nic_obj.id
+        )
         assert results == {"system_id": 123, "machine_id": 123}
 
     def test_nic_payload_for_update(self):
@@ -352,7 +363,9 @@ class TestSendRequestAndPayload:
         results = nic_obj.payload_for_link_subnet(client, "this-fabric")
         assert results == expected
 
-    def test_payload_for_link_subnet_when_fabric_not_the_same(self, client, mocker):
+    def test_payload_for_link_subnet_when_fabric_not_the_same(
+        self, client, mocker
+    ):
         nic_dict = self.get_nic()
         nic_obj = NetworkInterface.from_maas(nic_dict)
         expected = nic_obj.to_maas()
@@ -380,7 +393,9 @@ class TestSendRequestAndPayload:
         client.post.return_value = Response(
             200, '{"system_id": 123, "machine_id": 123}'
         )
-        results = nic_obj.send_link_subnet_request(client, machine_obj, payload, nic_id)
+        results = nic_obj.send_link_subnet_request(
+            client, machine_obj, payload, nic_id
+        )
         assert results == {"system_id": 123, "machine_id": 123}
 
     def test_send_unlink_subnet_request(self, client):
@@ -475,7 +490,9 @@ class TestAlias:
         results = nic_obj.find_linked_alias_by_cidr(module)
         assert results == expected
 
-    def test_find_linked_alias_by_cidr_when_alias_not_found(self, create_module):
+    def test_find_linked_alias_by_cidr_when_alias_not_found(
+        self, create_module
+    ):
         nic_dict = self.get_nic()
         nic_obj = NetworkInterface.from_maas(nic_dict)
         expected = None
@@ -498,7 +515,9 @@ class TestAlias:
         results = nic_obj.find_linked_alias_by_cidr(module)
         assert results == expected
 
-    def test_alias_needs_update_when_false(self, client, create_module, mocker):
+    def test_alias_needs_update_when_false(
+        self, client, create_module, mocker
+    ):
         existing_alias = self.get_nic()["links"][0]
         expected = False
         module = create_module(
@@ -520,7 +539,9 @@ class TestAlias:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
         ).return_value = {"gateway_ip": "10.10.10.1"}
-        results = NetworkInterface.alias_needs_update(client, existing_alias, module)
+        results = NetworkInterface.alias_needs_update(
+            client, existing_alias, module
+        )
         assert results == expected
 
     def test_alias_needs_update_when_true(self, client, create_module, mocker):
@@ -546,5 +567,7 @@ class TestAlias:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
         ).return_value = {"gateway_ip": "10.10.10.1"}
-        results = NetworkInterface.alias_needs_update(client, existing_alias, module)
+        results = NetworkInterface.alias_needs_update(
+            client, existing_alias, module
+        )
         assert results == expected

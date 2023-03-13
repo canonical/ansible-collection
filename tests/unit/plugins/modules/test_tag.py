@@ -8,10 +8,13 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
+
 import pytest
 
+from ansible_collections.canonical.maas.plugins.module_utils.machine import (
+    Machine,
+)
 from ansible_collections.canonical.maas.plugins.modules import tag
-from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -192,7 +195,9 @@ class TestEnsure:
         results = tag.ensure_absent(module, client)
         assert results == (False, [], {"before": [], "after": []})
 
-    def test_ensure_absent_when_tag_not_exist(self, create_module, client, mocker):
+    def test_ensure_absent_when_tag_not_exist(
+        self, create_module, client, mocker
+    ):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -344,7 +349,9 @@ class TestUtils:
         ).return_value = None
         machine_list = [machine1, machine2]
         after.append(machine1.fqdn)
-        results = tag.add_tag_to_machine(client, module, machine_list, before, after)
+        results = tag.add_tag_to_machine(
+            client, module, machine_list, before, after
+        )
         assert results == (before, after)
 
     def test_add_tag_to_machine_when_no_add(self, create_module, client):
@@ -364,10 +371,14 @@ class TestUtils:
         before = ["this"]
         after = ["this"]
         machine_list = []
-        results = tag.add_tag_to_machine(client, module, machine_list, before, after)
+        results = tag.add_tag_to_machine(
+            client, module, machine_list, before, after
+        )
         assert results == (before, after)
 
-    def test_remove_tag_from_machine_when_remove(self, create_module, client, mocker):
+    def test_remove_tag_from_machine_when_remove(
+        self, create_module, client, mocker
+    ):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -384,7 +395,9 @@ class TestUtils:
         before = ["this"]
         after = ["this"]
         machine1 = Machine(fqdn="one", id=123, tags=["first", "second"])
-        machine2 = Machine(fqdn="two", id=456, tags=["first", "second", "this_tag"])
+        machine2 = Machine(
+            fqdn="two", id=456, tags=["first", "second", "this_tag"]
+        )
         machine_list = [machine1, machine2]
         existing_tag = {"name": "this_tag"}
         after.append(machine2.fqdn)
@@ -396,7 +409,9 @@ class TestUtils:
         )
         assert results == (before, after)
 
-    def test_remove_tag_from_machine_when_no_remove(self, create_module, client):
+    def test_remove_tag_from_machine_when_no_remove(
+        self, create_module, client
+    ):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -436,10 +451,16 @@ class TestUtils:
             )
         )
         existing_tag = {"name": "this_tag"}
-        machine1_ansible = Machine(fqdn="one", tags=["first", "second", "this_tag"])
+        machine1_ansible = Machine(
+            fqdn="one", tags=["first", "second", "this_tag"]
+        )
         machine_list_from_ansible = [machine1_ansible]
-        machine1_maas = Machine(fqdn="one", tags=["first", "second", "this_tag"])
-        machine2_maas = Machine(fqdn="two", tags=["first", "second", "this_tag"])
+        machine1_maas = Machine(
+            fqdn="one", tags=["first", "second", "this_tag"]
+        )
+        machine2_maas = Machine(
+            fqdn="two", tags=["first", "second", "this_tag"]
+        )
         machine_list_from_maas = [machine1_maas, machine2_maas]
         before = ["this"]
         after = ["this"]
@@ -474,7 +495,9 @@ class TestUtils:
             )
         )
         existing_tag = {"name": "this_tag"}
-        machine1_ansible = Machine(fqdn="one", tags=["first", "second", "this_tag"])
+        machine1_ansible = Machine(
+            fqdn="one", tags=["first", "second", "this_tag"]
+        )
         machine_list_from_ansible = [machine1_ansible]
         machine_list_from_maas = []
         before = ["this"]

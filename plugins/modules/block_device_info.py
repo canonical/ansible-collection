@@ -127,9 +127,9 @@ records:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
+from ..module_utils.block_device import BlockDevice
 from ..module_utils.client import Client
 from ..module_utils.machine import Machine
-from ..module_utils.block_device import BlockDevice
 
 
 def run(module, client: Client):
@@ -142,7 +142,9 @@ def run(module, client: Client):
         )
         response = [block_device.get(client)]
     else:
-        response = client.get(f"/api/2.0/nodes/{machine.id}/blockdevices/").json
+        response = client.get(
+            f"/api/2.0/nodes/{machine.id}/blockdevices/"
+        ).json
     return response
 
 

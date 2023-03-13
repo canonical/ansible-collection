@@ -8,14 +8,11 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import (
-    get_query,
-    MaasValueMapper,
-)
 from ..module_utils import errors
-from ..module_utils.rest_client import RestClient
 from ..module_utils.client import Client
 from ..module_utils.partition import Partition
+from ..module_utils.rest_client import RestClient
+from ..module_utils.utils import MaasValueMapper, get_query
 
 
 class BlockDevice(MaasValueMapper):
@@ -59,7 +56,9 @@ class BlockDevice(MaasValueMapper):
             ansible_maas_map={name_field_ansible: "name"},
         )
         block_device_maas_dict = rest_client.get_record(
-            f"/api/2.0/nodes/{machine_id}/blockdevices/", query, must_exist=must_exist
+            f"/api/2.0/nodes/{machine_id}/blockdevices/",
+            query,
+            must_exist=must_exist,
         )
         if block_device_maas_dict:
             block_device = cls.from_maas(block_device_maas_dict)
@@ -67,7 +66,9 @@ class BlockDevice(MaasValueMapper):
 
     @classmethod
     def get_by_id(cls, id, client: Client, machine_id, must_exist=False):
-        response = client.get(f"/api/2.0/nodes/{machine_id}/blockdevices/{id}/")
+        response = client.get(
+            f"/api/2.0/nodes/{machine_id}/blockdevices/{id}/"
+        )
         if response.status == 404:
             if must_exist:
                 raise errors.BlockDeviceNotFound(id)
@@ -108,7 +109,9 @@ class BlockDevice(MaasValueMapper):
         return
 
     def delete(self, client):
-        client.delete(f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/")
+        client.delete(
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/"
+        )
 
     def get(self, client):
         return client.get(
@@ -117,7 +120,8 @@ class BlockDevice(MaasValueMapper):
 
     def update(self, client, payload):
         return client.put(
-            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/", data=payload
+            f"/api/2.0/nodes/{self.machine_id}/blockdevices/{self.id}/",
+            data=payload,
         ).json
 
     def add_tag(self, client, tag):

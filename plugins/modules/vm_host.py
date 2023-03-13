@@ -247,10 +247,10 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.machine import Machine
-from ..module_utils.vmhost import VMHost
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.machine import Machine
 from ..module_utils.state import MachineTaskState
+from ..module_utils.vmhost import VMHost
 
 
 def data_for_create_vm_host(module):
@@ -276,9 +276,13 @@ def data_for_update_vm_host(module, vm_host_obj):
     data = {}
     if module.params["power_parameters"]:
         if module.params["power_parameters"]["power_address"]:
-            data["power_address"] = module.params["power_parameters"]["power_address"]
+            data["power_address"] = module.params["power_parameters"][
+                "power_address"
+            ]
         if module.params["power_parameters"]["power_pass"]:
-            data["power_pass"] = module.params["power_parameters"]["power_pass"]
+            data["power_pass"] = module.params["power_parameters"][
+                "power_pass"
+            ]
     if module.params["tags"]:
         if vm_host_obj.tags != module.params["tags"]:
             data["tags"] = module.params["tags"]
@@ -292,24 +296,38 @@ def data_for_update_vm_host(module, vm_host_obj):
         if vm_host_obj.name != module.params["new_vm_host_name"]:
             data["name"] = module.params["new_vm_host_name"]
     if module.params["cpu_over_commit_ratio"]:
-        if vm_host_obj.cpu_over_commit_ratio != module.params["cpu_over_commit_ratio"]:
-            data["cpu_over_commit_ratio"] = module.params["cpu_over_commit_ratio"]
+        if (
+            vm_host_obj.cpu_over_commit_ratio
+            != module.params["cpu_over_commit_ratio"]
+        ):
+            data["cpu_over_commit_ratio"] = module.params[
+                "cpu_over_commit_ratio"
+            ]
     if module.params["memory_over_commit_ratio"]:
         if (
             vm_host_obj.memory_over_commit_ratio
             != module.params["memory_over_commit_ratio"]
         ):
-            data["memory_over_commit_ratio"] = module.params["memory_over_commit_ratio"]
+            data["memory_over_commit_ratio"] = module.params[
+                "memory_over_commit_ratio"
+            ]
     if module.params["default_macvlan_mode"]:
-        if vm_host_obj.default_macvlan_mode != module.params["default_macvlan_mode"]:
-            data["default_macvlan_mode"] = module.params["default_macvlan_mode"]
+        if (
+            vm_host_obj.default_macvlan_mode
+            != module.params["default_macvlan_mode"]
+        ):
+            data["default_macvlan_mode"] = module.params[
+                "default_macvlan_mode"
+            ]
     return data
 
 
 def data_for_deploy_machine_as_vm_host(machine):
     data = {
-        "install_kwm": machine.power_type == "virsh",  # True for virsh, False for lxd
-        "register_vmhost": machine.power_type == "lxd",  # True for lxd, False for virsh
+        "install_kwm": machine.power_type
+        == "virsh",  # True for virsh, False for lxd
+        "register_vmhost": machine.power_type
+        == "lxd",  # True for lxd, False for virsh
     }
     return data
 
@@ -408,7 +426,9 @@ def main():
             vm_host_name=dict(type="str", required=True),
             machine_fqdn=dict(type="str"),
             timeout=dict(type="int"),
-            state=dict(type="str", required=True, choices=["present", "absent"]),
+            state=dict(
+                type="str", required=True, choices=["present", "absent"]
+            ),
             power_parameters=dict(
                 type="dict",
                 options=dict(

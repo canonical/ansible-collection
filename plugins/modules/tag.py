@@ -6,7 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -97,11 +96,11 @@ records:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
-from ..module_utils.utils import is_changed
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.machine import Machine
 from ..module_utils.state import TagState
 from ..module_utils.tag import Tag
-from ..module_utils.machine import Machine
+from ..module_utils.utils import is_changed
 
 
 def get_after(client, after):
@@ -128,7 +127,9 @@ def add_tag_to_machine(client, module, machine_list, before, after):
     return before, after
 
 
-def remove_tag_from_machine(client, module, machine_list, existing_tag, before, after):
+def remove_tag_from_machine(
+    client, module, machine_list, existing_tag, before, after
+):
     for machine in machine_list:
         if existing_tag["name"] in machine.tags:
             before.append(dict(machine=machine.fqdn, tags=machine.tags))
@@ -148,10 +149,15 @@ def remove_unnecessary_tag_after_set(
     after,
 ):
     # Remove tag from machines not in the ansible machine list
-    check_list = [machine_ansible.fqdn for machine_ansible in machine_list_from_ansible]
+    check_list = [
+        machine_ansible.fqdn for machine_ansible in machine_list_from_ansible
+    ]
     remove_list = []
     for machine in machine_list_from_maas:
-        if module.params["name"] in machine.tags and machine.fqdn not in check_list:
+        if (
+            module.params["name"] in machine.tags
+            and machine.fqdn not in check_list
+        ):
             remove_list.append(machine)
     before, after = remove_tag_from_machine(
         client, module, remove_list, existing_tag, before, after

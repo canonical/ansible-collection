@@ -11,15 +11,17 @@ from ansible_collections.canonical.maas.plugins.module_utils.network_interface i
 
 __metaclass__ = type
 
+import json
 import sys
 
 import pytest
 
-import json
-from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
+)
+from ansible_collections.canonical.maas.plugins.module_utils.machine import (
+    Machine,
 )
 
 pytestmark = pytest.mark.skipif(
@@ -175,7 +177,9 @@ class TestGet:
         machine1 = Machine(fqdn="one")
         machine2 = Machine(fqdn="two")
         machine_list = [machine1, machine2]
-        client.get.return_value = Response(200, '[{"fqdn":"one"}, {"fqdn":"two"}]')
+        client.get.return_value = Response(
+            200, '[{"fqdn":"one"}, {"fqdn":"two"}]'
+        )
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
         ).side_effect = [machine_list[0], machine_list[1]]
@@ -187,7 +191,9 @@ class TestGet:
         machine1 = Machine(fqdn="one")
         machine2 = Machine(fqdn="two")
         machine_list = [machine1, machine2]
-        client.get.return_value = Response(200, '[{"fqdn":"one"}, {"fqdn":"two"}]')
+        client.get.return_value = Response(
+            200, '[{"fqdn":"one"}, {"fqdn":"two"}]'
+        )
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
         ).side_effect = [machine_list[0], machine_list[1]]

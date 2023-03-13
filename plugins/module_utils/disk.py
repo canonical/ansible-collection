@@ -8,8 +8,8 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from .utils import MaasValueMapper
 from . import errors
+from .utils import MaasValueMapper
 
 __metaclass__ = type
 

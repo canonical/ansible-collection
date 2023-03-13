@@ -76,6 +76,7 @@ record:
 """
 
 from itertools import groupby
+
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
@@ -102,7 +103,10 @@ def get_ip_ranges(client):
 
     sorted_data = sorted(data, key=key_function)
 
-    grouped = {k: [v["data"] for v in g] for k, g in groupby(sorted_data, key_function)}
+    grouped = {
+        k: [v["data"] for v in g]
+        for k, g in groupby(sorted_data, key_function)
+    }
     return grouped
 
 

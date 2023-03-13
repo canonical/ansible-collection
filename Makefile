@@ -32,7 +32,8 @@ help:
 # Developer convenience targets
 
 .PHONY: format
-format:  ## Format python code with black
+format:  ## Format python code with black/isort
+	isort --profile=black plugins tests/unit
 	black -t py38 plugins tests/unit
 
 .PHONY: clean
@@ -53,8 +54,9 @@ $(integration_test_targets):
 sanity:  ## Run sanity tests
 	pip install -r sanity.requirements
 	ansible-lint
-	black -t py38 --check --diff --color plugins tests/unit
-	flake8 --exclude tests/output/
+	isort --check-only --diff plugins tests/unit
+	black --check --diff --color plugins tests/unit
+	flake8 plugins tests/unit
 	ansible-test sanity --docker
 
 .PHONY: units

@@ -11,11 +11,13 @@ import sys
 
 import pytest
 
+from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.module_utils.block_device import (
     BlockDevice,
 )
-from ansible_collections.canonical.maas.plugins.module_utils.client import Response
-from ansible_collections.canonical.maas.plugins.module_utils import errors
+from ansible_collections.canonical.maas.plugins.module_utils.client import (
+    Response,
+)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -88,7 +90,9 @@ class TestGet:
             tags=["tag1", "tag2"],
             partitions=None,
         )
-        results = BlockDevice.get_by_id(id, client, machine_id, must_exist=False)
+        results = BlockDevice.get_by_id(
+            id, client, machine_id, must_exist=False
+        )
 
         client.get.assert_called_with(
             "/api/2.0/nodes/machine-id/blockdevices/5/",
@@ -99,7 +103,9 @@ class TestGet:
         id = 5
         machine_id = "machine-id"
         client.get.return_value = Response(404, "{}")
-        results = BlockDevice.get_by_id(id, client, machine_id, must_exist=False)
+        results = BlockDevice.get_by_id(
+            id, client, machine_id, must_exist=False
+        )
 
         client.get.assert_called_with(
             "/api/2.0/nodes/machine-id/blockdevices/5/",
@@ -200,7 +206,9 @@ class TestGet:
             resource_uri="/MAAS/api/2.0/nodes/y7388k/blockdevices/73/",
         )
 
-        assert BlockDevice.get_by_name(module, client, machine_id, True) == BlockDevice(
+        assert BlockDevice.get_by_name(
+            module, client, machine_id, True
+        ) == BlockDevice(
             name="newblockdevice",
             id=73,
             machine_id="y7388k",

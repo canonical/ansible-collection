@@ -8,9 +8,13 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
+
 import pytest
+
+from ansible_collections.canonical.maas.plugins.module_utils.machine import (
+    Machine,
+)
 from ansible_collections.canonical.maas.plugins.modules import instance
-from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -166,7 +170,9 @@ class TestRelease:
         assert result[0] is False
 
     @pytest.mark.parametrize("status", ["New", "Failed"])
-    def test_release_status_new_or_failed(self, create_module, client, mocker, status):
+    def test_release_status_new_or_failed(
+        self, create_module, client, mocker, status
+    ):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -349,7 +355,9 @@ class TestDeploy:
         assert result[0] is True
 
     @pytest.mark.parametrize("status", ["New", "Failed"])
-    def test_release_status_new_or_failed(self, create_module, client, mocker, status):
+    def test_release_status_new_or_failed(
+        self, create_module, client, mocker, status
+    ):
         module = create_module(
             params=dict(
                 instance=dict(

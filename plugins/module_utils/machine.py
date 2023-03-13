@@ -11,16 +11,13 @@ __metaclass__ = type
 
 from time import sleep
 
-from ..module_utils.utils import (
-    get_query,
-    MaasValueMapper,
-)
 from ..module_utils import errors
-from ..module_utils.rest_client import RestClient
 from ..module_utils.client import Client
-from ..module_utils.network_interface import NetworkInterface
 from ..module_utils.disk import Disk
+from ..module_utils.network_interface import NetworkInterface
+from ..module_utils.rest_client import RestClient
 from ..module_utils.state import MachineTaskState
+from ..module_utils.utils import MaasValueMapper, get_query
 
 
 class Machine(MaasValueMapper):
@@ -102,7 +99,9 @@ class Machine(MaasValueMapper):
         return machine_list
 
     @classmethod
-    def get_by_fqdn(cls, module, client, must_exist=False, name_field_ansible="fqdn"):
+    def get_by_fqdn(
+        cls, module, client, must_exist=False, name_field_ansible="fqdn"
+    ):
         # Returns machine object or None
         rest_client = RestClient(client=client)
         query = get_query(
@@ -121,7 +120,9 @@ class Machine(MaasValueMapper):
 
     @classmethod
     def get_by_name_and_host(cls, module, client, must_exist=False):
-        if not module.params.get("hostname") or not module.params.get("vm_host"):
+        if not module.params.get("hostname") or not module.params.get(
+            "vm_host"
+        ):
             raise errors.MaasError("hostname or vm_host parameter missing.")
         maas_list = client.get("/api/2.0/machines/").json
         for maas_dict in maas_list:
@@ -170,7 +171,8 @@ class Machine(MaasValueMapper):
             for net_interface in module.params.get("network_interfaces") or []
         ]
         obj.disks = [
-            Disk.from_ansible(disk) for disk in module.params.get("storage_disks") or []
+            Disk.from_ansible(disk)
+            for disk in module.params.get("storage_disks") or []
         ]
         return obj
 
@@ -192,7 +194,8 @@ class Machine(MaasValueMapper):
                 for net_interface in maas_dict["interface_set"] or []
             ]
             obj.disks = [
-                Disk.from_maas(disk) for disk in maas_dict["blockdevice_set"] or []
+                Disk.from_maas(disk)
+                for disk in maas_dict["blockdevice_set"] or []
             ]
             obj.status = maas_dict["status_name"]
             obj.osystem = maas_dict["osystem"]
@@ -226,7 +229,8 @@ class Machine(MaasValueMapper):
             to_maas_dict["domain"] = self.domain
         if self.network_interfaces:
             to_maas_dict["interfaces"] = [
-                net_interface.to_maas() for net_interface in self.network_interfaces
+                net_interface.to_maas()
+                for net_interface in self.network_interfaces
             ]
         if self.disks:
             to_maas_dict["storage"] = [disk.to_maas() for disk in self.disks]
@@ -267,9 +271,13 @@ class Machine(MaasValueMapper):
                         f"subnet_cidr={net_interface['subnet_cidr']}"
                     )
                 if net_interface.get("ip_address"):
-                    payload_string_list.append(f"ip={net_interface['ip_address']}")
+                    payload_string_list.append(
+                        f"ip={net_interface['ip_address']}"
+                    )
                 if net_interface.get("fabric"):
-                    payload_string_list.append(f"fabric={net_interface['fabric']}")
+                    payload_string_list.append(
+                        f"fabric={net_interface['fabric']}"
+                    )
                 if net_interface.get("vlan"):
                     payload_string_list.append(f"vlan={net_interface['vlan']}")
                 if net_interface.get("name"):
@@ -280,7 +288,9 @@ class Machine(MaasValueMapper):
                 break  # Right now, compose only allows for one network interface.
         if "storage" in payload:
             tmp = payload.pop("storage")
-            payload["storage"] = ",".join([f"label:{disk['size']}" for disk in tmp])
+            payload["storage"] = ",".join(
+                [f"label:{disk['size']}" for disk in tmp]
+            )
         return payload
 
     def find_nic_by_mac(self, mac):
@@ -350,11 +360,15 @@ class Machine(MaasValueMapper):
         client.delete(f"/api/2.0/machines/{self.id}/")
 
     def release(self, client):
-        client.post(f"/api/2.0/machines/{self.id}/", query={"op": "release"}, data={})
+        client.post(
+            f"/api/2.0/machines/{self.id}/", query={"op": "release"}, data={}
+        )
 
     def commission(self, client):
         return client.post(
-            f"/api/2.0/machines/{self.id}/", query={"op": "commission"}, data={}
+            f"/api/2.0/machines/{self.id}/",
+            query={"op": "commission"},
+            data={},
         ).json
 
     @classmethod

@@ -8,12 +8,9 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import (
-    get_query,
-    MaasValueMapper,
-)
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
+from ..module_utils.utils import MaasValueMapper, get_query
 
 
 class Space(MaasValueMapper):
@@ -32,7 +29,9 @@ class Space(MaasValueMapper):
         self.subnets = subnets
 
     @classmethod
-    def get_by_name(cls, module, client, must_exist=False, name_field_ansible="name"):
+    def get_by_name(
+        cls, module, client, must_exist=False, name_field_ansible="name"
+    ):
         rest_client = RestClient(client=client)
         query = get_query(
             module,

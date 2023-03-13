@@ -11,10 +11,10 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.user import User
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
 )
+from ansible_collections.canonical.maas.plugins.module_utils.user import User
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -25,13 +25,19 @@ class TestEq:
     @staticmethod
     def get_user_one():
         return dict(
-            name="one", email="one.email", is_admin=False, password="one_password"
+            name="one",
+            email="one.email",
+            is_admin=False,
+            password="one_password",
         )
 
     @staticmethod
     def get_user_two():
         return dict(
-            name="two", email="two.email", is_admin=False, password="two_password"
+            name="two",
+            email="two.email",
+            is_admin=False,
+            password="two_password",
         )
 
     def test_eq_when_are_same(self):
@@ -63,7 +69,9 @@ class TestMapper:
         )
 
     def test_from_ansible_admin(self):
-        user_dict = dict(name="name", password="password", email="email", is_admin=True)
+        user_dict = dict(
+            name="name", password="password", email="email", is_admin=True
+        )
         user_obj = User.from_ansible(user_dict)
         assert (
             user_obj.name == "name"
@@ -123,21 +131,31 @@ class TestMapper:
         user_obj = User.from_ansible(user_dict)
         user_to_maas = user_obj.to_maas()
         assert user_to_maas == dict(
-            username="name", email="email", is_superuser=False, password="password"
+            username="name",
+            email="email",
+            is_superuser=False,
+            password="password",
         )
 
     def test_to_maas_admin(self):
-        user_dict = dict(name="name", password="password", is_admin=True, email="email")
+        user_dict = dict(
+            name="name", password="password", is_admin=True, email="email"
+        )
         user_obj = User.from_ansible(user_dict)
         user_to_maas = user_obj.to_maas()
         assert user_to_maas == dict(
-            username="name", email="email", is_superuser=True, password="password"
+            username="name",
+            email="email",
+            is_superuser=True,
+            password="password",
         )
 
 
 class TestSendRequestAndPayload:
     def test_payload_for_create_when_is_superuser(self):
-        user_dict = dict(name="name", password="password", email="email", is_admin=True)
+        user_dict = dict(
+            name="name", password="password", email="email", is_admin=True
+        )
         user_obj = User.from_ansible(user_dict)
         results = user_obj.payload_for_create()
         assert results == dict(
@@ -160,7 +178,9 @@ class TestSendRequestAndPayload:
         )
         user_obj = User.from_ansible(user_dict)
         client.post.return_value = Response(200, '{"username": "name"}')
-        results = user_obj.send_create_request(client, user_obj.payload_for_create())
+        results = user_obj.send_create_request(
+            client, user_obj.payload_for_create()
+        )
         assert results == {"username": "name"}
 
     def test_send_delete_request(self, client):

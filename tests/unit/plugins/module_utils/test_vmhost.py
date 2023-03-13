@@ -11,9 +11,11 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.vmhost import VMHost
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
+)
+from ansible_collections.canonical.maas.plugins.module_utils.vmhost import (
+    VMHost,
 )
 
 pytestmark = pytest.mark.skipif(
@@ -76,7 +78,9 @@ class TestMapper:
         results = VMHost.from_maas(maas_host_dict)
         assert results.name == host.name
         assert results.cpu_over_commit_ratio == host.cpu_over_commit_ratio
-        assert results.memory_over_commit_ratio == host.memory_over_commit_ratio
+        assert (
+            results.memory_over_commit_ratio == host.memory_over_commit_ratio
+        )
         assert results.default_macvlan_mode == host.default_macvlan_mode
         assert results.id == host.id
         assert results.pool == host.pool

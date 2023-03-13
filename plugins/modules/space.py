@@ -124,8 +124,8 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.space import Space
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.space import Space
 
 
 def data_for_create_space(module):

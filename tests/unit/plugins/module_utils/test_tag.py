@@ -11,11 +11,11 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.tag import Tag
 from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.module_utils.client import (
     Response,
 )
+from ansible_collections.canonical.maas.plugins.module_utils.tag import Tag
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -71,11 +71,15 @@ class TestGet:
                 machines=["this_machine", "that_machine"],
             )
         )
-        client.get.return_value = Response(200, '[{"name":"one"}, {"name":"two"}]')
+        client.get.return_value = Response(
+            200, '[{"name":"one"}, {"name":"two"}]'
+        )
         results = Tag.get_tag_by_name(client, module, must_exist=True)
         assert results == {"name": "one"}
 
-    def test_get_tag_by_name_must_exist_true_and_not_exist(self, create_module, client):
+    def test_get_tag_by_name_must_exist_true_and_not_exist(
+        self, create_module, client
+    ):
         module = create_module(
             params=dict(
                 instance=dict(
@@ -110,7 +114,9 @@ class TestGet:
                 machines=["this_machine", "that_machine"],
             )
         )
-        client.get.return_value = Response(200, '[{"name":"one"}, {"name":"two"}]')
+        client.get.return_value = Response(
+            200, '[{"name":"one"}, {"name":"two"}]'
+        )
         results = Tag.get_tag_by_name(client, module, must_exist=False)
         assert results == {"name": "one"}
 

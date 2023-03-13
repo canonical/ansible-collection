@@ -168,11 +168,11 @@ record:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
-from ..module_utils.vmhost import VMHost
-from ..module_utils.machine import Machine
-from ..module_utils.utils import is_changed, required_one_of
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.machine import Machine
 from ..module_utils.state import MachineTaskState
+from ..module_utils.utils import is_changed, required_one_of
+from ..module_utils.vmhost import VMHost
 
 
 def prepare_network_data(module):
@@ -289,7 +289,13 @@ def main():
         required_one_of(
             module,
             option="network_interfaces",
-            list_suboptions=["name", "subnet_cidr", "fabric", "vlan", "ip_address"],
+            list_suboptions=[
+                "name",
+                "subnet_cidr",
+                "fabric",
+                "vlan",
+                "ip_address",
+            ],
         )
 
         client = get_oauth1_client(module.params)

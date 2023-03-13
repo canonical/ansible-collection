@@ -8,12 +8,9 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import (
-    get_query,
-    MaasValueMapper,
-)
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
+from ..module_utils.utils import MaasValueMapper, get_query
 
 
 class VMHost(MaasValueMapper):
@@ -39,7 +36,9 @@ class VMHost(MaasValueMapper):
         self.tags = tags
 
     @classmethod
-    def get_by_name(cls, module, client, must_exist=False, name_field_ansible="name"):
+    def get_by_name(
+        cls, module, client, must_exist=False, name_field_ansible="name"
+    ):
         rest_client = RestClient(client=client)
         query = get_query(
             module,
@@ -64,7 +63,9 @@ class VMHost(MaasValueMapper):
             obj.name = maas_dict["name"]
             obj.id = maas_dict["id"]
             obj.cpu_over_commit_ratio = maas_dict["cpu_over_commit_ratio"]
-            obj.memory_over_commit_ratio = maas_dict["memory_over_commit_ratio"]
+            obj.memory_over_commit_ratio = maas_dict[
+                "memory_over_commit_ratio"
+            ]
             obj.default_macvlan_mode = maas_dict["default_macvlan_mode"]
             obj.tags = maas_dict["tags"]
             obj.zone = maas_dict["zone"]
@@ -81,7 +82,9 @@ class VMHost(MaasValueMapper):
 
     def send_compose_request(self, module, client, payload):
         results = client.post(
-            f"/api/2.0/vm-hosts/{self.id}/", query={"op": "compose"}, data=payload
+            f"/api/2.0/vm-hosts/{self.id}/",
+            query={"op": "compose"},
+            data=payload,
         ).json
         return results
 

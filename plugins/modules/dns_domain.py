@@ -6,7 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -81,7 +80,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.cluster_instance import get_oauth1_client
-
 
 ENDPOINT = "/api/2.0/domains/"
 
@@ -163,7 +161,9 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            state=dict(type="str", required=True, choices=["present", "absent"]),
+            state=dict(
+                type="str", required=True, choices=["present", "absent"]
+            ),
             name=dict(type="str", required=True),
             ttl=dict(type="int", required=False),
             authoritative=dict(type="bool", required=False),

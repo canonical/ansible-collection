@@ -11,10 +11,13 @@ import sys
 
 import pytest
 
+from ansible_collections.canonical.maas.plugins.module_utils.machine import (
+    Machine,
+)
+from ansible_collections.canonical.maas.plugins.module_utils.vmhost import (
+    VMHost,
+)
 from ansible_collections.canonical.maas.plugins.modules import vm_host_machine
-from ansible_collections.canonical.maas.plugins.module_utils.vmhost import VMHost
-from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
-
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -111,7 +114,14 @@ class TestRun:
             "ansible_collections.canonical.maas.plugins.modules.vm_host_machine.ensure_ready"
         ).return_value = (
             True,
-            [{"hostname": "some_name", "id": "new_id", "memory": 5000, "cores": 2}],
+            [
+                {
+                    "hostname": "some_name",
+                    "id": "new_id",
+                    "memory": 5000,
+                    "cores": 2,
+                }
+            ],
             {
                 "before": [],
                 "after": [
@@ -127,7 +137,14 @@ class TestRun:
         results = vm_host_machine.run(module, client)
         assert results == (
             True,
-            [{"hostname": "some_name", "id": "new_id", "memory": 5000, "cores": 2}],
+            [
+                {
+                    "hostname": "some_name",
+                    "id": "new_id",
+                    "memory": 5000,
+                    "cores": 2,
+                }
+            ],
             {
                 "before": [],
                 "after": [
@@ -152,8 +169,13 @@ class TestRun:
                 "id": "new_id",
                 "memory": 5000,
                 "cores": 2,
-                "network_interfaces": [{"name": "this_name", "subnet_cidr": "some_ip"}],
-                "storage_disks": [{"size_gigabytes": 5}, {"size_gigabytes": 6}],
+                "network_interfaces": [
+                    {"name": "this_name", "subnet_cidr": "some_ip"}
+                ],
+                "storage_disks": [
+                    {"size_gigabytes": 5},
+                    {"size_gigabytes": 6},
+                ],
             }
         ]
         before = []
@@ -169,7 +191,10 @@ class TestRun:
                 hostname=None,
                 cores=2,
                 memory=5000,
-                network_interfaces={"name": "this_name", "subnet_cidr": "some_ip"},
+                network_interfaces={
+                    "name": "this_name",
+                    "subnet_cidr": "some_ip",
+                },
                 storage_disks=[{"size_gigabytes": 5}, {"size_gigabytes": 6}],
             )
         )
@@ -265,7 +290,10 @@ class TestEnsureReady:
                         {
                             "subnet": {
                                 "cidr": "some_ip",
-                                "vlan": {"name": "name_1", "fabric": "fabric-1"},
+                                "vlan": {
+                                    "name": "name_1",
+                                    "fabric": "fabric-1",
+                                },
                             }
                         }
                     ],
@@ -373,7 +401,10 @@ class TestEnsureReady:
                         {
                             "subnet": {
                                 "cidr": "some_ip",
-                                "vlan": {"name": "name_1", "fabric": "fabric-1"},
+                                "vlan": {
+                                    "name": "name_1",
+                                    "fabric": "fabric-1",
+                                },
                             }
                         }
                     ],

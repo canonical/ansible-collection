@@ -8,12 +8,18 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
+
 import pytest
+
+from ansible_collections.canonical.maas.plugins.module_utils.machine import (
+    Machine,
+)
+from ansible_collections.canonical.maas.plugins.module_utils.vmhost import (
+    VMHost,
+)
 
 # from ansible_collections.canonical.maas.plugins.module_utils import errors
 from ansible_collections.canonical.maas.plugins.modules import vm_host
-from ansible_collections.canonical.maas.plugins.module_utils.vmhost import VMHost
-from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -72,7 +78,9 @@ class TestMain:
         success, result = run_main(vm_host)
 
         assert success is False
-        assert "missing required arguments: state, vm_host_name" in result["msg"]
+        assert (
+            "missing required arguments: state, vm_host_name" in result["msg"]
+        )
 
 
 class TestDataForCreateVMHost:

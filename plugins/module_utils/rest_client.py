@@ -5,8 +5,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from . import errors
-from . import utils
+from . import errors, utils
 
 __metaclass__ = type
 
@@ -31,7 +30,9 @@ class RestClient:
         return utils.filter_results(records, query)
 
     def get_record(self, endpoint, query=None, must_exist=False, timeout=None):
-        records = self.list_records(endpoint=endpoint, query=query, timeout=timeout)
+        records = self.list_records(
+            endpoint=endpoint, query=query, timeout=timeout
+        )
         if len(records) > 1:
             raise errors.MaasError(
                 "{0} records from endpoint {1} match the {2} query.".format(
@@ -57,7 +58,9 @@ class RestClient:
             raise errors.MaasError(f"Request timed out: {e}")
         return response
 
-    def update_record(self, endpoint, payload, check_mode, record=None, timeout=None):
+    def update_record(
+        self, endpoint, payload, check_mode, record=None, timeout=None
+    ):
         # No action is possible when updating a record
         if check_mode:
             return payload

@@ -8,11 +8,14 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
+
 import pytest
 
 from ansible_collections.canonical.maas.plugins.module_utils import errors
+from ansible_collections.canonical.maas.plugins.module_utils.machine import (
+    Machine,
+)
 from ansible_collections.canonical.maas.plugins.modules import machine
-from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -160,8 +163,9 @@ class TestDataForAddMachine:
         with pytest.raises(errors.MissingValueAnsible) as exc:
             machine.data_for_add_machine(module)
 
-        assert "Missing value - power_type, power_parameters or pxe_mac_address" in str(
-            exc.value
+        assert (
+            "Missing value - power_type, power_parameters or pxe_mac_address"
+            in str(exc.value)
         )
 
 

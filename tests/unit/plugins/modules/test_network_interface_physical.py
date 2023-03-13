@@ -11,15 +11,16 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.modules import (
-    network_interface_physical,
-)
 from ansible_collections.canonical.maas.plugins.module_utils import errors
+from ansible_collections.canonical.maas.plugins.module_utils.machine import (
+    Machine,
+)
 from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
     NetworkInterface,
 )
-from ansible_collections.canonical.maas.plugins.module_utils.machine import Machine
-
+from ansible_collections.canonical.maas.plugins.modules import (
+    network_interface_physical,
+)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -204,7 +205,9 @@ class TestRun:
         results = network_interface_physical.run(module, client)
         assert results == expected
 
-    def test_run_with_present_ensure_present(self, create_module, client, mocker):
+    def test_run_with_present_ensure_present(
+        self, create_module, client, mocker
+    ):
         expected = (False, {}, {"before": {}, "after": {}})
         module = create_module(
             params=dict(
@@ -231,7 +234,9 @@ class TestRun:
         results = network_interface_physical.run(module, client)
         assert results == expected
 
-    def test_run_with_absent_ensure_absent(self, create_module, client, mocker):
+    def test_run_with_absent_ensure_absent(
+        self, create_module, client, mocker
+    ):
         expected = (False, {}, {"before": {}, "after": {}})
         module = create_module(
             params=dict(
@@ -349,7 +354,9 @@ class TestEnsurePresent:
             links=[],
         )
 
-    def test_ensure_present_when_create_new_nic(self, create_module, client, mocker):
+    def test_ensure_present_when_create_new_nic(
+        self, create_module, client, mocker
+    ):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         updated_machine_dict = self.get_machine_updated()
@@ -390,7 +397,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = network_interface_physical.ensure_present(module, client, machine_obj)
+        results = network_interface_physical.ensure_present(
+            module, client, machine_obj
+        )
         assert results == expected
 
     def test_ensure_present_when_update_existing_nic(
@@ -407,7 +416,10 @@ class TestEnsurePresent:
         expected = (
             True,
             nic_obj.to_ansible(),
-            {"before": existing_nic_obj.to_ansible(), "after": nic_obj.to_ansible()},
+            {
+                "before": existing_nic_obj.to_ansible(),
+                "after": nic_obj.to_ansible(),
+            },
         )
         module = create_module(
             params=dict(
@@ -442,10 +454,14 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = network_interface_physical.ensure_present(module, client, machine_obj)
+        results = network_interface_physical.ensure_present(
+            module, client, machine_obj
+        )
         assert results == expected
 
-    def test_ensure_present_when_no_changes_nic(self, create_module, client, mocker):
+    def test_ensure_present_when_no_changes_nic(
+        self, create_module, client, mocker
+    ):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         updated_machine_dict = self.get_machine_updated()
@@ -482,7 +498,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
         ).return_value = updated_machine_obj
-        results = network_interface_physical.ensure_present(module, client, machine_obj)
+        results = network_interface_physical.ensure_present(
+            module, client, machine_obj
+        )
         assert results == expected
 
 
@@ -610,10 +628,14 @@ class TestEsnureAbsent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
-        results = network_interface_physical.ensure_absent(module, client, machine_obj)
+        results = network_interface_physical.ensure_absent(
+            module, client, machine_obj
+        )
         assert results == expected
 
-    def test_ensure_absent_when_no_changes_nic(self, create_module, client, mocker):
+    def test_ensure_absent_when_no_changes_nic(
+        self, create_module, client, mocker
+    ):
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         expected = (False, None, {"before": None, "after": None})
@@ -634,7 +656,9 @@ class TestEsnureAbsent:
         mocker.patch(
             "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
         ).return_value = None
-        results = network_interface_physical.ensure_absent(module, client, machine_obj)
+        results = network_interface_physical.ensure_absent(
+            module, client, machine_obj
+        )
         assert results == expected
 
     def test_ensure_absent_when_delete_existing_nic_but_no_changes(
@@ -671,4 +695,6 @@ class TestEsnureAbsent:
             errors.MaasError,
             match=f"Delete network interface task failed with mac: {nic_obj.mac_address}",
         ):
-            network_interface_physical.ensure_absent(module, client, machine_obj)
+            network_interface_physical.ensure_absent(
+                module, client, machine_obj
+            )
