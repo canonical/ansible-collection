@@ -6,7 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -133,19 +132,21 @@ record:
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils.network_interface import NetworkInterface
 from ..module_utils import arguments, errors
-from ..module_utils.state import NicState, MachineTaskState
-from ..module_utils.machine import Machine
-from ..module_utils.utils import is_changed
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.machine import Machine
+from ..module_utils.network_interface import NetworkInterface
+from ..module_utils.state import MachineTaskState, NicState
+from ..module_utils.utils import is_changed
 
 
 def ensure_present(module, client, machine_obj):
     # Creates an alias not an actual physical nic.
     before = None
     after = None
-    existing_nic_obj = machine_obj.find_nic_by_name(module.params["network_interface"])
+    existing_nic_obj = machine_obj.find_nic_by_name(
+        module.params["network_interface"]
+    )
     new_nic_obj = NetworkInterface.from_ansible(module.params)
     if not existing_nic_obj:
         raise errors.MaasError(
@@ -163,25 +164,33 @@ def ensure_present(module, client, machine_obj):
         new_nic_obj.send_link_subnet_request(
             client,
             machine_obj,
-            new_nic_obj.payload_for_link_subnet(client, existing_nic_obj.fabric),
+            new_nic_obj.payload_for_link_subnet(
+                client, existing_nic_obj.fabric
+            ),
             existing_nic_obj.id,
         )
         updated_machine_obj = Machine.get_by_fqdn(
             module, client, must_exist=True, name_field_ansible="machine"
         )
-        updated_nic_obj = updated_machine_obj.find_nic_by_name(new_nic_obj.name)
+        updated_nic_obj = updated_machine_obj.find_nic_by_name(
+            new_nic_obj.name
+        )
         after = updated_nic_obj.find_linked_alias_by_cidr(module)
     elif not existing_linked_alias:
         new_nic_obj.send_link_subnet_request(
             client,
             machine_obj,
-            new_nic_obj.payload_for_link_subnet(client, existing_nic_obj.fabric),
+            new_nic_obj.payload_for_link_subnet(
+                client, existing_nic_obj.fabric
+            ),
             existing_nic_obj.id,
         )
         updated_machine_obj = Machine.get_by_fqdn(
             module, client, must_exist=True, name_field_ansible="machine"
         )
-        updated_nic_obj = updated_machine_obj.find_nic_by_name(new_nic_obj.name)
+        updated_nic_obj = updated_machine_obj.find_nic_by_name(
+            new_nic_obj.name
+        )
         after = updated_nic_obj.find_linked_alias_by_cidr(module)
     return is_changed(before, after), after, dict(before=before, after=after)
 
@@ -190,9 +199,13 @@ def ensure_absent(module, client, machine_obj):
     # Deletes an alias not an actual physical nic.
     before = None
     after = None
-    nic_to_delete_obj = machine_obj.find_nic_by_name(module.params["network_interface"])
+    nic_to_delete_obj = machine_obj.find_nic_by_name(
+        module.params["network_interface"]
+    )
     if nic_to_delete_obj:
-        linked_alias_to_delete = nic_to_delete_obj.find_linked_alias_by_cidr(module)
+        linked_alias_to_delete = nic_to_delete_obj.find_linked_alias_by_cidr(
+            module
+        )
         if linked_alias_to_delete:
             before = linked_alias_to_delete
             nic_to_delete_obj.send_unlink_subnet_request(

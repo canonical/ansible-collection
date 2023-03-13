@@ -36,7 +36,9 @@ class Tag:
             if tag["name"] == module.params["name"]:
                 return tag
         if must_exist:
-            raise errors.MaasError(f"Tag - {module.params['name']} - does not exist.")
+            raise errors.MaasError(
+                f"Tag - {module.params['name']} - does not exist."
+            )
 
     @staticmethod
     def send_create_request(client, module):

@@ -11,9 +11,11 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.vlan import Vlan
-from ansible_collections.canonical.maas.plugins.module_utils.client import Response
 from ansible_collections.canonical.maas.plugins.module_utils import errors
+from ansible_collections.canonical.maas.plugins.module_utils.client import (
+    Response,
+)
+from ansible_collections.canonical.maas.plugins.module_utils.vlan import Vlan
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"

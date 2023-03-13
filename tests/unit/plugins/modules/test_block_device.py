@@ -8,13 +8,16 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
+
 import pytest
 
-from ansible_collections.canonical.maas.plugins.modules import block_device
 from ansible_collections.canonical.maas.plugins.module_utils.block_device import (
     BlockDevice,
 )
-from ansible_collections.canonical.maas.plugins.module_utils.partition import Partition
+from ansible_collections.canonical.maas.plugins.module_utils.partition import (
+    Partition,
+)
+from ansible_collections.canonical.maas.plugins.modules import block_device
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -84,7 +87,10 @@ class TestMain:
         success, result = run_main(block_device)
 
         assert success is False
-        assert "missing required arguments: machine_fqdn, name, state" in result["msg"]
+        assert (
+            "missing required arguments: machine_fqdn, name, state"
+            in result["msg"]
+        )
 
     def test_required_together(self, run_main):
         params = dict(
@@ -102,7 +108,9 @@ class TestMain:
         success, result = run_main(block_device, params)
 
         assert success is False
-        assert "parameters are required together: model, serial" in result["msg"]
+        assert (
+            "parameters are required together: model, serial" in result["msg"]
+        )
 
     def test_mutually_exclusive(self, run_main):
         params = dict(
@@ -257,7 +265,9 @@ class TestDataForUpdateBlockDevice:
             size=12 * 1024 * 1024 * 1024,
         )
 
-        data = block_device.data_for_update_block_device(module, old_block_device)
+        data = block_device.data_for_update_block_device(
+            module, old_block_device
+        )
 
         assert data == dict(
             name="my-block-device-updated",

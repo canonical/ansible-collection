@@ -7,17 +7,15 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from .auth import get_oauth_header
-
 import json
 
+from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from ansible.module_utils.six.moves.urllib.parse import quote, urlencode
 from ansible.module_utils.urls import Request
 
+from .auth import get_oauth_header
 from .errors import AuthError, MaasError, UnexpectedAPIResponse
 from .form import Multipart
-
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.six.moves.urllib.parse import urlencode, quote
 
 DEFAULT_HEADERS = dict(Accept="application/json")
 
@@ -28,7 +26,9 @@ class Response:
         self.data = data
         # [('h1', 'v1'), ('H2', 'V2')] -> {'h1': 'v1', 'h2': 'V2'}
         self.headers = (
-            dict((k.lower(), v) for k, v in dict(headers).items()) if headers else {}
+            dict((k.lower(), v) for k, v in dict(headers).items())
+            if headers
+            else {}
         )
 
         self._json = None
@@ -39,12 +39,16 @@ class Response:
             try:
                 self._json = json.loads(self.data)
             except ValueError:
-                raise MaasError("Received invalid JSON response: {0}".format(self.data))
+                raise MaasError(
+                    "Received invalid JSON response: {0}".format(self.data)
+                )
         return self._json
 
 
 class Client:
-    def __init__(self, host, token_key=None, token_secret=None, consumer_key=None):
+    def __init__(
+        self, host, token_key=None, token_secret=None, consumer_key=None
+    ):
         if not (host or "").startswith(("https://", "http://")):
             raise MaasError(
                 "Invalid instance host value: '{0}'. "
@@ -67,7 +71,9 @@ class Client:
         return self._login_oauth1()
 
     def _login_oauth1(self):
-        result = get_oauth_header(self.consumer_key, self.token_key, self.token_secret)
+        result = get_oauth_header(
+            self.consumer_key, self.token_key, self.token_secret
+        )
         return dict(Authorization=result)
 
     def _request(self, method, path, data=None, headers=None, timeout=None):
@@ -122,11 +128,15 @@ class Client:
         headers = dict(headers or DEFAULT_HEADERS, **self.auth_header)
         if data is not None:
             boundary, data = Multipart.get_mulipart(data)
-            headers["Content-type"] = f'multipart/form-data; boundary="{boundary}"'
+            headers[
+                "Content-type"
+            ] = f'multipart/form-data; boundary="{boundary}"'
         elif binary_data is not None:
             data = binary_data
 
-        return self._request(method, url, data=data, headers=headers, timeout=timeout)
+        return self._request(
+            method, url, data=data, headers=headers, timeout=timeout
+        )
 
     def get(self, path, query=None, timeout=None):
         resp = self.request("GET", path, query=query, timeout=timeout)
@@ -135,18 +145,30 @@ class Client:
         raise UnexpectedAPIResponse(response=resp)
 
     def post(self, path, data, query=None, timeout=None):
-        resp = self.request("POST", path, data=data, query=query, timeout=timeout)
+        resp = self.request(
+            "POST", path, data=data, query=query, timeout=timeout
+        )
         if resp.status == 201 or resp.status == 200:
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
     def patch(self, path, data, query=None, timeout=None):
-        resp = self.request("PATCH", path, data=data, query=query, timeout=timeout)
+        resp = self.request(
+            "PATCH", path, data=data, query=query, timeout=timeout
+        )
         if resp.status == 200:
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
-    def put(self, path, data, query=None, timeout=None, binary_data=None, headers=None):
+    def put(
+        self,
+        path,
+        data,
+        query=None,
+        timeout=None,
+        binary_data=None,
+        headers=None,
+    ):
         resp = self.request(
             "PUT",
             path,

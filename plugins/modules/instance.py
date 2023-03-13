@@ -208,15 +208,17 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.machine import Machine
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.machine import Machine
 
 
 def allocate(module, client: Client):
     data = {}
     if module.params["allocate_params"]:
         if module.params["allocate_params"]["min_cpu_count"]:
-            data["cpu_count"] = module.params["allocate_params"]["min_cpu_count"]
+            data["cpu_count"] = module.params["allocate_params"][
+                "min_cpu_count"
+            ]
         if module.params["allocate_params"]["min_memory"]:
             data["mem"] = module.params["allocate_params"]["min_memory"]
         if module.params["allocate_params"]["zone"]:
@@ -234,7 +236,9 @@ def allocate(module, client: Client):
             subnet_cidr = module.params["network_interfaces"]["subnet_cidr"]
             if module.params["network_interfaces"]["ip_address"]:
                 ip_address = module.params["network_interfaces"]["ip_address"]
-                network_interface = f"{name}:subnet_cidr={subnet_cidr},ip={ip_address}"
+                network_interface = (
+                    f"{name}:subnet_cidr={subnet_cidr},ip={ip_address}"
+                )
             else:
                 network_interface = f"{name}:subnet_cidr={subnet_cidr}"
             data["interfaces"] = network_interface
@@ -263,26 +267,35 @@ def release(module, client: Client):
     if machine.status == "Commissioning":
         # commissioning will bring machine to the ready state
         # if state == commissioning: "Unexpected response - 409 b\"Machine cannot be released in its current state ('Commissioning').\""
-        updated_machine = Machine.wait_for_state(machine.id, client, False, "Ready")
+        updated_machine = Machine.wait_for_state(
+            machine.id, client, False, "Ready"
+        )
         return (
             False,  # No change because we actually don't do anything, just wait for Ready
             updated_machine.to_ansible(),
             dict(
-                before=updated_machine.to_ansible(), after=updated_machine.to_ansible()
+                before=updated_machine.to_ansible(),
+                after=updated_machine.to_ansible(),
             ),
         )
     if machine.status == "New" or "Failed" in machine.status:
         # commissioning will bring machine to the ready state
         machine.commission(client)
-        updated_machine = Machine.wait_for_state(machine.id, client, False, "Ready")
+        updated_machine = Machine.wait_for_state(
+            machine.id, client, False, "Ready"
+        )
         return (
             True,
             updated_machine.to_ansible(),
-            dict(before=machine.to_ansible(), after=updated_machine.to_ansible()),
+            dict(
+                before=machine.to_ansible(), after=updated_machine.to_ansible()
+            ),
         )
     machine.release(client)
     try:  # this is a problem for ephemeral machines
-        updated_machine = Machine.wait_for_state(machine.id, client, False, "Ready")
+        updated_machine = Machine.wait_for_state(
+            machine.id, client, False, "Ready"
+        )
     except errors.MachineNotFound:  # we get this for ephemeral machine
         updated_machine = machine
         pass
@@ -319,15 +332,21 @@ def deploy(module, client: Client):
         if module.params["deploy_params"]["osystem"]:
             data["osystem"] = module.params["deploy_params"]["osystem"]
         if module.params["deploy_params"]["distro_series"]:
-            data["distro_series"] = module.params["deploy_params"]["distro_series"]
+            data["distro_series"] = module.params["deploy_params"][
+                "distro_series"
+            ]
         if module.params["deploy_params"]["timeout"]:
             timeout = module.params["deploy_params"]["timeout"]
         if module.params["deploy_params"]["hwe_kernel"]:
             data["hwe_kernel"] = module.params["deploy_params"]["hwe_kernel"]
         if module.params["deploy_params"]["user_data"]:
             data["user_data"] = module.params["deploy_params"]["user_data"]
-    machine.deploy(client, data, timeout)  # here we can get TimeoutError: timed out
-    updated_machine = Machine.wait_for_state(machine.id, client, False, "Deployed")
+    machine.deploy(
+        client, data, timeout
+    )  # here we can get TimeoutError: timed out
+    updated_machine = Machine.wait_for_state(
+        machine.id, client, False, "Deployed"
+    )
     return (
         True,
         updated_machine.to_ansible(),
@@ -351,7 +370,9 @@ def main():
             arguments.get_spec("cluster_instance"),
             fqdn=dict(type="str"),
             state=dict(
-                type="str", required=True, choices=["ready", "deployed", "absent"]
+                type="str",
+                required=True,
+                choices=["ready", "deployed", "absent"],
             ),
             deploy_params=dict(
                 type="dict",

@@ -506,8 +506,8 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.machine import Machine
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.machine import Machine
 
 
 def run(module, client: Client):

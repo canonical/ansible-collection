@@ -8,13 +8,10 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import (
-    get_query,
-    MaasValueMapper,
-)
 from ..module_utils import errors
-from ..module_utils.rest_client import RestClient
 from ..module_utils.client import Client
+from ..module_utils.rest_client import RestClient
+from ..module_utils.utils import MaasValueMapper, get_query
 
 
 class Vlan(MaasValueMapper):
@@ -64,7 +61,9 @@ class Vlan(MaasValueMapper):
             ansible_maas_map={name_field_ansible: "name"},
         )
         maas_dict = rest_client.get_record(
-            f"/api/2.0/fabrics/{fabric_id}/vlans/", query, must_exist=must_exist
+            f"/api/2.0/fabrics/{fabric_id}/vlans/",
+            query,
+            must_exist=must_exist,
         )
         if maas_dict:
             vlan_from_maas = cls.from_maas(maas_dict)
@@ -132,7 +131,8 @@ class Vlan(MaasValueMapper):
 
     def update(self, client, payload):
         return client.put(
-            f"/api/2.0/fabrics/{self.fabric_id}/vlans/{self.vid}/", data=payload
+            f"/api/2.0/fabrics/{self.fabric_id}/vlans/{self.vid}/",
+            data=payload,
         ).json
 
     @classmethod

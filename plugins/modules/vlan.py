@@ -152,9 +152,9 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.vlan import Vlan
-from ..module_utils.fabric import Fabric
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.fabric import Fabric
+from ..module_utils.vlan import Vlan
 
 
 def data_for_create_vlan(module):
@@ -202,7 +202,10 @@ def data_for_update_vlan(module, vlan):
         if vlan.dhcp_on != module.params["dhcp_on"]:
             data["dhcp_on"] = module.params["dhcp_on"]
     if module.params["relay_vlan"]:
-        if not vlan.relay_vlan or vlan.relay_vlan["id"] != module.params["relay_vlan"]:
+        if (
+            not vlan.relay_vlan
+            or vlan.relay_vlan["id"] != module.params["relay_vlan"]
+        ):
             data["relay_vlan"] = module.params["relay_vlan"]
     if not module.params["relay_vlan"] and vlan.relay_vlan:
         data["relay_vlan"] = ""
@@ -268,7 +271,9 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            state=dict(type="str", choices=["present", "absent"], required=True),
+            state=dict(
+                type="str", choices=["present", "absent"], required=True
+            ),
             fabric_name=dict(type="str", required=True),
             vid=dict(type="int"),
             vlan_name=dict(type="str"),

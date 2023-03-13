@@ -104,12 +104,18 @@ status: ready
 #}
 
 """
-from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
-import yaml
 import logging
+import os
+
+from ansible.plugins.inventory import (
+    BaseInventoryPlugin,
+    Cacheable,
+    Constructable,
+)
+import yaml
+
 from ..module_utils import errors
 from ..module_utils.client import Client
-import os
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
@@ -176,9 +182,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 # Group
                 inventory.add_group(machine["domain"]["name"])
                 # Host
-                inventory.add_host(machine["fqdn"], group=machine["domain"]["name"])
+                inventory.add_host(
+                    machine["fqdn"], group=machine["domain"]["name"]
+                )
                 # Variables
-                inventory.set_variable(machine["fqdn"], "ansible_host", machine["fqdn"])
+                inventory.set_variable(
+                    machine["fqdn"], "ansible_host", machine["fqdn"]
+                )
                 inventory.set_variable(
                     machine["fqdn"], "ansible_group", machine["domain"]["name"]
                 )

@@ -6,6 +6,7 @@
 from __future__ import absolute_import, division, print_function
 
 from abc import abstractmethod
+
 from ..module_utils import errors
 
 __metaclass__ = type
@@ -77,7 +78,9 @@ def is_superset(superset, subset):
 
 
 def filter_results(results, filter_data):
-    return [element for element in results if is_superset(element, filter_data)]
+    return [
+        element for element in results if is_superset(element, filter_data)
+    ]
 
 
 def get_query(module, *field_names, ansible_maas_map):

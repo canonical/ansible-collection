@@ -8,10 +8,11 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
+
 import pytest
 
-from ansible_collections.canonical.maas.plugins.modules import vlan
 from ansible_collections.canonical.maas.plugins.module_utils.vlan import Vlan
+from ansible_collections.canonical.maas.plugins.modules import vlan
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -64,7 +65,9 @@ class TestMain:
         success, result = run_main(vlan)
 
         assert success is False
-        assert "missing required arguments: fabric_name, state" in result["msg"]
+        assert (
+            "missing required arguments: fabric_name, state" in result["msg"]
+        )
 
     def test_required_one_of(self, run_main):
         params = dict(
@@ -80,7 +83,9 @@ class TestMain:
         success, result = run_main(vlan, params)
 
         assert success is False
-        assert "one of the following is required: vid, vlan_name" in result["msg"]
+        assert (
+            "one of the following is required: vid, vlan_name" in result["msg"]
+        )
 
 
 class TestDataForCreateSpace:

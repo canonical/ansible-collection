@@ -173,12 +173,13 @@ record:
 
 
 import json
+
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.machine import Machine
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.machine import Machine
 
 
 def data_for_add_machine(module):
@@ -192,7 +193,9 @@ def data_for_add_machine(module):
             "power_type, power_parameters or pxe_mac_address"
         )
     data["power_type"] = module.params["power_type"]  # required
-    data["power_parameters"] = json.dumps(module.params["power_parameters"])  # required
+    data["power_parameters"] = json.dumps(
+        module.params["power_parameters"]
+    )  # required
     data["mac_addresses"] = module.params["pxe_mac_address"]  # required
     data["architecture"] = "amd64/generic"  # default
     if module.params["architecture"]:
@@ -227,7 +230,9 @@ def data_for_update_machine(module, machine):
             data["power_type"] = module.params["power_type"]
     if module.params["power_parameters"]:
         # Here we will not check for changes because some parameteres aren't returned
-        data["power_parameters"] = json.dumps(module.params["power_parameters"])
+        data["power_parameters"] = json.dumps(
+            module.params["power_parameters"]
+        )
     # pxe_mac_address can't be updated
     if module.params["architecture"]:
         if machine.architecture != module.params["architecture"]:
@@ -259,7 +264,9 @@ def update_machine(module, client: Client):
         return (
             True,
             machine_after.to_ansible(),
-            dict(before=machine.to_ansible(), after=machine_after.to_ansible()),
+            dict(
+                before=machine.to_ansible(), after=machine_after.to_ansible()
+            ),
         )
     return (
         False,

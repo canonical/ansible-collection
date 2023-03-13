@@ -100,9 +100,9 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
+from ..module_utils.cluster_instance import get_oauth1_client
 from ..module_utils.fabric import Fabric
 from ..module_utils.vlan import Vlan
-from ..module_utils.cluster_instance import get_oauth1_client
 
 
 def run(module, client: Client):

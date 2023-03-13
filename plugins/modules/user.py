@@ -6,7 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -91,12 +90,11 @@ record:
 
 from ansible.module_utils.basic import AnsibleModule
 
-
 from ..module_utils import arguments, errors
-from ..module_utils.utils import is_changed
+from ..module_utils.cluster_instance import get_oauth1_client
 from ..module_utils.state import UserState
 from ..module_utils.user import User
-from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.utils import is_changed
 
 
 def ensure_present(module, client):

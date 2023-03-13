@@ -101,8 +101,8 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.fabric import Fabric
 from ..module_utils.cluster_instance import get_oauth1_client
+from ..module_utils.fabric import Fabric
 
 
 def data_for_create_fabric(module):
@@ -134,7 +134,9 @@ def data_for_update_fabric(module, fabric):
     if module.params["class_type"]:
         if fabric.class_type != module.params["class_type"]:
             data["class_type"] = module.params["class_type"]
-    if module.params["description"]:  # TODO: update when description is returned
+    if module.params[
+        "description"
+    ]:  # TODO: update when description is returned
         data["description"] = module.params["description"]
     return data
 

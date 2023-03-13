@@ -226,10 +226,10 @@ record:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
+from ..module_utils.block_device import BlockDevice
 from ..module_utils.client import Client
 from ..module_utils.machine import Machine
 from ..module_utils.partition import Partition
-from ..module_utils.block_device import BlockDevice
 
 
 def create_partitions(module, client, block_device):
@@ -247,7 +247,9 @@ def create_partitions(module, client, block_device):
                 if partition["label"]:
                     data["label"] = partition["label"]
                 new_partition.format(client, data)
-                if partition["mount_point"]:  # used only if the partition is formatted
+                if partition[
+                    "mount_point"
+                ]:  # used only if the partition is formatted
                     data = {}
                     data["mount_point"] = partition["mount_point"]
                     if partition["mount_options"]:
@@ -272,7 +274,9 @@ def set_boot_disk(module, client, block_device):
 def data_for_create_block_device(module):
     data = {}
     data["name"] = module.params["name"]  # required
-    data["size"] = module.params["size_gigabytes"] * 1024 * 1024 * 1024  # required
+    data["size"] = (
+        module.params["size_gigabytes"] * 1024 * 1024 * 1024
+    )  # required
     data["block_size"] = 512  # default
     if module.params["block_size"]:
         data["block_size"] = module.params["block_size"]
@@ -313,8 +317,10 @@ def must_update_partitions(module, block_device):
             or block_device.partitions[n].tags != partition["tags"]
             or block_device.partitions[n].fstype != partition["fs_type"]
             or block_device.partitions[n].label != partition["label"]
-            or block_device.partitions[n].mount_point != partition["mount_point"]
-            or block_device.partitions[n].mount_options != partition["mount_options"]
+            or block_device.partitions[n].mount_point
+            != partition["mount_point"]
+            or block_device.partitions[n].mount_options
+            != partition["mount_options"]
         ):
             return True
         n += 1
@@ -371,7 +377,10 @@ def data_for_update_block_device(module, block_device):
         if block_device.block_size != module.params["block_size"]:
             data["block_size"] = module.params["block_size"]
     if module.params["size_gigabytes"]:
-        if block_device.size != module.params["size_gigabytes"] * 1024 * 1024 * 1024:
+        if (
+            block_device.size
+            != module.params["size_gigabytes"] * 1024 * 1024 * 1024
+        ):
             data["size"] = module.params["size_gigabytes"] * 1024 * 1024 * 1024
     return data
 
@@ -394,7 +403,9 @@ def update_block_device(module, client: Client, block_device):
     return (
         True,
         updated_block_device_maas_dict,
-        dict(before=block_device_maas_dict, after=updated_block_device_maas_dict),
+        dict(
+            before=block_device_maas_dict, after=updated_block_device_maas_dict
+        ),
     )
 
 

@@ -8,9 +8,8 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
-import time
 from random import SystemRandom
-
+import time
 
 rand_instance = SystemRandom()
 

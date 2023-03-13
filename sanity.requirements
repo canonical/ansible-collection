@@ -1,4 +1,7 @@
+ansible-lint
 click==8.0.4
 black>=22.1.0
+isort>=5.12.0
 flake8
 flake8-print
+flake8-pyproject

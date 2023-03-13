@@ -116,11 +116,11 @@ record:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
-from ..module_utils.state import MachineTaskState, NicState
+from ..module_utils.cluster_instance import get_oauth1_client
 from ..module_utils.machine import Machine
 from ..module_utils.network_interface import NetworkInterface
+from ..module_utils.state import MachineTaskState, NicState
 from ..module_utils.utils import is_changed
-from ..module_utils.cluster_instance import get_oauth1_client
 
 
 def ensure_present(module, client, machine_obj):
@@ -131,28 +131,41 @@ def ensure_present(module, client, machine_obj):
     if existing_nic and existing_nic.needs_update(new_nic_obj):
         before = existing_nic.to_ansible()
         new_nic_obj.send_update_request(
-            client, machine_obj, new_nic_obj.payload_for_update(), existing_nic.id
+            client,
+            machine_obj,
+            new_nic_obj.payload_for_update(),
+            existing_nic.id,
         )
     elif not existing_nic:
         new_nic_obj.send_create_request(
             client, machine_obj, new_nic_obj.payload_for_create()
         )
     else:
-        return is_changed(before, after), after, dict(before=before, after=after)
+        return (
+            is_changed(before, after),
+            after,
+            dict(before=before, after=after),
+        )
     updated_machine_obj = Machine.get_by_fqdn(
         module, client, must_exist=True, name_field_ansible="machine"
     )
-    after = updated_machine_obj.find_nic_by_mac(new_nic_obj.mac_address).to_ansible()
+    after = updated_machine_obj.find_nic_by_mac(
+        new_nic_obj.mac_address
+    ).to_ansible()
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def ensure_absent(module, client, machine_obj):
     before = None
     after = None
-    nic_to_delete_obj = machine_obj.find_nic_by_mac(module.params["mac_address"])
+    nic_to_delete_obj = machine_obj.find_nic_by_mac(
+        module.params["mac_address"]
+    )
     if nic_to_delete_obj:
         before = nic_to_delete_obj.to_ansible()
-        nic_to_delete_obj.send_delete_request(client, machine_obj, nic_to_delete_obj.id)
+        nic_to_delete_obj.send_delete_request(
+            client, machine_obj, nic_to_delete_obj.id
+        )
         # Check if nic was actually deleted, if not failed = True in playbook.
         updated_machine_obj = Machine.get_by_fqdn(
             module, client, must_exist=True, name_field_ansible="machine"

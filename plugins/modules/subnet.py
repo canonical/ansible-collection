@@ -6,7 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -123,12 +122,12 @@ record:
 """
 
 from itertools import groupby
+
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.cluster_instance import get_oauth1_client
-
 
 ENDPOINT = "/api/2.0/subnets/"
 
@@ -159,7 +158,9 @@ def get_complex_match(items, conditions: dict):
         }
 
         is_simple_match = all(
-            item[k] == v for k, v in conditions.items() if k not in complex_conditions
+            item[k] == v
+            for k, v in conditions.items()
+            if k not in complex_conditions
         )
         is_complex_match = all(
             item[k1][k2] == v for (k1, k2), v in complex_conditions.items()
@@ -364,13 +365,17 @@ def main():
         end_ip=dict(type="str", required=True),
     )
 
-    ip_range_list_spec = dict(type="list", elements="dict", options=ip_range_spec)
+    ip_range_list_spec = dict(
+        type="list", elements="dict", options=ip_range_spec
+    )
 
     module = AnsibleModule(
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            state=dict(type="str", required=True, choices=["present", "absent"]),
+            state=dict(
+                type="str", required=True, choices=["present", "absent"]
+            ),
             name=dict(type="str", required=True),
             cidr=dict(type="str"),
             fabric=dict(type="str"),

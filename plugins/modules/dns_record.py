@@ -6,7 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -88,7 +87,6 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.cluster_instance import get_oauth1_client
 from ..module_utils.dns_record import to_ansible
-
 
 ENDPOINT_A = "/api/2.0/dnsresources/"
 ENDPOINT_OTHER = "/api/2.0/dnsresourcerecords/"
@@ -207,7 +205,8 @@ def ensure_present(module, client: Client):
 
 def ensure_absent(module, client: Client):
     resource_name = (
-        module.params["fqdn"] or f"{module.params['name']}.{module.params['domain']}"
+        module.params["fqdn"]
+        or f"{module.params['name']}.{module.params['domain']}"
     )
 
     items = client.get(ENDPOINT_A).json
@@ -236,7 +235,9 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            state=dict(type="str", required=True, choices=["present", "absent"]),
+            state=dict(
+                type="str", required=True, choices=["present", "absent"]
+            ),
             fqdn=dict(type="str"),
             name=dict(type="str"),
             domain=dict(type="str"),

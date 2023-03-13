@@ -6,7 +6,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 DOCUMENTATION = r"""
@@ -80,7 +79,6 @@ record:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-
 
 from ..module_utils import arguments, errors
 from ..module_utils.cluster_instance import get_oauth1_client

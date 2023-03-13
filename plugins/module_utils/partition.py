@@ -8,9 +8,9 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import MaasValueMapper
 from ..module_utils import errors
 from ..module_utils.client import Client
+from ..module_utils.utils import MaasValueMapper
 
 
 class Partition(MaasValueMapper):
