@@ -56,23 +56,19 @@ class NetworkInterface(MaasValueMapper):
         return self.to_ansible() == other.to_ansible()
 
     @classmethod
-    def from_ansible(cls, network_interface_dict):
+    def from_ansible(cls, module):
         obj = NetworkInterface()
-        obj.name = network_interface_dict.get(
-            "name", network_interface_dict.get("network_interface")
-        )
-        obj.subnet_cidr = network_interface_dict.get(
-            "subnet_cidr", network_interface_dict.get("subnet")
-        )
-        obj.ip_address = network_interface_dict.get("ip_address")
-        obj.fabric = network_interface_dict.get("fabric")
-        obj.vlan = network_interface_dict.get("vlan")
-        obj.label_name = network_interface_dict.get("label_name")
-        obj.mac_address = network_interface_dict.get("mac_address")
-        obj.mtu = network_interface_dict.get("mtu")
-        obj.tags = network_interface_dict.get("tags", [])
-        obj.mode = network_interface_dict.get("mode")
-        obj.default_gateway = network_interface_dict.get("default_gateway")
+        obj.name = module.get("name", module.get("network_interface"))
+        obj.subnet_cidr = module.get("subnet_cidr", module.get("subnet"))
+        obj.ip_address = module.get("ip_address")
+        obj.fabric = module.get("fabric")
+        obj.vlan = module.get("vlan")
+        obj.label_name = module.get("label_name")
+        obj.mac_address = module.get("mac_address")
+        obj.mtu = module.get("mtu")
+        obj.tags = module.get("tags", [])
+        obj.mode = module.get("mode")
+        obj.default_gateway = module.get("default_gateway")
         return obj
 
     @classmethod

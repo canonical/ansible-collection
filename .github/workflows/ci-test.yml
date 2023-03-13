@@ -3,60 +3,40 @@ on:
   - push
   - pull_request
 env:
-  WORKDIR: /work-dir/ansible_collections/canonical/maas
+  REPO_DIR: ansible_collections/canonical/maas
 jobs:
   docs:
     runs-on: ubuntu-latest
-    container: python:3.10-slim-buster
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-        # ansible-test needs special directory structure.
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
-        #
-      - run: cd $WORKDIR && make docs
-      - run: cd $WORKDIR && ls -al docs/build/html
+        with:
+          path: ${{ env.REPO_DIR }}
+      - name: Build docs
+        run: |
+          pip install tox
+          env -C "$GITHUB_WORKSPACE/$REPO_DIR" -- tox -e docs
 
   sanity-test:
     runs-on: ubuntu-latest
-    container: python:3.10-slim-buster
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-      - run: pip install ansible-core==2.13.1
-        # ansible-test needs special directory structure.
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
-        # Same as "make sanity"
-        # TODO reuse Makefile
-      - run: cd $WORKDIR && isort plugins tests/unit
-      - run: cd $WORKDIR && black -t py38 --check --diff --color plugins tests/unit
-      - run: cd $WORKDIR && ansible-lint
-      - run: cd $WORKDIR && flake8
-      - run: cd $WORKDIR && ansible-test sanity
+        with:
+          path: ${{ env.REPO_DIR }}
+      - name: Sanity check
+        run: |
+          pip install tox
+          env -C "$GITHUB_WORKSPACE/$REPO_DIR" -- tox -e sanity
 
   units-test:
     runs-on: ubuntu-latest
-    container: python:3.10-slim-buster
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-      - run: pip install ansible-core==2.13.1
-        # ansible-test needs special directory structure.
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
-        # Same as "make units"
-        # TODO reuse Makefile
-      - run: cd $WORKDIR && ansible-test units --coverage
-      - run: cd $WORKDIR && ansible-test coverage html --requirements
-      - run: cd $WORKDIR && ansible-test coverage report --omit 'tests/*' --show-missing
+        with:
+          path: ${{ env.REPO_DIR }}
+      - name: Run unit tests
+        run: |
+          pip install tox
+          env -C "$GITHUB_WORKSPACE/$REPO_DIR" -- tox -e coverage
