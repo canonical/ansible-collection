@@ -31,40 +31,13 @@ help:
 
 # Developer convenience targets
 
-.PHONY: format
-format:  ## Format python code with black/isort
-	isort --profile=black plugins tests/unit
-	black -t py38 plugins tests/unit
-
 .PHONY: clean
 clean:  ## Remove all auto-generated files
 	rm -rf tests/output
 
-.PHONY: $(unit_test_targets)
-$(unit_test_targets):
-	ansible-test units --requirements --python $(python_version) $@
-
 .PHONY: $(integration_test_targets)
 $(integration_test_targets):
 	ansible-test integration --requirements --python $(python_version) --diff $@
-
-# Things also used in CI/CD
-
-.PHONY: sanity
-sanity:  ## Run sanity tests
-	pip install -r sanity.requirements
-	ansible-lint
-	isort --check-only --diff plugins tests/unit
-	black --check --diff --color plugins tests/unit
-	flake8 plugins tests/unit
-	ansible-test sanity --docker
-
-.PHONY: units
-units:  ## Run unit tests
-	-ansible-test coverage erase # On first run, there is nothing to erase.
-	ansible-test units --docker --coverage
-	ansible-test coverage html --requirements
-	ansible-test coverage report --omit 'tests/*' --show-missing
 
 .PHONY: integration
 integration:  ## Run integration tests
@@ -73,8 +46,3 @@ integration:  ## Run integration tests
 .PHONY: integration-local
 integration-local:
 	ansible-test integration --local --diff
-
-.PHONY: docs
-docs:  ## Build collection documentation
-	pip install -r docs.requirements
-	$(MAKE) -C docs -f Makefile.custom docs

@@ -35,12 +35,12 @@ class User(MaasValueMapper):
         return self.to_ansible() == other.to_ansible()
 
     @classmethod
-    def from_ansible(cls, user_dict):
+    def from_ansible(cls, module):
         obj = User()
-        obj.name = user_dict.get("name")
-        obj.email = user_dict.get("email")
-        obj.is_admin = user_dict.get("is_admin")
-        obj.password = user_dict.get("password")
+        obj.name = module.get("name")
+        obj.email = module.get("email")
+        obj.is_admin = module.get("is_admin")
+        obj.password = module.get("password")
         return obj
 
     @classmethod

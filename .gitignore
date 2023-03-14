@@ -1,10 +1,10 @@
-.venv
 *.pyc
-tests/output
+.tox
+/tests/output
 
 # integration_config.yml contains connection info for the
 # developer instance, including credentials
-tests/integration/integration_config.yml
-tests/integration/inventory
-docs/build
-docs/source/modules
+/tests/integration/integration_config.yml
+/tests/integration/inventory
+/docs/build
+/docs/source/modules/*.rst
