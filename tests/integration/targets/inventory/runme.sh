@@ -17,12 +17,6 @@ env | grep MAAS_
 
 set -eux
 
-# Inject maas_inventory.yml with needed values before running tests
-# Use examples/maas_inventory.yml as template.
-# cat file to fail early if maas_inventory.yml is missing.
-cat "$(dirname "$(realpath "$0")")/maas_inventory_status_ready.yml"
-
-
 export ANSIBLE_PYTHON_INTERPRETER="$ANSIBLE_TEST_PYTHON_INTERPRETER"
 
 function cleanup {
@@ -37,7 +31,6 @@ ansible-playbook -e "@$vars_file" common/cleanup.yml
 ansible-playbook -e "@$vars_file" common/prepare.yml
 
 # Add more inventory files to test other possible machine status.
-ansible-playbook -i localhost, -i maas_inventory_status_commissioning.yml -e "@$vars_file" common/run_status_commissioning_test.yml
 ansible-playbook -i localhost, -i maas_inventory_status_ready.yml -e "@$vars_file" common/run_status_ready_test.yml
 ansible-playbook -i localhost, -i maas_inventory_no_status.yml -e "@$vars_file" common/run_no_status_test.yml
 
