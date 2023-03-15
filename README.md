@@ -1,4 +1,4 @@
-# Ansible Collection - cannonical.maas
+# Ansible Collection - canonical.maas
 
 Documentation for the collection.
 

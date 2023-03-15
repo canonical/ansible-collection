@@ -94,7 +94,7 @@ options:
 
 EXAMPLES = r"""
 - name: Add subnet IP range
-  cannonical.maas.dns_domain_info:
+  canonical.maas.dns_domain_info:
     cluster_instance:
       host: ...
       token_key: ...

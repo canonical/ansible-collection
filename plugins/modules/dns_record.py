@@ -54,7 +54,7 @@ options:
 
 EXAMPLES = r"""
 - name: Add domain
-  cannonical.maas.dns_record:
+  canonical.maas.dns_record:
     cluster_instance:
       host: ...
       token_key: ...

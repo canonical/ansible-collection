@@ -25,7 +25,7 @@ options: {}
 
 EXAMPLES = r"""
 - name: List domains
-  cannonical.maas.dns_domain_info:
+  canonical.maas.dns_domain_info:
     cluster_instance:
       host: ...
       token_key: ...
