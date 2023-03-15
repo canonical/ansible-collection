@@ -25,7 +25,7 @@ options: {}
 
 EXAMPLES = r"""
 - name: List subnets
-  cannonical.maas.subnet_info:
+  canonical.maas.subnet_info:
     cluster_instance:
       host: ...
       token_key: ...

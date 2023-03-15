@@ -29,7 +29,7 @@ options:
 
 EXAMPLES = r"""
 - name: List records
-  cannonical.maas.dns_records_info:
+  canonical.maas.dns_records_info:
     cluster_instance:
       host: ...
       token_key: ...

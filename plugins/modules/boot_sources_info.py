@@ -25,7 +25,7 @@ options: {}
 
 EXAMPLES = r"""
 - name: List boot sources
-  cannonical.maas.vm_host_info:
+  canonical.maas.vm_host_info:
     cluster_instance:
       host: ...
       token_key: ...

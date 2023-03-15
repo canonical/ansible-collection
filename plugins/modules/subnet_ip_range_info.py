@@ -25,7 +25,7 @@ options: {}
 
 EXAMPLES = r"""
 - name: List IP ranges
-  cannonical.maas.subnet_ip_range_info:
+  canonical.maas.subnet_ip_range_info:
     cluster_instance:
       host: ...
       token_key: ...
