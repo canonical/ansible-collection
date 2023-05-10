@@ -20,7 +20,7 @@ description:
   - If I(state) is C(absent) selected block device is deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   state:
@@ -127,7 +127,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create and attach block device to machine
-  canonical.maas.block_device:
+  maas.maas.block_device:
     machine_fqdn: some_machine_name.project
     name: vdb
     state: present
@@ -149,7 +149,7 @@ EXAMPLES = r"""
         tags: my_partition
 
 - name: Delete block device
-  canonical.maas.block_device:
+  maas.maas.block_device:
     machine_fqdn: some_machine_name.project
     name: vdb
     state: absent

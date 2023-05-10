@@ -10,7 +10,7 @@
 
   tasks:
     - name: Delete machine
-      canonical.maas.instance:
+      maas.maas.instance:
         fqdn: "{{ item }}"
         state: absent
       loop:

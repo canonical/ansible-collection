@@ -17,7 +17,7 @@ short_description: Manage the user accounts.
 description: Create or delete user accounts.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   name:
@@ -45,7 +45,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create user John
-  canonical.maas.user:
+  maas.maas.user:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -61,7 +61,7 @@ EXAMPLES = r"""
     var: new_user
 
 - name: Delete user John
-  canonical.maas.user:
+  maas.maas.user:
     cluster_instance:
       host: host-ip
       token_key: token-key

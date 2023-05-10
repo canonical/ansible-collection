@@ -5,9 +5,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from ansible_collections.canonical.maas.plugins.module_utils.machine import (
-    Machine,
-)
+from ansible_collections.maas.maas.plugins.module_utils.machine import Machine
 
 __metaclass__ = type
 
@@ -15,11 +13,9 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils import errors
-from ansible_collections.canonical.maas.plugins.module_utils.client import (
-    Response,
-)
-from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
+from ansible_collections.maas.maas.plugins.module_utils import errors
+from ansible_collections.maas.maas.plugins.module_utils.client import Response
+from ansible_collections.maas.maas.plugins.module_utils.network_interface import (
     NetworkInterface,
 )
 
@@ -354,7 +350,7 @@ class TestSendRequestAndPayload:
         expected = nic_obj.to_maas()
         expected["subnet"] = 2
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
         ).return_value = {
             "id": 2,
             "gateway_ip": "10.10.10.1",
@@ -371,7 +367,7 @@ class TestSendRequestAndPayload:
         expected = nic_obj.to_maas()
         expected["subnet"] = 2
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
         ).return_value = {
             "id": 2,
             "gateway_ip": "10.10.10.1",
@@ -537,7 +533,7 @@ class TestAlias:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
         ).return_value = {"gateway_ip": "10.10.10.1"}
         results = NetworkInterface.alias_needs_update(
             client, existing_alias, module
@@ -565,7 +561,7 @@ class TestAlias:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.find_subnet_by_cidr"
         ).return_value = {"gateway_ip": "10.10.10.1"}
         results = NetworkInterface.alias_needs_update(
             client, existing_alias, module

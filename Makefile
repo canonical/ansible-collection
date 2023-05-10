@@ -5,12 +5,12 @@ collection := $(notdir $(realpath $(CURDIR)      ))
 namespace  := $(notdir $(realpath $(CURDIR)/..   ))
 toplevel   := $(notdir $(realpath $(CURDIR)/../..))
 
-err_msg := Place collection at <WHATEVER>/ansible_collections/canonical/maas
+err_msg := Place collection at <WHATEVER>/ansible_collections/maas/maas
 ifeq (true,$(CI))
   $(info Running in CI setting, skipping directory checks.)
 else ifneq (maas, $(collection))
   $(error $(err_msg))
-else ifneq (canonical, $(namespace))
+else ifneq (maas, $(namespace))
   $(error $(err_msg))
 else ifneq (ansible_collections, $(toplevel))
   $(error $(err_msg))

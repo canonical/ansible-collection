@@ -18,7 +18,7 @@ description:
   - Plugin returns information about all VLANs on a specfic fabric or specific VLAN on a specfic fabric.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   fabric_name:
@@ -44,7 +44,7 @@ options:
 
 EXAMPLES = r"""
 - name: Get list of all VLANs on a specific fabric
-  canonical.maas.vlan_info:
+  maas.maas.vlan_info:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -53,7 +53,7 @@ EXAMPLES = r"""
     fabric_name: fabric-7
 
 - name: Get info about a specific VLAN on a specific fabric - by vlan name
-  canonical.maas.vlan_info:
+  maas.maas.vlan_info:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -63,7 +63,7 @@ EXAMPLES = r"""
     vlan_name: vlan-5
 
 - name: Get info about a specific VLAN on a specific fabric - by vid
-  canonical.maas.vlan_info:
+  maas.maas.vlan_info:
     cluster_instance:
       host: host-ip
       token_key: token-key

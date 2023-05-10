@@ -21,10 +21,10 @@ options:
   plugin:
     description:
       - The name of the MAAS Inventory Plugin.
-      - This should always be C(canonical.maas.inventory).
+      - This should always be C(maas.maas.inventory).
     required: true
     type: str
-    choices: [ canonical.maas.inventory ]
+    choices: [ maas.maas.inventory ]
   status:
     description:
       - If missing, all VMs are included into inventory.
@@ -37,7 +37,7 @@ EXAMPLES = r"""
 # VMs are grouped based on their domains.
 # In the example, two domains are being used: "maas" and "test".
 
-plugin: canonical.maas.inventory
+plugin: maas.maas.inventory
 
 # `ansible-inventory -i examples/maas_inventory.yaml --graph` output:
 #@all:
@@ -75,7 +75,7 @@ plugin: canonical.maas.inventory
 # A group "test" is created based on the domain name "test".
 # Only VMs with status "ready", are added to the group.
 
-plugin: canonical.maas.inventory
+plugin: maas.maas.inventory
 
 status: ready
 
@@ -148,7 +148,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         plugin = config_contents.get("plugin")
         if not plugin:
             return False
-        if plugin not in [self.NAME, "canonical.maas.inventory"]:
+        if plugin not in [self.NAME, "maas.maas.inventory"]:
             return False
         return True
 

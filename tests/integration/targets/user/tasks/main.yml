@@ -9,12 +9,12 @@
   block:
   # ----------------------------------Cleanup---------------------------------------------------------------------------------
     - name: Delete user John
-      canonical.maas.user:
+      maas.maas.user:
         state: absent
         name: John
   # ----------------------------------Job-------------------------------------------------------------------------------------
     - name: Create user John
-      canonical.maas.user:
+      maas.maas.user:
         state: present
         name: John
         password: john123
@@ -27,7 +27,7 @@
           - new_user is changed
 
     - name: Get info from user John
-      canonical.maas.user_info:
+      maas.maas.user_info:
         name: John
       register: new_user_info
     - ansible.builtin.assert:
@@ -41,7 +41,7 @@
 
   # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create user John (Idempotence)
-      canonical.maas.user:
+      maas.maas.user:
         state: present
         name: John
         password: john123
@@ -54,7 +54,7 @@
           - new_user is not changed
 
     - name: Get info from user John (Idempotence)
-      canonical.maas.user_info:
+      maas.maas.user_info:
         name: John
       register: new_user_info
     - ansible.builtin.assert:
@@ -68,7 +68,7 @@
 
   # ----------------------------------Job-------------------------------------------------------------------------------------
     - name: Delete user John
-      canonical.maas.user:
+      maas.maas.user:
         state: absent
         name: John
       register: deleted_user
@@ -78,7 +78,7 @@
           - deleted_user is changed
 
     - name: Get info from user John after delete
-      canonical.maas.user_info:
+      maas.maas.user_info:
         name: John
       register: deleted_user_info
     - ansible.builtin.assert:
@@ -89,7 +89,7 @@
 
   # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Delete user John (Idempotence)
-      canonical.maas.user:
+      maas.maas.user:
         state: absent
         name: John
       register: deleted_user
@@ -99,7 +99,7 @@
           - deleted_user is not changed
 
     - name: Get info from user John after delete (Idempotence)
-      canonical.maas.user_info:
+      maas.maas.user_info:
         name: John
       register: deleted_user_info
     - ansible.builtin.assert:

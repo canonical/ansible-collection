@@ -8,17 +8,17 @@
 
   block:
     - name: Delete machine-test
-      canonical.maas.machine:
+      maas.maas.machine:
         fqdn: machine-test.maas
         state: absent
 
     - name: Delete updated-machine
-      canonical.maas.machine:
+      maas.maas.machine:
         fqdn: updated-machine.maas
         state: absent
 
     - name: Add machine - missing parameter
-      canonical.maas.machine:
+      maas.maas.machine:
         state: present
         power_parameters:
           power_address: 172.16.117.70:8443
@@ -38,7 +38,7 @@
           - "'Missing value - power_type, power_parameters or pxe_mac_address' in machine.msg"
 
     - name: Add machine.
-      canonical.maas.machine:
+      maas.maas.machine:
         state: present
         power_type: lxd
         power_parameters:
@@ -63,7 +63,7 @@
     #       - machine.record.min_hwe_kernel == "hwe-20.04"
 
     - name: Update existing machine
-      canonical.maas.machine:
+      maas.maas.machine:
         state: present
         fqdn: machine-test.maas
         power_type: virsh
@@ -88,7 +88,7 @@
           - machine.record.min_hwe_kernel == "ga-20.04"
 
     - name: Update existing machine - idempotence
-      canonical.maas.machine:
+      maas.maas.machine:
         state: present
         fqdn: updated-machine.maas
         # updating power_type and power_parameters will never be idempoten because we can't read all the values
@@ -108,7 +108,7 @@
           - machine.record.min_hwe_kernel == "ga-20.04"
 
     - name: Delete machine
-      canonical.maas.instance:
+      maas.maas.instance:
         fqdn: updated-machine.maas
         state: absent
       register: machine
@@ -117,7 +117,7 @@
           - machine is changed
 
     - name: Delete machine - idempotence
-      canonical.maas.instance:
+      maas.maas.instance:
         fqdn: updated-machine.maas
         state: absent
       register: machine

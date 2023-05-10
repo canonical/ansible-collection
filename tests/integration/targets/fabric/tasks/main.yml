@@ -8,10 +8,10 @@
 
   block:
     - name: List network fabrics
-      canonical.maas.fabric_info:
+      maas.maas.fabric_info:
       register: fabrics
     - name: List network fabrics
-      canonical.maas.fabric_info:
+      maas.maas.fabric_info:
         name: "{{ fabrics.records.0.name }}"
       register: fabric
     - ansible.builtin.assert:
@@ -19,17 +19,17 @@
           - fabric.records.0.name == fabrics.records.0.name
 
     - name: Delete network fabric
-      canonical.maas.fabric:
+      maas.maas.fabric:
         name: my-fabric
         state: absent
 
     - name: Delete network fabric
-      canonical.maas.fabric:
+      maas.maas.fabric:
         name: my-fabric-updated
         state: absent
 
     - name: Add network fabric - missing parameter
-      canonical.maas.fabric:
+      maas.maas.fabric:
       ignore_errors: true
       register: fabric
     - ansible.builtin.assert:
@@ -38,7 +38,7 @@
           - "'missing required arguments: state' in fabric.msg"
 
     - name: Add network fabric - without name
-      canonical.maas.fabric:
+      maas.maas.fabric:
         state: present
         description: my fabric
         class_type: a
@@ -50,7 +50,7 @@
           # - fabric.record.description == "my fabric"
 
     - name: Delete network fabric
-      canonical.maas.fabric:
+      maas.maas.fabric:
         name: "{{ fabric.record.name }}"
         state: absent
     - ansible.builtin.assert:
@@ -58,7 +58,7 @@
           - fabric is changed
 
     - name: Add network fabric - with name
-      canonical.maas.fabric:
+      maas.maas.fabric:
         state: present
         name: my-fabric
         description: my fabric
@@ -72,7 +72,7 @@
           # - fabric.record.description == "my fabric"
 
     - name: Update network fabric
-      canonical.maas.fabric:
+      maas.maas.fabric:
         state: present
         name: my-fabric
         new_name: my-fabric-updated
@@ -87,7 +87,7 @@
           # - fabric.record.description == "my fabric updated" # description isn't returned
 
     - name: Update network fabric - idempotence
-      canonical.maas.fabric:
+      maas.maas.fabric:
         state: present
         name: my-fabric-updated
         new_name: my-fabric-updated
@@ -103,6 +103,6 @@
           # - fabric.record.description == "my fabric updated" # description isn't returned
 
     - name: Delete network fabric
-      canonical.maas.fabric:
+      maas.maas.fabric:
         name: my-fabric-updated
         state: absent

@@ -18,7 +18,7 @@ description:
   - Plugin provides a resource to manage MAAS DNS records.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   state:
@@ -54,7 +54,7 @@ options:
 
 EXAMPLES = r"""
 - name: Add domain
-  canonical.maas.dns_record:
+  maas.maas.dns_record:
     cluster_instance:
       host: ...
       token_key: ...

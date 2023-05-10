@@ -17,7 +17,7 @@ short_description: Manages network interfaces on a specific machine.
 description: Connects, updates or disconnects an existing network interface on a specified machine.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   machine:
@@ -58,7 +58,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create subnet link on VM new-machine-3.test-domain with network interface enp5s0
-  canonical.maas.network_interface_link:
+  maas.maas.network_interface_link:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -74,7 +74,7 @@ EXAMPLES = r"""
   register: nic_info
 
 - name: Delete subnet link on VM new-machine-3.test-domain with network interface enp5s0
-  canonical.maas.network_interface_link:
+  maas.maas.network_interface_link:
     cluster_instance:
       host: host-ip
       token_key: token-key

@@ -18,14 +18,14 @@ description:
   - Plugin returns all subnets.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options: {}
 """
 
 EXAMPLES = r"""
 - name: List subnets
-  canonical.maas.subnet_info:
+  maas.maas.subnet_info:
     cluster_instance:
       host: ...
       token_key: ...

@@ -9,28 +9,28 @@
   block:
     # ----------------------------------Cleanup------------------------------------
     - name: List fabrics
-      canonical.maas.fabric_info:
+      maas.maas.fabric_info:
       register: fabrics
 
     - name: Delete vlan (by vid)
-      canonical.maas.vlan:
+      maas.maas.vlan:
         state: absent
         fabric_name: "{{ fabrics.records.0.name }}"
         vid: 5
 
     - name: Delete network space
-      canonical.maas.space: &delete-network-space
+      maas.maas.space: &delete-network-space
         name: space-for-vlan-test
         state: absent
 
     # -----------------------------------Info------------------------------------
     - name: List vlans
-      canonical.maas.vlan_info:
+      maas.maas.vlan_info:
         fabric_name: "{{ fabrics.records.0.name }}"
       register: vlans
 
     - name: List specific vlan
-      canonical.maas.vlan_info:
+      maas.maas.vlan_info:
         fabric_name: "{{ fabrics.records.0.name }}"
         vlan_name: "{{ vlans.records.0.name }}"
       register: vlan
@@ -40,7 +40,7 @@
 
     # ------------------------------------Job------------------------------------
     - name: Create vlan - missing parameter
-      canonical.maas.vlan:
+      maas.maas.vlan:
         state: present
         fabric_name: fabric-10
       ignore_errors: true
@@ -51,7 +51,7 @@
           - "'one of the following is required: vid, vlan_name' in vlan.msg"
 
     - name: Add network space
-      canonical.maas.space:
+      maas.maas.space:
         state: present
         name: space-for-vlan-test
       register: space
@@ -61,7 +61,7 @@
           - space.record.name == "space-for-vlan-test"
 
     - name: Create vlan
-      canonical.maas.vlan:
+      maas.maas.vlan:
         state: present
         fabric_name: "{{ fabrics.records.0.name }}"
         vid: 5
@@ -82,7 +82,7 @@
           # - vlan.record.description == "VLAN on fabric-0" # description is not returned
 
     - name: Create vlan - idempotence
-      canonical.maas.vlan:
+      maas.maas.vlan:
         state: present
         fabric_name: "{{ fabrics.records.0.name }}"
         vid: 5
@@ -103,7 +103,7 @@
           # - vlan.record.description == "VLAN on fabric-0" # description is not returned
 
     - name: Update vlan (by name)
-      canonical.maas.vlan:
+      maas.maas.vlan:
         state: present
         fabric_name: "{{ fabrics.records.0.name }}"
         vlan_name: vlan-5
@@ -124,7 +124,7 @@
           # - vlan.record.description == "VLAN on fabric-0 updated" # description is not returned
 
     - name: Update vlan (by vid) - idempotence
-      canonical.maas.vlan:
+      maas.maas.vlan:
         state: present
         fabric_name: "{{ fabrics.records.0.name }}"
         vid: 5
@@ -146,10 +146,10 @@
 
     # ----------------------------------Cleanup------------------------------------
     - name: Delete vlan (by name)
-      canonical.maas.vlan:
+      maas.maas.vlan:
         state: absent
         fabric_name: "{{ fabrics.records.0.name }}"
         vlan_name: vlan-555
 
     - name: Delete network space
-      canonical.maas.space: *delete-network-space
+      maas.maas.space: *delete-network-space

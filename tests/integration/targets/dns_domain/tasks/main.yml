@@ -9,33 +9,33 @@
   block:
     # Make first domain default, so we can delete test one if it staied default
     - name: List domains
-      canonical.maas.dns_domain_info:
+      maas.maas.dns_domain_info:
       register: domains
 
     - ansible.builtin.set_fact:
         default_domain_name: "{{ domains.records[0].name }}"
 
     - name: Make first domain default
-      canonical.maas.dns_domain: &set_default
+      maas.maas.dns_domain: &set_default
         name: "{{ default_domain_name }}"
         is_default: true
         state: present
 
     # Ensure that we start with clean environment
     - name: Delete domain - to have clean environment
-      canonical.maas.dns_domain: &delete
+      maas.maas.dns_domain: &delete
         name: test-domain
         state: absent
 
     # List all domains for later
     - name: List domains
-      canonical.maas.dns_domain_info:
+      maas.maas.dns_domain_info:
       register: domains
 
 
     # Ensure that creating new domain reports changed
     - name: Create domain
-      canonical.maas.dns_domain: &create
+      maas.maas.dns_domain: &create
         name: test-domain
         state: present
       register: test_domain
@@ -50,7 +50,7 @@
 
     # Ensure that creation is idempotent
     - name: Recreate domain
-      canonical.maas.dns_domain: *create
+      maas.maas.dns_domain: *create
       register: test_domain
 
     - ansible.builtin.assert:
@@ -60,7 +60,7 @@
 
     # Check setting one as default works
     - name: Set as default
-      canonical.maas.dns_domain:
+      maas.maas.dns_domain:
         name: test-domain
         state: present
         is_default: true
@@ -73,7 +73,7 @@
 
     # Check that setting optional value is working
     - name: Set ttl
-      canonical.maas.dns_domain:
+      maas.maas.dns_domain:
         name: test-domain
         state: present
         ttl: 1800
@@ -87,7 +87,7 @@
 
     # Check that omitting optional value is working. Authoritative changed, ttl skipped
     - name: Skip setting ttl
-      canonical.maas.dns_domain:
+      maas.maas.dns_domain:
         name: test-domain
         state: present
         authoritative: false
@@ -101,16 +101,16 @@
 
     # Deleting default should fail
     - name: Delete test domain, which is default
-      canonical.maas.dns_domain: *delete
+      maas.maas.dns_domain: *delete
       register: test_domain
       failed_when: test_domain is not failed
 
     # Ensure deleting reports changed
     - name: Make other domain default
-      canonical.maas.dns_domain: *set_default
+      maas.maas.dns_domain: *set_default
 
     - name: Delete test domain
-      canonical.maas.dns_domain: *delete
+      maas.maas.dns_domain: *delete
       register: test_domain
 
     - ansible.builtin.assert:
@@ -120,7 +120,7 @@
 
     # Ensure deleting of something that does not exist just returns
     - name: Redelete domain
-      canonical.maas.dns_domain: *delete
+      maas.maas.dns_domain: *delete
       register: test_domain
 
     - ansible.builtin.assert:

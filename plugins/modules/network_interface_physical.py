@@ -18,7 +18,7 @@ description:
   - Create VM on a specified host.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   machine:
@@ -56,7 +56,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create new nic on sunny-raptor host with machine calm-guinea
-  canonical.maas.network_interface_physical:
+  maas.maas.network_interface_physical:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -77,7 +77,7 @@ EXAMPLES = r"""
     var: nic_info
 
 - name: Delete nic from machine calm-guinea on host sunny-raptor
-  canonical.maas.network_interface_physical:
+  maas.maas.network_interface_physical:
     cluster_instance:
       host: host-ip
       token_key: token-key

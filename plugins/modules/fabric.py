@@ -20,7 +20,7 @@ description:
   - If I(state) is C(absent) selected network fabric is deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   state:
@@ -50,21 +50,21 @@ options:
 
 EXAMPLES = r"""
 - name: Create newtork fabric
-  canonical.maas.fabric:
+  maas.maas.fabric:
     state: present
     name: fabric-name
     class_type: class_type
     description: My new newtork fabric
 
 - name: Update network fabric
-  canonical.maas.fabric:
+  maas.maas.fabric:
     state: present
     name: fabric-name
     new_name: updated-fabric
     description: My new newtork fabric updated
 
 - name: Remove network fabric
-  canonical.maas.fabric:
+  maas.maas.fabric:
     state: absent
     name: updated-fabric
 """

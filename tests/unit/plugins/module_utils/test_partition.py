@@ -11,11 +11,9 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils import errors
-from ansible_collections.canonical.maas.plugins.module_utils.client import (
-    Response,
-)
-from ansible_collections.canonical.maas.plugins.module_utils.partition import (
+from ansible_collections.maas.maas.plugins.module_utils import errors
+from ansible_collections.maas.maas.plugins.module_utils.client import Response
+from ansible_collections.maas.maas.plugins.module_utils.partition import (
     Partition,
 )
 

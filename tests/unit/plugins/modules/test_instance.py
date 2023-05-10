@@ -11,10 +11,8 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.machine import (
-    Machine,
-)
-from ansible_collections.canonical.maas.plugins.modules import instance
+from ansible_collections.maas.maas.plugins.module_utils.machine import Machine
+from ansible_collections.maas.maas.plugins.modules import instance
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -48,7 +46,7 @@ class TestAllocate:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.from_maas"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.from_maas"
         )
 
         instance.allocate(module, client)
@@ -82,7 +80,7 @@ class TestDelete:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             fqdn="my_instance.maas",
             id=123456,
@@ -109,7 +107,7 @@ class TestDelete:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = None
 
         changed = instance.delete(module, client)[0]
@@ -132,7 +130,7 @@ class TestRelease:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             status="Ready",
         )
@@ -155,14 +153,14 @@ class TestRelease:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Commissioning",
         )
 
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.release(module, client)
@@ -186,16 +184,16 @@ class TestRelease:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status=status,
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.commission"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.commission"
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.release(module, client)
@@ -216,13 +214,13 @@ class TestRelease:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Deployed",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         changed = instance.release(module, client)[0]
@@ -255,13 +253,13 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.allocate"
+            "ansible_collections.maas.maas.plugins.modules.instance.allocate"
         ).return_value = Machine(
             id=123456,
             status="Allocated",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -300,7 +298,7 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             status="Deployed",
         )
@@ -330,13 +328,13 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Commissioning",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -378,16 +376,16 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status=status,
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.commission"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.commission"
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)
@@ -425,13 +423,13 @@ class TestDeploy:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.get_by_fqdn"
         ).return_value = Machine(
             id=123456,
             status="Ready",
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.instance.Machine.wait_for_state"
+            "ansible_collections.maas.maas.plugins.modules.instance.Machine.wait_for_state"
         )
 
         result = instance.deploy(module, client)

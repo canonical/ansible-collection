@@ -3,7 +3,7 @@ on:
   - push
   - pull_request
 env:
-  REPO_DIR: ansible_collections/canonical/maas
+  REPO_DIR: ansible_collections/maas/maas
 jobs:
   docs:
     runs-on: ubuntu-latest

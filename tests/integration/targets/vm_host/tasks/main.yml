@@ -9,7 +9,7 @@
   block:
     # ----------------------------------Cleanup------------------------------------
     - name: VM host cleanup
-      canonical.maas.vm_host: &delete-vm-hosts
+      maas.maas.vm_host: &delete-vm-hosts
         vm_host_name: "{{ item }}"
         state: absent
       loop:
@@ -19,17 +19,17 @@
         - vm-host-from-machine
 
     - name: Machine cleanup
-      canonical.maas.machine: &delete-machine
+      maas.maas.machine: &delete-machine
         fqdn: machine.maas
         state: absent
 
     # -----------------------------------Info------------------------------------
     - name: List vm hosts
-      canonical.maas.vm_host_info:
+      maas.maas.vm_host_info:
       register: vm_hosts
 
     - name: List specific vm host
-      canonical.maas.vm_host_info:
+      maas.maas.vm_host_info:
         name: "{{ vm_hosts.records.0.name }}"
       register: vm_host
     - ansible.builtin.assert:
@@ -38,7 +38,7 @@
 
     # ------------------------------------Job------------------------------------
     - name: Register LXD VM host
-      canonical.maas.vm_host:
+      maas.maas.vm_host:
         state: present
         vm_host_name: lxd-test
         timeout: 180
@@ -65,7 +65,7 @@
           - vm_host.record.tags == ["my-tag", "pod-console-logging"]
 
     - name: Update LXD VM host
-      canonical.maas.vm_host:
+      maas.maas.vm_host:
         state: present
         vm_host_name: lxd-test
         timeout: 180
@@ -88,7 +88,7 @@
           # - vm_host.record.tags == ["new-tag", "new-tag2", "my-tag", "pod-console-logging"] this will work after tag bug is resolved
 
     - name: Update LXD VM host - idempotence
-      canonical.maas.vm_host:
+      maas.maas.vm_host:
         state: present
         vm_host_name: lxd-test-updated
         new_vm_host_name: lxd-test-updated
@@ -101,7 +101,7 @@
           - vm_host is not changed
 
     - name: Delete LXD host
-      canonical.maas.vm_host:
+      maas.maas.vm_host:
         vm_host_name: lxd-test-updated
         state: absent
       register: vm_host
@@ -110,7 +110,7 @@
           - vm_host is changed
 
     - name: Register VIRSH host
-      canonical.maas.vm_host:
+      maas.maas.vm_host:
         state: present
         vm_host_name: new-virsh
         timeout: 180
@@ -139,7 +139,7 @@
           - vm_host.record.tags == ["my-tag", "pod-console-logging"]
 
     - name: Delete VIRSH host
-      canonical.maas.vm_host:
+      maas.maas.vm_host:
         vm_host_name: new-virsh
         state: absent
       register: vm_host
@@ -148,7 +148,7 @@
           - vm_host is changed
 
     - name: Create virtual machine with two disks and a network interface.
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         hostname: machine
         vm_host: "{{ test_vm_host }}"
         cores: 4
@@ -169,7 +169,7 @@
     # TODO: update vm_host_machine to wait for ready state (otherwise task after will fail)
 
     - name: Register known allready allocated machine as lxd VM host
-      canonical.maas.vm_host:
+      maas.maas.vm_host:
         state: present
         vm_host_name: machine
         machine_fqdn: machine.maas
@@ -191,7 +191,7 @@
 
     # ----------------------------------Cleanup------------------------------------
     - name: Remove VM host
-      canonical.maas.vm_host: *delete-vm-hosts
+      maas.maas.vm_host: *delete-vm-hosts
 
     - name: Delete machine
-      canonical.maas.machine: *delete-machine
+      maas.maas.machine: *delete-machine

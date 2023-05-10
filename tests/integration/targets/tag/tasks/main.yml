@@ -9,7 +9,7 @@
   block:
 # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machines
-      canonical.maas.instance: &delete-machines
+      maas.maas.instance: &delete-machines
         fqdn: "{{ item }}"
         state: absent
       loop:
@@ -18,7 +18,7 @@
 
 # ----------------------------------Setup------------------------------------------------------------------------------
     - name: Create virtual machine integration-test-tag.maas
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         vm_host: "{{ test_vm_host }}"
         hostname: integration-test-tag
         cores: 1
@@ -36,7 +36,7 @@
           - machine is changed
 
     - name: Create virtual machine integration-test-tag-2.maas
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         vm_host: "{{ test_vm_host }}"
         hostname: integration-test-tag-2
         cores: 1
@@ -54,7 +54,7 @@
           - machine is changed
 
     - name: Get info from created machine.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -72,7 +72,7 @@
           - machine_info.records.0.memory == 2048
 
     - name: Get info from created machine.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -91,7 +91,7 @@
 
 # ----------------------------------Job--------------------------------------------------------------------------------
     - name: Create new tag 'test1' and place it on VMs
-      canonical.maas.tag:
+      maas.maas.tag:
         state: present
         name: test1
         machines:
@@ -104,7 +104,7 @@
           - tag is changed
 
     - name: Get info from integration-test-tag after create.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -124,7 +124,7 @@
           - machine_info.records.0.tag_names.2 == "test1"
 
     - name: Get info from integration-test-tag-2 after create.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag-2.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -145,7 +145,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------
     - name: Create new tag 'test1' and place it on VMs - (idempotence)
-      canonical.maas.tag:
+      maas.maas.tag:
         state: present
         name: test1
         machines:
@@ -158,7 +158,7 @@
           - tag is not changed
 
     - name: Get info from integration-test-tag after create - (idempotence).
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -178,7 +178,7 @@
           - machine_info.records.0.tag_names.2 == "test1"
 
     - name: Get info from integration-test-tag-2 after create - (idempotence).
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag-2.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -199,7 +199,7 @@
 
 # ----------------------------------Job--------------------------------------------------------------------------------
     - name: Delete tag 'test1' from VMs
-      canonical.maas.tag:
+      maas.maas.tag:
         state: absent
         name: test1
         machines:
@@ -212,7 +212,7 @@
           - tag is changed
 
     - name: Get info from integration-test-tag after delete.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -233,7 +233,7 @@
           - machine_info.records.0.tag_names.1 != "test1"
 
     - name: Get info from integration-test-tag-2 after delete.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag-2.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -255,7 +255,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------
     - name: Delete tag 'test1' from VMs - (Idempotence)
-      canonical.maas.tag:
+      maas.maas.tag:
         state: absent
         name: test1
         machines:
@@ -268,7 +268,7 @@
           - tag is not changed
 
     - name: Get info from integration-test-tag after delete. - (Idempotence)
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -289,7 +289,7 @@
           - machine_info.records.0.tag_names.1 != "test1"
 
     - name: Get info from integration-test-tag-2 after delete. - (Idempotence)
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag-2.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -311,7 +311,7 @@
 
 # ----------------------------------Job--------------------------------------------------------------------------------
     - name: Set tag 'test1' to VMs
-      canonical.maas.tag:
+      maas.maas.tag:
         state: set
         name: test1
         machines:
@@ -324,7 +324,7 @@
           - tag is changed
 
     - name: Get info from integration-test-tag after set.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -344,7 +344,7 @@
           - machine_info.records.0.tag_names.2 == "test1"
 
     - name: Get info from integration-test-tag-2 after set.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag-2.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -365,7 +365,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------
     - name: Set tag 'test1' to VMs - (idempotence)
-      canonical.maas.tag:
+      maas.maas.tag:
         state: set
         name: test1
         machines:
@@ -378,7 +378,7 @@
           - tag is not changed
 
     - name: Get info from integration-test-tag after set - (idempotence).
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -398,7 +398,7 @@
           - machine_info.records.0.tag_names.2 == "test1"
 
     - name: Get info from integration-test-tag-2 after set - (idempotence).
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag-2.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -419,7 +419,7 @@
 
 # ----------------------------------Job--------------------------------------------------------------------------------
     - name: Set tag 'test1' on first VM
-      canonical.maas.tag:
+      maas.maas.tag:
         state: set
         name: test1
         machines:
@@ -431,7 +431,7 @@
           - tag is changed
 
     - name: Get info from integration-test-tag after set first.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -451,7 +451,7 @@
           - machine_info.records.0.tag_names.2 == "test1"
 
     - name: Get info from integration-test-tag-2 after set first.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag-2.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -473,7 +473,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------
     - name: Set tag 'test1' on first VM - idempotence.
-      canonical.maas.tag:
+      maas.maas.tag:
         state: set
         name: test1
         machines:
@@ -485,7 +485,7 @@
           - tag is not changed
 
     - name: Get info from integration-test-tag after set first - idempotence.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -505,7 +505,7 @@
           - machine_info.records.0.tag_names.2 == "test1"
 
     - name: Get info from integration-test-tag-2 after set first - idempotence.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag-2.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -527,7 +527,7 @@
 
 # ----------------------------------Job--------------------------------------------------------------------------------
     - name: Set tag 'test1' on second VM
-      canonical.maas.tag:
+      maas.maas.tag:
         state: set
         name: test1
         machines:
@@ -539,7 +539,7 @@
           - tag is changed
 
     - name: Get info from integration-test-tag after set second.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -560,7 +560,7 @@
           - machine_info.records.0.tag_names.1 != "test1"
 
     - name: Get info from integration-test-tag-2 after set second.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag-2.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -581,7 +581,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------
     - name: Set tag 'test1' on second VM - idempotence
-      canonical.maas.tag:
+      maas.maas.tag:
         state: set
         name: test1
         machines:
@@ -593,7 +593,7 @@
           - tag is not changed
 
     - name: Get info from integration-test-tag after set second - idempotence.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -614,7 +614,7 @@
           - machine_info.records.0.tag_names.1 != "test1"
 
     - name: Get info from integration-test-tag-2 after set second - idempotence.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-tag-2.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -635,7 +635,7 @@
 
 # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machines
-      canonical.maas.instance: *delete-machines
+      maas.maas.instance: *delete-machines
       loop:
         - integration-test-tag.maas
         - integration-test-tag-2.maas

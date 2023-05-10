@@ -11,14 +11,12 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils import errors
-from ansible_collections.canonical.maas.plugins.module_utils.machine import (
-    Machine,
-)
-from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
+from ansible_collections.maas.maas.plugins.module_utils import errors
+from ansible_collections.maas.maas.plugins.module_utils.machine import Machine
+from ansible_collections.maas.maas.plugins.module_utils.network_interface import (
     NetworkInterface,
 )
-from ansible_collections.canonical.maas.plugins.modules import (
+from ansible_collections.maas.maas.plugins.modules import (
     network_interface_physical,
 )
 
@@ -165,7 +163,7 @@ class TestRun:
         machine_dict = self.get_machine_state_new()
         machine_obj = Machine.from_maas(machine_dict)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         with pytest.raises(
             errors.MaasError,
@@ -194,13 +192,13 @@ class TestRun:
         machine_dict = self.get_machine_state_allocating()
         machine_obj = Machine.from_maas(machine_dict)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.wait_for_state"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.wait_for_state"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.network_interface_physical.ensure_present"
+            "ansible_collections.maas.maas.plugins.modules.network_interface_physical.ensure_present"
         ).return_value = (False, {}, {"before": {}, "after": {}})
         results = network_interface_physical.run(module, client)
         assert results == expected
@@ -226,10 +224,10 @@ class TestRun:
         machine_dict = self.get_machine_state_ready()
         machine_obj = Machine.from_maas(machine_dict)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.network_interface_physical.ensure_present"
+            "ansible_collections.maas.maas.plugins.modules.network_interface_physical.ensure_present"
         ).return_value = (False, {}, {"before": {}, "after": {}})
         results = network_interface_physical.run(module, client)
         assert results == expected
@@ -255,10 +253,10 @@ class TestRun:
         machine_dict = self.get_machine_state_ready()
         machine_obj = Machine.from_maas(machine_dict)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.network_interface_physical.ensure_absent"
+            "ansible_collections.maas.maas.plugins.modules.network_interface_physical.ensure_absent"
         ).return_value = (False, {}, {"before": {}, "after": {}})
         results = network_interface_physical.run(module, client)
         assert results == expected
@@ -383,19 +381,19 @@ class TestEnsurePresent:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
         ).return_value = nic_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
         ).side_effect = [None, nic_obj]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_create_request"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.send_create_request"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_create"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_create"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
         results = network_interface_physical.ensure_present(
             module, client, machine_obj
@@ -437,22 +435,22 @@ class TestEnsurePresent:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
         ).return_value = nic_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
         ).side_effect = [existing_nic_obj, nic_obj]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.needs_update"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.needs_update"
         ).return_value = True
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_update_request"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.send_update_request"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_update"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.payload_for_update"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
         results = network_interface_physical.ensure_present(
             module, client, machine_obj
@@ -487,16 +485,16 @@ class TestEnsurePresent:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.from_ansible"
         ).return_value = nic_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
         ).side_effect = [existing_nic_obj]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.needs_update"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.needs_update"
         ).return_value = False
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_by_name_and_host"
         ).return_value = updated_machine_obj
         results = network_interface_physical.ensure_present(
             module, client, machine_obj
@@ -623,10 +621,10 @@ class TestEsnureAbsent:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
         ).side_effect = [existing_nic_obj, None]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = updated_machine_obj
         results = network_interface_physical.ensure_absent(
             module, client, machine_obj
@@ -654,7 +652,7 @@ class TestEsnureAbsent:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
         ).return_value = None
         results = network_interface_physical.ensure_absent(
             module, client, machine_obj
@@ -683,13 +681,13 @@ class TestEsnureAbsent:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.find_nic_by_mac"
         ).return_value = nic_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.network_interface.NetworkInterface.send_delete_request"
+            "ansible_collections.maas.maas.plugins.module_utils.network_interface.NetworkInterface.send_delete_request"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_by_fqdn"
         ).return_value = machine_obj
         with pytest.raises(
             errors.MaasError,

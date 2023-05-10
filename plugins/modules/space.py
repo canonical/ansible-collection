@@ -20,7 +20,7 @@ description:
   - If I(state) is C(absent) selected network space is deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   state:
@@ -46,20 +46,20 @@ options:
 
 EXAMPLES = r"""
 - name: Create newtork space
-  canonical.maas.space:
+  maas.maas.space:
     state: present
     name: space-name
     description: My new newtork space
 
 - name: Update network space
-  canonical.maas.space:
+  maas.maas.space:
     state: present
     name: space-name
     new_name: updated-space
     description: My new newtork space updated
 
 - name: Remove network space
-  canonical.maas.space:
+  maas.maas.space:
     state: absent
     name: updated-space
 """

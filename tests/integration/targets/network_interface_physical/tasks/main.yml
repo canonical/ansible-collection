@@ -9,13 +9,13 @@
   block:
 # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machine
-      canonical.maas.instance:
+      maas.maas.instance:
         fqdn: integration-test-nic.maas
         state: absent
 
 # ----------------------------------Setup----------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test.
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         hostname: integration-test-nic
         vm_host: "{{ test_vm_host }}"
         cores: 2
@@ -30,7 +30,7 @@
           - machine is changed
 
     - name: Get info from created machine.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -48,7 +48,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test-nic. (Idempotence)
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         hostname: integration-test-nic
         vm_host: "{{ test_vm_host }}"
         cores: 2
@@ -63,7 +63,7 @@
           - machine_idempotence is not changed
 
     - name: Get info from created machine. (Idempotence)
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -81,7 +81,7 @@
 
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Create new_nic on machine with name integration-test.
-      canonical.maas.network_interface_physical:
+      maas.maas.network_interface_physical:
         machine: "{{ machine.record.fqdn }}"
         state: present
         mac_address: '00:16:3e:ae:78:75'
@@ -95,7 +95,7 @@
           - nic.record.mtu == 1700
 
     - name: Get info from created machine.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -111,7 +111,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create new_nic on machine with name integration-test. (Idempotence)
-      canonical.maas.network_interface_physical:
+      maas.maas.network_interface_physical:
         machine: "{{ machine.record.fqdn }}"
         state: present
         mac_address: '00:16:3e:ae:78:75'
@@ -124,7 +124,7 @@
           - nic is not changed
 
     - name: Get info from created machine. (Idempotence)
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -140,7 +140,7 @@
 
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Update new_nic on machine with name integration-test.
-      canonical.maas.network_interface_physical:
+      maas.maas.network_interface_physical:
         machine: "{{ machine.record.fqdn }}"
         state: present
         mac_address: '00:16:3e:ae:78:75'
@@ -154,7 +154,7 @@
           - nic.record.mtu == 1500
 
     - name: Get info from created machine.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -170,7 +170,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Update new_nic on machine with name integration-test. (Idempotence)
-      canonical.maas.network_interface_physical:
+      maas.maas.network_interface_physical:
         machine: "{{ machine.record.fqdn }}"
         state: present
         mac_address: '00:16:3e:ae:78:75'
@@ -183,7 +183,7 @@
           - nic is not changed
 
     - name: Get info from created machine. (Idempotence)
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -199,7 +199,7 @@
 
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Delete new_nic on machine with name integration-test.
-      canonical.maas.network_interface_physical:
+      maas.maas.network_interface_physical:
         machine: "{{ machine.record.fqdn }}"
         state: absent
         mac_address: '00:16:3e:ae:78:75'
@@ -211,7 +211,7 @@
           - nic is changed
 
     - name: Get info from created machine.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -227,7 +227,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Delete new_nic on machine with name integration-test. (Idempotence)
-      canonical.maas.network_interface_physical:
+      maas.maas.network_interface_physical:
         machine: "{{ machine.record.fqdn }}"
         state: absent
         mac_address: '00:16:3e:ae:78:75'
@@ -239,7 +239,7 @@
           - nic is not changed
 
     - name: Get info from created machine. (Idempotence)
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -255,6 +255,6 @@
 
 # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machine
-      canonical.maas.instance:
+      maas.maas.instance:
         fqdn: integration-test-nic.maas
         state: absent

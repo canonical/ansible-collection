@@ -22,7 +22,7 @@ description:
     new VM host with the name I(vm_host_name) will be created.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   state:
@@ -123,7 +123,7 @@ options:
 
 EXAMPLES = r"""
 - name: Register LXD VM host
-  canonical.maas.vm_host:
+  maas.maas.vm_host:
     state: present
     vm_host_name: new-lxd
     power_parameters:
@@ -137,7 +137,7 @@ EXAMPLES = r"""
     tags: my-tag, my-tag2
 
 - name: Register VIRSH host
-  canonical.maas.vm_host:
+  maas.maas.vm_host:
     state: present
     vm_host_name: new-virsh
     power_parameters:
@@ -153,7 +153,7 @@ EXAMPLES = r"""
     tags: my-tag, my-tag2
 
 - name: Register known allready allocated machine
-  canonical.maas.vm_host:
+  maas.maas.vm_host:
     state: present
     vm_host_name: new-vm-host-name
     machine_fqdn: my_machine.maas
@@ -162,7 +162,7 @@ EXAMPLES = r"""
     default_macvlan_mode: bridge
 
 - name: Update VM host
-  canonical.maas.vm_host:
+  maas.maas.vm_host:
     state: present
     vm_host_name: my-virsh
     power_parameters:
@@ -177,7 +177,7 @@ EXAMPLES = r"""
     tags: new-tag, new-tag2
 
 - name: Remove VM host
-  canonical.maas.vm_host:
+  maas.maas.vm_host:
     state: absent
     vm_host_name: sunny-raptor
 """

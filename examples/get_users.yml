@@ -3,7 +3,7 @@
   hosts: localhost
   tasks:
     - name: List users
-      canonical.maas.user_info:
+      maas.maas.user_info:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2

@@ -13,10 +13,8 @@ from ansible.module_utils import basic
 from ansible.module_utils._text import to_bytes
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.client import (
-    Client,
-)
-from ansible_collections.canonical.maas.plugins.module_utils.rest_client import (
+from ansible_collections.maas.maas.plugins.module_utils.client import Client
+from ansible_collections.maas.maas.plugins.module_utils.rest_client import (
     RestClient,
 )
 

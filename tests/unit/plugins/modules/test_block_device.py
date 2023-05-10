@@ -11,13 +11,13 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.block_device import (
+from ansible_collections.maas.maas.plugins.module_utils.block_device import (
     BlockDevice,
 )
-from ansible_collections.canonical.maas.plugins.module_utils.partition import (
+from ansible_collections.maas.maas.plugins.module_utils.partition import (
     Partition,
 )
-from ansible_collections.canonical.maas.plugins.modules import block_device
+from ansible_collections.maas.maas.plugins.modules import block_device
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"

@@ -9,13 +9,13 @@
   block:
 # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machine
-      canonical.maas.instance:
+      maas.maas.instance:
         fqdn: integration-test-nic-link.maas
         state: absent
 
 # ----------------------------------Setup----------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test-nic-link.
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         hostname: integration-test-nic-link
         vm_host: "{{ test_vm_host }}"
         cores: 2
@@ -30,7 +30,7 @@
           - machine is changed
 
     - name: Get info from created machine.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "integration-test-nic-link.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -47,7 +47,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test-nic-link. (Idempotence)
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         hostname: integration-test-nic-link
         vm_host: "{{ test_vm_host }}"
         cores: 2
@@ -62,7 +62,7 @@
           - machine_idempotence is not changed
 
     - name: Get info from created machine. (Idempotence)
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "integration-test-nic-link.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -79,7 +79,7 @@
 
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Create new alias on machine with name integration-test-nic-link.
-      canonical.maas.network_interface_link:
+      maas.maas.network_interface_link:
         machine: integration-test-nic-link.maas
         state: present
         network_interface: my_first
@@ -92,7 +92,7 @@
           - nic is changed
 
     - name: Get info from created machine.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: integration-test-nic-link.maas
       register: machine_info
     - ansible.builtin.assert:
@@ -108,7 +108,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create new alias on machine with name integration-test-nic-link. (Idempotence)
-      canonical.maas.network_interface_link:
+      maas.maas.network_interface_link:
         machine: "integration-test-nic-link.{{ test_domain }}"
         state: present
         network_interface: my_first
@@ -121,7 +121,7 @@
           - nic is not changed
 
     - name: Get info from created machine. (Idempotence)
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "integration-test-nic-link.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -137,6 +137,6 @@
 
 # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machine
-      canonical.maas.instance:
+      maas.maas.instance:
         fqdn: "{{ machine.record.fqdn }}"
         state: absent

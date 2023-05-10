@@ -11,7 +11,7 @@
 
   tasks:
     - name: Create VM inventory-test-1.
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         hostname: inventory-test-1
         vm_host: "{{ test_vm_host }}"
         cores: 2
@@ -26,7 +26,7 @@
           - machine is changed
 
     - name: Get info from inventory-test-1.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -43,7 +43,7 @@
           - machine_info.records.0.memory == 2048
 
     - name: Create VM inventory-test-2.
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         hostname: inventory-test-2
         vm_host: "{{ test_vm_host }}"
         cores: 2
@@ -58,7 +58,7 @@
           - machine is changed
 
     - name: Get info from inventory-test-2.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:

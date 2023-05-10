@@ -3,7 +3,7 @@
   hosts: localhost
   tasks:
     - name: Create new nic on crisp-skunk host with VM new-machine
-      canonical.maas.network_interface_physical:
+      maas.maas.network_interface_physical:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2
@@ -24,7 +24,7 @@
         var: nic_info
 
     - name: Delete nic from machine calm-guinea on host sunny-raptor
-      canonical.maas.network_interface_physical:
+      maas.maas.network_interface_physical:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2
