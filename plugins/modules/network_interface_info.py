@@ -19,7 +19,7 @@ description:
   - Returns information about physical and linked network interfaces.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   machine:
@@ -36,7 +36,7 @@ options:
 
 EXAMPLES = r"""
 - name: List nics from instance machine
-  canonical.maas.network_interface_physical_info:
+  maas.maas.network_interface_physical_info:
     cluster_instance:
       host: host-ip
       token_key: token-key

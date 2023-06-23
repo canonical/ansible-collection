@@ -3,7 +3,7 @@
   hosts: localhost
   tasks:
     - name: List nics from instance machine
-      canonical.maas.network_interface_info:
+      maas.maas.network_interface_info:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2

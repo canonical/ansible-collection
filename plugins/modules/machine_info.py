@@ -18,7 +18,7 @@ description:
   - Plugin returns information about all virtual machines or specific virtual machine in a cluster.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   fqdn:
@@ -31,7 +31,7 @@ options:
 
 EXAMPLES = r"""
 - name: Get list of all machines
-  canonical.maas.machine_info:
+  maas.maas.machine_info:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -39,7 +39,7 @@ EXAMPLES = r"""
       customer_key: customer-key
 
 - name: Get info about a specific machine
-  canonical.maas.machine_info:
+  maas.maas.machine_info:
     cluster_instance:
       host: host-ip
       token_key: token-key

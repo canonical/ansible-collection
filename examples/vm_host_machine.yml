@@ -3,7 +3,7 @@
   hosts: localhost
   tasks:
     - name: Create new machine on sunny-raptor host
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2

@@ -11,13 +11,11 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils import errors
-from ansible_collections.canonical.maas.plugins.module_utils.block_device import (
+from ansible_collections.maas.maas.plugins.module_utils import errors
+from ansible_collections.maas.maas.plugins.module_utils.block_device import (
     BlockDevice,
 )
-from ansible_collections.canonical.maas.plugins.module_utils.client import (
-    Response,
-)
+from ansible_collections.maas.maas.plugins.module_utils.client import Response
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -160,7 +158,7 @@ class TestGet:
         )
 
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.block_device.RestClient.get_record"
+            "ansible_collections.maas.maas.plugins.module_utils.block_device.RestClient.get_record"
         ).return_value = dict(
             firmware_version=None,
             system_id="y7388k",

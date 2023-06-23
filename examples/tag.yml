@@ -3,7 +3,7 @@
   hosts: localhost
   tasks:
     - name: Create new tag 'bla' and place it on VMs
-      canonical.maas.tag:
+      maas.maas.tag:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2
@@ -19,7 +19,7 @@
         var: tag_list
 
     - name: Delete new tag 'bla'
-      canonical.maas.tag:
+      maas.maas.tag:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2
@@ -35,7 +35,7 @@
         var: tag_list
 
     - name: Set new tag 'bla' and place it on one VM
-      canonical.maas.tag:
+      maas.maas.tag:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2
@@ -50,7 +50,7 @@
         var: tag_list
 
     - name: Set new tag 'bla' and place it on the other VM and remove it from current
-      canonical.maas.tag:
+      maas.maas.tag:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2
@@ -65,7 +65,7 @@
         var: tag_list
 
     - name: Delete new tag 'bla'
-      canonical.maas.tag:
+      maas.maas.tag:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2

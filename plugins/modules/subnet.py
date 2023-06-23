@@ -18,7 +18,7 @@ description:
   - Plugin provides a resource to manage MAAS subnets.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   state:
@@ -94,7 +94,7 @@ options:
 
 EXAMPLES = r"""
 - name: Add subnet IP range
-  canonical.maas.dns_domain_info:
+  maas.maas.dns_domain_info:
     cluster_instance:
       host: ...
       token_key: ...

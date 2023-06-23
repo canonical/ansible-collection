@@ -9,12 +9,12 @@
   block:
     # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machine
-      canonical.maas.instance:
+      maas.maas.instance:
         fqdn: integration-test.maas
         state: absent
     # ----------------------------------Job----------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test two disks and a network interface.
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         vm_host: "{{ test_vm_host }}"
         hostname: integration-test
         cores: 2
@@ -32,7 +32,7 @@
           - machine is changed
 
     - name: Get info from created machine.
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -51,7 +51,7 @@
 
   # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test two disks and a network interface. (Idempotence)
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         vm_host: "{{ test_vm_host }}"
         hostname: integration-test
         cores: 2
@@ -69,7 +69,7 @@
           - machine_idempotence is not changed
 
     - name: Get info from created machine. (Idempotence)
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
         fqdn: "{{ machine.record.fqdn }}"
       register: machine_info
     - ansible.builtin.assert:
@@ -88,6 +88,6 @@
 
     # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machine
-      canonical.maas.instance:
+      maas.maas.instance:
         fqdn: integration-test.maas
         state: absent

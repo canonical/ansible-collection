@@ -19,7 +19,7 @@ description:
   - Does not support update or delete, only create.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   vm_host:
@@ -103,7 +103,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create new machine on sunny-raptor host
-  canonical.maas.vm_host_machine:
+  maas.maas.vm_host_machine:
     cluster_instance:
       host: host-ip
       token_key: token-key

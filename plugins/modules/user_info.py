@@ -17,7 +17,7 @@ short_description: Get information about user accounts.
 description: Get information about all or specific user.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   name:
@@ -29,7 +29,7 @@ options:
 
 EXAMPLES = r"""
 - name: List account information about all users
-  canonical.maas.user_info:
+  maas.maas.user_info:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -40,7 +40,7 @@ EXAMPLES = r"""
     var: users
 
 - name: List account information about a specific user
-  canonical.maas.user_info:
+  maas.maas.user_info:
     cluster_instance:
       host: host-ip
       token_key: token-key

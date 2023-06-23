@@ -8,10 +8,10 @@
 
   block:
     - name: List network spaces
-      canonical.maas.space_info:
+      maas.maas.space_info:
       register: spaces
     - name: List network space
-      canonical.maas.space_info:
+      maas.maas.space_info:
         name: "{{ spaces.records.0.name }}"
       register: space
     - ansible.builtin.assert:
@@ -19,17 +19,17 @@
           - space.records.0.name == spaces.records.0.name
 
     - name: Delete network space
-      canonical.maas.space:
+      maas.maas.space:
         name: my-space
         state: absent
 
     - name: Delete network space
-      canonical.maas.space:
+      maas.maas.space:
         name: my-space-updated
         state: absent
 
     - name: Add network space - missing parameter
-      canonical.maas.space:
+      maas.maas.space:
       ignore_errors: true
       register: space
     - ansible.builtin.assert:
@@ -38,7 +38,7 @@
           - "'missing required arguments: state' in space.msg"
 
     - name: Add network space - without name
-      canonical.maas.space:
+      maas.maas.space:
         state: present
         description: my space
       register: space
@@ -48,7 +48,7 @@
           # - space.record.description == "my space"
 
     - name: Delete network space
-      canonical.maas.space:
+      maas.maas.space:
         name: "{{ space.record.name }}"
         state: absent
     - ansible.builtin.assert:
@@ -56,7 +56,7 @@
           - space is changed
 
     - name: Add network space - with name
-      canonical.maas.space:
+      maas.maas.space:
         state: present
         name: my-space
         description: my space
@@ -67,7 +67,7 @@
           - space.record.name == "my-space"
 
     - name: Update network space
-      canonical.maas.space:
+      maas.maas.space:
         state: present
         name: my-space
         new_name: my-space-updated
@@ -80,7 +80,7 @@
           # - space.record.description == "my space updated" # description isn't returned
 
     - name: Update network space - idempotence
-      canonical.maas.space:
+      maas.maas.space:
         state: present
         name: my-space-updated
         new_name: my-space-updated
@@ -94,6 +94,6 @@
           # - space.record.description == "my space updated" # description isn't returned
 
     - name: Delete network space
-      canonical.maas.space:
+      maas.maas.space:
         name: my-space-updated
         state: absent

@@ -17,7 +17,7 @@ short_description: Manages tags on a machines.
 description: Add or remove tags from machines.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   name:
@@ -42,7 +42,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create new tag 'one' and place it on VMs
-  canonical.maas.tag:
+  maas.maas.tag:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -58,7 +58,7 @@ EXAMPLES = r"""
     var: tag_list
 
 - name: Delete new tag 'one' and place it on VMs
-  canonical.maas.tag:
+  maas.maas.tag:
     cluster_instance:
       host: host-ip
       token_key: token-key

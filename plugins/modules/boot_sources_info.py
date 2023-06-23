@@ -18,14 +18,14 @@ description:
   - Plugin returns information about available boot sources.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options: {}
 """
 
 EXAMPLES = r"""
 - name: List boot sources
-  canonical.maas.vm_host_info:
+  maas.maas.vm_host_info:
     cluster_instance:
       host: ...
       token_key: ...

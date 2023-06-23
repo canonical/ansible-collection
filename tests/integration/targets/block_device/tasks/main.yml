@@ -9,25 +9,25 @@
   block:
     # ----------------------------------Cleanup------------------------------------
     - name: Delete machine
-      canonical.maas.machine: &delete-machine
+      maas.maas.machine: &delete-machine
         fqdn: block-device-test.maas
         state: absent
 
     - name: Delete block device
-      canonical.maas.block_device: &delete-block-device
+      maas.maas.block_device: &delete-block-device
         machine_fqdn: block-device-test.maas
         name: my-block-device
         state: absent
 
     - name: Delete block device updated
-      canonical.maas.block_device: &delete-block-device-updated
+      maas.maas.block_device: &delete-block-device-updated
         machine_fqdn: block-device-test.maas
         name: my-block-device-updated
         state: absent
 
     # --------------------------------Fixture------------------------------------
     - name: Create virtual machine
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         hostname: block-device-test
         vm_host: "{{ test_vm_host }}"
         cores: 4
@@ -47,12 +47,12 @@
 
     # -----------------------------------Info------------------------------------
     - name: List block devices of selected machine
-      canonical.maas.block_device_info:
+      maas.maas.block_device_info:
         machine_fqdn: block-device-test.maas
       register: block_devices
 
     - name: List specific block device of a specific machine
-      canonical.maas.block_device_info:
+      maas.maas.block_device_info:
         machine_fqdn: block-device-test.maas
         name: "{{ block_devices.records.0.name }}"
       register: block_device
@@ -63,7 +63,7 @@
     # ------------------------------------Job------------------------------------
 
     - name: Create block device on block-device-test - required together
-      canonical.maas.block_device:
+      maas.maas.block_device:
         machine_fqdn: block-device-test.maas
         name: my-block-device
         state: present
@@ -77,7 +77,7 @@
           - "'parameters are required together: model, serial' in block_device.msg"
 
     - name: Create block device on block-device-test - mutually exclusive
-      canonical.maas.block_device:
+      maas.maas.block_device:
         machine_fqdn: block-device-test.maas
         name: my-block-device
         state: present
@@ -92,7 +92,7 @@
           - "'parameters are mutually exclusive: model|id_path' in block_device.msg"
 
     - name: Create block device on block-device-test
-      canonical.maas.block_device:
+      maas.maas.block_device:
         machine_fqdn: block-device-test.maas
         name: my-block-device
         state: present
@@ -142,7 +142,7 @@
           - block_device.record.partitions.1.tags.1 == "takes-all-of-the-rest-space"
 
     - name: Update block device on block-device-test
-      canonical.maas.block_device: &update-block-device
+      maas.maas.block_device: &update-block-device
         machine_fqdn: block-device-test.maas
         name: my-block-device
         state: present
@@ -182,7 +182,7 @@
           - block_device.record.partitions.0.filesystem.mount_options == "mount_options3"
 
     - name: Update block device on block-device-test - idempotence
-      canonical.maas.block_device: *update-block-device
+      maas.maas.block_device: *update-block-device
       register: block_device
     - ansible.builtin.assert:
         that:
@@ -204,7 +204,7 @@
 
 
     - name: Update name of the block device
-      canonical.maas.block_device:
+      maas.maas.block_device:
         machine_fqdn: block-device-test.maas
         name: my-block-device
         state: present
@@ -217,10 +217,10 @@
 
     # # ----------------------------------Cleanup------------------------------------
     - name: Delete machine
-      canonical.maas.machine: *delete-machine
+      maas.maas.machine: *delete-machine
 
     - name: Delete block device
-      canonical.maas.block_device: *delete-block-device
+      maas.maas.block_device: *delete-block-device
 
     - name: Delete block device - updated
-      canonical.maas.block_device: *delete-block-device-updated
+      maas.maas.block_device: *delete-block-device-updated

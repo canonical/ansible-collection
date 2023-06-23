@@ -23,7 +23,7 @@ description:
   - If I(state) value is C(absent) the selected machine will be deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   fqdn:
@@ -115,22 +115,22 @@ options:
 
 EXAMPLES = r"""
 - name: Remove/delete machine
-  canonical.maas.instance:
+  maas.maas.instance:
     fqdn: my_instance.maas
     state: absent
 
 - name: Release machine
-  canonical.maas.instance:
+  maas.maas.instance:
     fqdn: my_instance.maas
     state: ready
 
 - name: Deploy already commissioned machine
-  canonical.maas.instance:
+  maas.maas.instance:
     fqdn: my_instance.maas
     state: deployed
 
 - name: Deploy already commissioned machine with custom settings
-  canonical.maas.instance:
+  maas.maas.instance:
     fqdn: my_instance.maas
     state: deployed
     deploy_params:
@@ -140,11 +140,11 @@ EXAMPLES = r"""
       user_data: my_user_data
 
 - name: Deploy random/new machine with default constraints
-  canonical.maas.instance:
+  maas.maas.instance:
     state: deployed
 
 - name: Deploy random/new machine with custom settings and constraints
-  canonical.maas.instance:
+  maas.maas.instance:
     state: deployed
     allocate_params:
       min_cpu_count: 2

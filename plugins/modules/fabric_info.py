@@ -18,7 +18,7 @@ description:
   - Plugin returns information about all network fabrics or specific network fabric if I(name) is provided.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   name:
@@ -30,7 +30,7 @@ options:
 
 EXAMPLES = r"""
 - name: Get list of all network fabrics
-  canonical.maas.fabric_info:
+  maas.maas.fabric_info:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -38,7 +38,7 @@ EXAMPLES = r"""
       customer_key: customer-key
 
 - name: Get info about a specific network fabric
-  canonical.maas.fabric_info:
+  maas.maas.fabric_info:
     cluster_instance:
       host: host-ip
       token_key: token-key

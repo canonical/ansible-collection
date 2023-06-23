@@ -1,2 +1,2 @@
 ---
-plugin: canonical.maas.inventory
+plugin: maas.maas.inventory

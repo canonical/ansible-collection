@@ -21,7 +21,7 @@ description:
   - If I(state) is C(absent) VLAN selected either by I(vid) or I(vlan_name) is deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   state:
@@ -79,7 +79,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create VLAN
-  canonical.maas.vlan:
+  maas.maas.vlan:
     state: present
     fabric_name: fabric-10
     vid: 5
@@ -91,7 +91,7 @@ EXAMPLES = r"""
     space: network-space-10
 
 - name: Update VLAN - using vid as identifier
-  canonical.maas.vlan:
+  maas.maas.vlan:
     state: present
     fabric_name: fabric-10
     vid: 5
@@ -102,7 +102,7 @@ EXAMPLES = r"""
     space: new-network-space
 
 - name: Update VLAN - using name as identifier
-  canonical.maas.vlan:
+  maas.maas.vlan:
     state: present
     fabric_name: fabric-10
     vlan_name: vlan-10
@@ -113,13 +113,13 @@ EXAMPLES = r"""
     space: new-network-space
 
 - name: Remove VLAN - using vid as identifier
-  canonical.maas.vlan:
+  maas.maas.vlan:
     state: absent
     fabric_name: fabric-10
     vid: 5
 
 - name: Remove VLAN - using name as identifier
-  canonical.maas.vlan:
+  maas.maas.vlan:
     state: absent
     fabric_name: fabric-10
     vlan_name: vlan-10

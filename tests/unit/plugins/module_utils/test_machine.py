@@ -5,7 +5,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from ansible_collections.canonical.maas.plugins.module_utils.network_interface import (
+from ansible_collections.maas.maas.plugins.module_utils.network_interface import (
     NetworkInterface,
 )
 
@@ -16,13 +16,9 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils import errors
-from ansible_collections.canonical.maas.plugins.module_utils.client import (
-    Response,
-)
-from ansible_collections.canonical.maas.plugins.module_utils.machine import (
-    Machine,
-)
+from ansible_collections.maas.maas.plugins.module_utils import errors
+from ansible_collections.maas.maas.plugins.module_utils.client import Response
+from ansible_collections.maas.maas.plugins.module_utils.machine import Machine
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -33,7 +29,7 @@ class TestGet:
     def test_get_by_id(self, client, mocker):
         id = 123
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.from_maas"
         ).return_value = None
         results = Machine.get_by_id(id, client)
         assert results is None
@@ -62,7 +58,7 @@ class TestGet:
         )
 
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.RestClient.get_record"
         ).return_value = dict(
             fqdn="my_instance.maas",
             hostname="my_instance",
@@ -129,7 +125,7 @@ class TestGet:
         )
 
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.RestClient.get_record"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.RestClient.get_record"
         ).return_value = dict(
             fqdn="my_instance.maas",
             hostname="my_instance",
@@ -181,7 +177,7 @@ class TestGet:
             200, '[{"fqdn":"one"}, {"fqdn":"two"}]'
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.from_maas"
         ).side_effect = [machine_list[0], machine_list[1]]
         results = Machine.get_id_from_fqdn(client, *fqdns)
         assert results == machine_list
@@ -195,7 +191,7 @@ class TestGet:
             200, '[{"fqdn":"one"}, {"fqdn":"two"}]'
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.from_maas"
         ).side_effect = [machine_list[0], machine_list[1]]
         with pytest.raises(
             errors.MaasError,
@@ -212,7 +208,7 @@ class TestGet:
         machine1 = Machine(fqdn="one", tags=["first", "second"])
         machine2 = Machine(fqdn="two", tags=["first", "second"])
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.from_maas"
         ).side_effect = [machine1, machine2]
         results = Machine.get_by_tag(client, tag_name)
         assert results == [machine1, machine2]
@@ -221,7 +217,7 @@ class TestGet:
         tag_name = "first"
         client.get.return_value = Response(200, "[]")
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.from_maas"
         ).side_effect = []
         results = Machine.get_by_tag(client, tag_name)
         assert results == []
@@ -231,7 +227,7 @@ class TestPayloadForCompose:
     def test_payload_for_compose_with_interface_and_storage(self, mocker):
         module = ""
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_maas"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.to_maas"
         ).return_value = dict(
             interfaces=[
                 dict(
@@ -255,7 +251,7 @@ class TestPayloadForCompose:
     def test_payload_for_compose_without_interface_and_storage(self, mocker):
         module = ""
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_maas"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.to_maas"
         ).return_value = dict()
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
@@ -264,7 +260,7 @@ class TestPayloadForCompose:
     def test_payload_for_compose_with_storage_without_interface(self, mocker):
         module = ""
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_maas"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.to_maas"
         ).return_value = dict(storage=[dict(size=5), dict(size=10)])
         machine_obj = Machine()
         results = machine_obj.payload_for_compose(module)
@@ -273,7 +269,7 @@ class TestPayloadForCompose:
     def test_payload_for_compose_with_interface_without_storage(self, mocker):
         module = ""
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_maas"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.to_maas"
         ).return_value = dict(
             interfaces=[dict(label_name="test", name="esp0", subnet_cidr="ip")]
         )
@@ -297,7 +293,7 @@ class TestWaitForState:
             ),
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_maas"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.from_maas"
         ).return_value = Machine(
             id="system_id", hostname="my_instance", status="Commissioning"
         )

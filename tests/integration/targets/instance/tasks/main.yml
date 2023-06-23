@@ -8,12 +8,12 @@
 
   block:
     - name: Delete machine
-      canonical.maas.instance: &delete
+      maas.maas.instance: &delete
         fqdn: instance-test.maas
         state: absent
 
     - name: Create virtual machine with two disks and a network interface.
-      canonical.maas.vm_host_machine:
+      maas.maas.vm_host_machine:
         hostname: instance-test
         vm_host: "{{ test_vm_host }}"
         cores: 4
@@ -32,7 +32,7 @@
           - initial_machine.record.cores == 4
 
     - name: Deploy machine
-      canonical.maas.instance: &deploy
+      maas.maas.instance: &deploy
         fqdn: instance-test.maas
         state: deployed
         deploy_params:
@@ -50,7 +50,7 @@
           - machine.record.status == "Deployed"
 
     - name: Deploy machine - idempotence
-      canonical.maas.instance: *deploy
+      maas.maas.instance: *deploy
       register: machine
     - ansible.builtin.assert:
         that:
@@ -64,7 +64,7 @@
           - machine.record.status == "Deployed"
 
     - name: Release machine
-      canonical.maas.instance: &release
+      maas.maas.instance: &release
         fqdn: instance-test.maas
         state: ready
       register: machine
@@ -78,7 +78,7 @@
           - machine.record.status == "Ready"
 
     - name: Release machine - idempotence
-      canonical.maas.instance: *release
+      maas.maas.instance: *release
       register: machine
     - ansible.builtin.assert:
         that:
@@ -90,7 +90,7 @@
           - machine.record.status == "Ready"
 
     - name: Deploy machine with another OS
-      canonical.maas.instance:
+      maas.maas.instance:
         fqdn: instance-test.maas
         state: deployed
         deploy_params:
@@ -110,7 +110,7 @@
           - machine.record.status == "Deployed"
 
     - name: Release machine
-      canonical.maas.instance: *release
+      maas.maas.instance: *release
       register: machine
     - ansible.builtin.assert:
         that:
@@ -122,14 +122,14 @@
           - machine.record.status == "Ready"
 
     - name: Delete machine
-      canonical.maas.instance: *delete
+      maas.maas.instance: *delete
       register: machine
     - ansible.builtin.assert:
         that:
           - machine is changed
 
     - name: Delete machine - idempotence
-      canonical.maas.instance: *delete
+      maas.maas.instance: *delete
       register: machine
     - ansible.builtin.assert:
         that:
@@ -137,7 +137,7 @@
 
     # COMMENTED OUT DUE TO BUG IN MAAS (EPHEMERAL MACHINE ISN'T CREATED)
     # - name: Deploy new machine with default OS and allocation constraints
-    #   canonical.maas.instance:
+    #   maas.maas.instance:
     #     state: deployed
     #   register: machine
     # - ansible.builtin.assert:
@@ -150,7 +150,7 @@
     #       - machine.record.status == "Deployed"
 
     # - name: Release machine (ephemeral machine is deleted)
-    #   canonical.maas.instance:
+    #   maas.maas.instance:
     #     fqdn: "{{ machine.record.fqdn }}"
     #     state: ready
     #   register: machine
@@ -159,7 +159,7 @@
     #       - machine is changed
 
     # - name: Deploy new machine with custom OS and allocation constraints
-    #   canonical.maas.instance:
+    #   maas.maas.instance:
     #     state: deployed
     #     allocate_params:
     #       min_cpu_count: 1
@@ -193,7 +193,7 @@
     #       # - machine.record.network_interfaces[0].ip_address == "10.10.10.190"
 
     # - name: Release machine (ephemeral machine is deleted)
-    #   canonical.maas.instance:
+    #   maas.maas.instance:
     #     fqdn: "{{ machine.record.fqdn }}"
     #     state: ready
     #   register: machine
@@ -203,7 +203,7 @@
 
     # COMMENTED OUT DUE TO BUG IN MAAS (EPHEMERAL MACHINE ISN'T CREATED)
     # - name: Deploy new machine with constraints that can't be meet
-    #   canonical.maas.instance:
+    #   maas.maas.instance:
     #     state: deployed
     #     # allocate_params:
     #     #   min_cpu_count: 20

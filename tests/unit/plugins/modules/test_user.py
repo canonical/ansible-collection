@@ -11,8 +11,8 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.user import User
-from ansible_collections.canonical.maas.plugins.modules import user
+from ansible_collections.maas.maas.plugins.module_utils.user import User
+from ansible_collections.maas.maas.plugins.modules import user
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -126,7 +126,7 @@ class TestRun:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.user.ensure_present"
+            "ansible_collections.maas.maas.plugins.modules.user.ensure_present"
         ).return_value = (False, {}, {})
         results = user.run(module, client)
         assert results == (False, {}, {})
@@ -145,7 +145,7 @@ class TestRun:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.user.ensure_absent"
+            "ansible_collections.maas.maas.plugins.modules.user.ensure_absent"
         ).return_value = (False, {}, {})
         results = user.run(module, client)
         assert results == (False, {}, {})
@@ -176,13 +176,13 @@ class TestEnsurePresent:
         )
         after = user_obj.to_ansible()
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.user.User.get_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.user.User.get_by_name"
         ).side_effect = [None, user_obj]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.user.User.payload_for_create"
+            "ansible_collections.maas.maas.plugins.module_utils.user.User.payload_for_create"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.user.User.send_create_request"
+            "ansible_collections.maas.maas.plugins.module_utils.user.User.send_create_request"
         ).return_value = None
         results = user.ensure_present(module, client)
         assert results == (True, after, dict(before=None, after=after))
@@ -212,13 +212,13 @@ class TestEnsurePresent:
         )
         after = user_obj.to_ansible()
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.user.User.get_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.user.User.get_by_name"
         ).side_effect = [None, user_obj]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.user.User.payload_for_create"
+            "ansible_collections.maas.maas.plugins.module_utils.user.User.payload_for_create"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.user.User.send_create_request"
+            "ansible_collections.maas.maas.plugins.module_utils.user.User.send_create_request"
         ).return_value = None
         results = user.ensure_present(module, client)
         assert results == (True, after, dict(before=None, after=after))
@@ -248,7 +248,7 @@ class TestEnsurePresent:
         )
         after = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.user.User.get_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.user.User.get_by_name"
         ).side_effect = [user_obj]
         results = user.ensure_present(module, client)
         assert results == (False, after, dict(before=None, after=after))
@@ -278,10 +278,10 @@ class TestEnsureAbsent:
         after = None
         before = user_obj.to_ansible()
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.user.User.get_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.user.User.get_by_name"
         ).side_effect = [user_obj]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.user.User.send_delete_request"
+            "ansible_collections.maas.maas.plugins.module_utils.user.User.send_delete_request"
         ).return_value = None
         results = user.ensure_absent(module, client)
         assert results == (True, after, dict(before=before, after=after))
@@ -304,7 +304,7 @@ class TestEnsureAbsent:
         after = None
         before = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.user.User.get_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.user.User.get_by_name"
         ).side_effect = [None]
         results = user.ensure_absent(module, client)
         assert results == (False, after, dict(before=before, after=after))

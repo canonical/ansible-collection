@@ -11,13 +11,9 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.machine import (
-    Machine,
-)
-from ansible_collections.canonical.maas.plugins.module_utils.vmhost import (
-    VMHost,
-)
-from ansible_collections.canonical.maas.plugins.modules import vm_host_machine
+from ansible_collections.maas.maas.plugins.module_utils.machine import Machine
+from ansible_collections.maas.maas.plugins.module_utils.vmhost import VMHost
+from ansible_collections.maas.maas.plugins.modules import vm_host_machine
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -108,10 +104,10 @@ class TestRun:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.vmhost.VMHost.get_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.vmhost.VMHost.get_by_name"
         ).return_value = host_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.vm_host_machine.ensure_ready"
+            "ansible_collections.maas.maas.plugins.modules.vm_host_machine.ensure_ready"
         ).return_value = (
             True,
             [
@@ -199,10 +195,10 @@ class TestRun:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.vmhost.VMHost.get_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.vmhost.VMHost.get_by_name"
         ).return_value = host_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.vm_host_machine.ensure_ready"
+            "ansible_collections.maas.maas.plugins.modules.vm_host_machine.ensure_ready"
         ).return_value = (True, after, dict(before=before, after=after))
         results = vm_host_machine.run(module, client)
         assert results == (True, after, dict(before=before, after=after))
@@ -361,22 +357,22 @@ class TestEnsureReady:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_ansible"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.from_ansible"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.payload_for_compose"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.payload_for_compose"
         ).return_value = payload
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.vmhost.VMHost.send_compose_request"
+            "ansible_collections.maas.maas.plugins.module_utils.vmhost.VMHost.send_compose_request"
         ).return_value = task
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.wait_for_state"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.wait_for_state"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_ansible"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.to_ansible"
         ).return_value = after
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.utils.is_changed"
+            "ansible_collections.maas.maas.plugins.module_utils.utils.is_changed"
         ).return_value = True
         results = vm_host_machine.ensure_ready(module, client, host_obj)
         assert results == (True, after, dict(before=before, after=after))
@@ -447,22 +443,22 @@ class TestEnsureReady:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.from_ansible"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.from_ansible"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.payload_for_compose"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.payload_for_compose"
         ).return_value = payload
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.vmhost.VMHost.send_compose_request"
+            "ansible_collections.maas.maas.plugins.module_utils.vmhost.VMHost.send_compose_request"
         ).return_value = task
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.wait_for_state"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.wait_for_state"
         ).return_value = machine_obj
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.to_ansible"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.to_ansible"
         ).return_value = after
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.utils.is_changed"
+            "ansible_collections.maas.maas.plugins.module_utils.utils.is_changed"
         ).return_value = True
         results = vm_host_machine.ensure_ready(module, client, host_obj)
         assert results == (True, after, dict(before=before, after=after))

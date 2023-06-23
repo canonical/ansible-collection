@@ -11,10 +11,8 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils.machine import (
-    Machine,
-)
-from ansible_collections.canonical.maas.plugins.modules import tag
+from ansible_collections.maas.maas.plugins.module_utils.machine import Machine
+from ansible_collections.maas.maas.plugins.modules import tag
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -81,7 +79,7 @@ class TestRun:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.ensure_present"
+            "ansible_collections.maas.maas.plugins.modules.tag.ensure_present"
         ).return_value = (False, {}, {"before": [], "after": []})
         results = tag.run(module, client)
         assert results == (False, {}, {"before": [], "after": []})
@@ -101,7 +99,7 @@ class TestRun:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.ensure_absent"
+            "ansible_collections.maas.maas.plugins.modules.tag.ensure_absent"
         ).return_value = (False, {}, {"before": [], "after": []})
         results = tag.run(module, client)
         assert results == (False, {}, {"before": [], "after": []})
@@ -121,7 +119,7 @@ class TestRun:
             )
         )
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.ensure_set"
+            "ansible_collections.maas.maas.plugins.modules.tag.ensure_set"
         ).return_value = (False, {}, {"before": [], "after": []})
         results = tag.run(module, client)
         assert results == (False, {}, {"before": [], "after": []})
@@ -146,19 +144,19 @@ class TestEnsure:
         before = []
         after = []
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_id_from_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_id_from_fqdn"
         ).return_value = machine_obj_list
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.tag.Tag.get_tag_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.tag.Tag.get_tag_by_name"
         ).return_value = {"name": "this_tag"}
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.create_tag"
+            "ansible_collections.maas.maas.plugins.modules.tag.create_tag"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.add_tag_to_machine"
+            "ansible_collections.maas.maas.plugins.modules.tag.add_tag_to_machine"
         ).return_value = (before, after)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.get_after"
+            "ansible_collections.maas.maas.plugins.modules.tag.get_after"
         ).return_value = after
         results = tag.ensure_present(module, client)
         assert results == (False, [], {"before": [], "after": []})
@@ -181,16 +179,16 @@ class TestEnsure:
         before = []
         after = []
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_id_from_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_id_from_fqdn"
         ).return_value = machine_obj_list
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.tag.Tag.get_tag_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.tag.Tag.get_tag_by_name"
         ).return_value = {"name": "this_tag"}
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.remove_tag_from_machine"
+            "ansible_collections.maas.maas.plugins.modules.tag.remove_tag_from_machine"
         ).return_value = (before, after)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.get_after"
+            "ansible_collections.maas.maas.plugins.modules.tag.get_after"
         ).return_value = after
         results = tag.ensure_absent(module, client)
         assert results == (False, [], {"before": [], "after": []})
@@ -214,13 +212,13 @@ class TestEnsure:
         machine_obj_list = ["this_machine", "that_machine"]
         after = []
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_id_from_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_id_from_fqdn"
         ).return_value = machine_obj_list
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.tag.Tag.get_tag_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.tag.Tag.get_tag_by_name"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.get_after"
+            "ansible_collections.maas.maas.plugins.modules.tag.get_after"
         ).return_value = after
         results = tag.ensure_absent(module, client)
         assert results == (False, [], {"before": [], "after": []})
@@ -243,25 +241,25 @@ class TestEnsure:
         before = []
         after = []
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_id_from_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_id_from_fqdn"
         ).return_value = machine_obj_list
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.tag.Tag.get_tag_by_name"
+            "ansible_collections.maas.maas.plugins.module_utils.tag.Tag.get_tag_by_name"
         ).return_value = {"name": "this_tag"}
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_by_tag"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_by_tag"
         ).return_value = machine_obj_list
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.create_tag"
+            "ansible_collections.maas.maas.plugins.modules.tag.create_tag"
         ).return_value = after
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.add_tag_to_machine"
+            "ansible_collections.maas.maas.plugins.modules.tag.add_tag_to_machine"
         ).return_value = (before, after)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.remove_unnecessary_tag_after_set"
+            "ansible_collections.maas.maas.plugins.modules.tag.remove_unnecessary_tag_after_set"
         ).return_value = (before, after)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.get_after"
+            "ansible_collections.maas.maas.plugins.modules.tag.get_after"
         ).return_value = after
         results = tag.ensure_set(module, client)
         assert results == (False, [], {"before": [], "after": []})
@@ -274,7 +272,7 @@ class TestUtils:
         machine2 = Machine(fqdn="two", tags=["first", "second"])
         updated_machine_list = [machine1, machine2]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.machine.Machine.get_id_from_fqdn"
+            "ansible_collections.maas.maas.plugins.module_utils.machine.Machine.get_id_from_fqdn"
         ).return_value = updated_machine_list
         results = tag.get_after(client, after)
         assert results == [
@@ -303,7 +301,7 @@ class TestUtils:
         )
         existing_tag = dict(name="this_tag")
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.tag.Tag.send_create_request"
+            "ansible_collections.maas.maas.plugins.module_utils.tag.Tag.send_create_request"
         ).return_value = None
         results = tag.create_tag(client, module, existing_tag)
         assert results is None
@@ -345,7 +343,7 @@ class TestUtils:
         machine1 = Machine(fqdn="one", tags=["first", "second"])
         machine2 = Machine(fqdn="two", tags=["first", "second", "this_tag"])
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.tag.Tag.send_tag_request"
+            "ansible_collections.maas.maas.plugins.module_utils.tag.Tag.send_tag_request"
         ).return_value = None
         machine_list = [machine1, machine2]
         after.append(machine1.fqdn)
@@ -402,7 +400,7 @@ class TestUtils:
         existing_tag = {"name": "this_tag"}
         after.append(machine2.fqdn)
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.module_utils.tag.Tag.send_untag_request"
+            "ansible_collections.maas.maas.plugins.module_utils.tag.Tag.send_untag_request"
         ).return_value = None
         results = tag.remove_tag_from_machine(
             client, module, machine_list, existing_tag, before, after
@@ -465,7 +463,7 @@ class TestUtils:
         before = ["this"]
         after = ["this"]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.remove_tag_from_machine"
+            "ansible_collections.maas.maas.plugins.modules.tag.remove_tag_from_machine"
         ).return_value = (before, after)
         results = tag.remove_unnecessary_tag_after_set(
             client,
@@ -503,7 +501,7 @@ class TestUtils:
         before = ["this"]
         after = ["this"]
         mocker.patch(
-            "ansible_collections.canonical.maas.plugins.modules.tag.remove_tag_from_machine"
+            "ansible_collections.maas.maas.plugins.modules.tag.remove_tag_from_machine"
         ).return_value = (before, after)
         results = tag.remove_unnecessary_tag_after_set(
             client,

@@ -9,13 +9,13 @@
   block:
     # Ensure that doamin exist
     - name: Create domain
-      canonical.maas.dns_domain:
+      maas.maas.dns_domain:
         name: "{{ domain_name }}"
         state: present
 
     # CNAME record
     - name: Create CNAME record
-      canonical.maas.dns_record:
+      maas.maas.dns_record:
         name: "cname"
         domain: "{{ domain_name }}"
         state: present
@@ -31,7 +31,7 @@
           created.record.data == "maas.io"
 
     - name: Edit CNAME record
-      canonical.maas.dns_record:
+      maas.maas.dns_record:
         fqdn: "cname.{{ domain_name }}"
         state: present
         type: CNAME
@@ -43,7 +43,7 @@
           edited.record.data == "maas.io2"
 
     - name: Change CNAME record to A/AAAA record - should fail
-      canonical.maas.dns_record:
+      maas.maas.dns_record:
         fqdn: "cname.{{ domain_name }}"
         state: present
         type: A/AAAA
@@ -52,7 +52,7 @@
       failed_when: not_possible_transition is not failed
 
     - name: Remove CNAME record
-      canonical.maas.dns_record:
+      maas.maas.dns_record:
         name: "cname"
         domain: "{{ domain_name }}"
         state: absent
@@ -64,7 +64,7 @@
 
     # A/AAAA record
     - name: Create A/AAAA record
-      canonical.maas.dns_record:
+      maas.maas.dns_record:
         fqdn: "aaaa.{{ domain_name }}"
         state: present
         type: A/AAAA
@@ -79,7 +79,7 @@
           created.record.data == "1.2.3.4"
 
     - name: Edit A/AAAA record
-      canonical.maas.dns_record:
+      maas.maas.dns_record:
         fqdn: "aaaa.{{ domain_name }}"
         state: present
         type: A/AAAA
@@ -91,30 +91,30 @@
           edited.record.data == "1.2.3.4 1.2.3.6"
 
     - name: Delete domain - should fail because not empty
-      canonical.maas.dns_domain:
+      maas.maas.dns_domain:
         name: "{{ domain_name }}"
         state: absent
       register: not_empty_domain_deleted
       failed_when: not_empty_domain_deleted is not failed
 
     - name: Remove A/AAAA record
-      canonical.maas.dns_record:
+      maas.maas.dns_record:
         fqdn: "aaaa.{{ domain_name }}"
         state: absent
 
   always:
     # clean up environment after tests
     - name: Remove CNAME record
-      canonical.maas.dns_record:
+      maas.maas.dns_record:
         fqdn: "cname.{{ domain_name }}"
         state: absent
 
     - name: Remove A/AAAA record
-      canonical.maas.dns_record:
+      maas.maas.dns_record:
         fqdn: "aaaa.{{ domain_name }}"
         state: absent
 
     - name: Delete domain - to have clean environment after tests
-      canonical.maas.dns_domain:
+      maas.maas.dns_domain:
         name: "{{ domain_name }}"
         state: absent

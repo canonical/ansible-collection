@@ -3,7 +3,7 @@
   hosts: localhost
   tasks:
     - name: Create user James
-      canonical.maas.user:
+      maas.maas.user:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2
@@ -19,7 +19,7 @@
         var: users
 
     - name: Delete user James
-      canonical.maas.user:
+      maas.maas.user:
         cluster_instance:
           host: http://10.44.240.10:5240/MAAS
           token_key: kDcKvtWX7fXLB7TvB2

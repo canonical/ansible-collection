@@ -18,14 +18,14 @@ description:
   - Plugin returns all IP ranges.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options: {}
 """
 
 EXAMPLES = r"""
 - name: List IP ranges
-  canonical.maas.subnet_ip_range_info:
+  maas.maas.subnet_ip_range_info:
     cluster_instance:
       host: ...
       token_key: ...

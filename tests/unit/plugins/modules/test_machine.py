@@ -11,11 +11,9 @@ import sys
 
 import pytest
 
-from ansible_collections.canonical.maas.plugins.module_utils import errors
-from ansible_collections.canonical.maas.plugins.module_utils.machine import (
-    Machine,
-)
-from ansible_collections.canonical.maas.plugins.modules import machine
+from ansible_collections.maas.maas.plugins.module_utils import errors
+from ansible_collections.maas.maas.plugins.module_utils.machine import Machine
+from ansible_collections.maas.maas.plugins.modules import machine
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"

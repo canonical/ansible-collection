@@ -20,7 +20,7 @@ description:
   - If I(state) is C(absent) selected machine is deleted.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   state:
@@ -89,7 +89,7 @@ options:
 
 EXAMPLES = r"""
 - name: Add machine to the system
-  canonical.maas.machine:
+  maas.maas.machine:
     state: present
     power_type: lxd
     power_parameters:  # depends on selected power_type
@@ -109,7 +109,7 @@ EXAMPLES = r"""
 
 
 - name: Update existing machine
-  canonical.maas.machine:
+  maas.maas.machine:
     state: present
     fqdn: new-machine.maas
     power_type: virsh
@@ -125,7 +125,7 @@ EXAMPLES = r"""
     min_hwe_kernel: ga-20.04
 
 - name: Delete machine
-  canonical.maas.machine:
+  maas.maas.machine:
     state: absent
     fqdn: my-machine
 """

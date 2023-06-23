@@ -17,14 +17,14 @@ short_description: Get list of all tags.
 description: Shows information about all tags on this MAAS.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options: {}
 """
 
 EXAMPLES = r"""
 - name: List tags
-  canonical.maas.tag_info:
+  maas.maas.tag_info:
     cluster_instance:
       host: http://10.44.240.10:5240/MAAS
       token_key: kDcKvtWX7fXLB7TvB2

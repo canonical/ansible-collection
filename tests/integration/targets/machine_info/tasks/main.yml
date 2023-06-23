@@ -8,7 +8,7 @@
 
   block:
     - name: List machines
-      canonical.maas.machine_info:
+      maas.maas.machine_info:
       register: machines
 
     # - debug:

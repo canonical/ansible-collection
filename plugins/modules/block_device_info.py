@@ -18,7 +18,7 @@ description:
   - Plugin returns information about all block devices or specific block device if I(name) is provided.
 version_added: 1.0.0
 extends_documentation_fragment:
-  - canonical.maas.cluster_instance
+  - maas.maas.cluster_instance
 seealso: []
 options:
   machine_fqdn:
@@ -38,7 +38,7 @@ options:
 
 EXAMPLES = r"""
 - name: Get list of all block devices of a selected machine.
-  canonical.maas.block_device_info:
+  maas.maas.block_device_info:
     cluster_instance:
       host: host-ip
       token_key: token-key
@@ -47,7 +47,7 @@ EXAMPLES = r"""
     machine_fqdn: machine_name.project
 
 - name: Get info about a specific block device of a selected machine.
-  canonical.maas.block_device_info:
+  maas.maas.block_device_info:
     cluster_instance:
       host: host-ip
       token_key: token-key
