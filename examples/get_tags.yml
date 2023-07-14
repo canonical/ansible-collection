@@ -9,7 +9,7 @@
           token_key: kDcKvtWX7fXLB7TvB2
           token_secret: ktBqeLMRvLBDLFm7g8xybgpQ4jSkkwgk
           customer_key: tqDErtYzyzRVdUb9hS
-      register: tags
+      register: maas_tags
 
     - ansible.builtin.debug:
-        var: tags
+        var: maas_tags
