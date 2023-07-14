@@ -56,6 +56,7 @@ options:
   storage_disks:
     description:
       - Storage disks.
+    default: []
     type: list
     elements: dict
     suboptions:

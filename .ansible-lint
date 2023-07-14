@@ -1,2 +1,6 @@
 skip_list:  # or 'skip_list' to silence them completely
   - unnamed-task  # All tasks should be named
+
+exclude_paths:
+  - .cache
+  - .github
