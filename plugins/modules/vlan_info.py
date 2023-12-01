@@ -15,7 +15,7 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Returns info about VLANs.
 description:
-  - Plugin returns information about all VLANs on a specfic fabric or specific VLAN on a specfic fabric.
+  - Plugin returns information about all VLANs on a specific fabric or specific VLAN on a specific fabric.
 version_added: 1.0.0
 extends_documentation_fragment:
   - maas.maas.cluster_instance

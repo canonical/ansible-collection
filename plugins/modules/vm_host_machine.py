@@ -73,7 +73,7 @@ options:
         type: str
         description:
           - The network interface label name.
-          - Network interface label name as shown in the web aplication.
+          - Network interface label name as shown in the web application.
         required: true
       name:
         type: str

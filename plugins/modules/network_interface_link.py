@@ -32,7 +32,7 @@ options:
     type: str
     required: True
   state:
-    description: Prefered state of the network interface.
+    description: Preferred state of the network interface.
     choices: [ present, absent ]
     type: str
     required: True
@@ -70,7 +70,7 @@ EXAMPLES = r"""
     network_interface: enp5s0
     subnet: 10.10.10.0/24
     ip_address: 10.10.10.4
-    default_gateway: True
+    default_gateway: true
   register: nic_info
 
 - name: Delete subnet link on VM new-machine-3.test-domain with network interface enp5s0
@@ -86,7 +86,7 @@ EXAMPLES = r"""
     network_interface: enp5s0
     subnet: 10.10.10.0/24
     ip_address: 10.10.10.4
-    default_gateway: True
+    default_gateway: true
   register: nic_info
 """
 

@@ -9,12 +9,12 @@
   block:
     - name: Delete machine-test
       maas.maas.machine:
-        fqdn: machine-test.maas
+        fqdn: "machine-test.{{ test_domain }}"
         state: absent
 
     - name: Delete updated-machine
       maas.maas.machine:
-        fqdn: updated-machine.maas
+        fqdn: "updated-machine.{{ test_domain }}"
         state: absent
 
     - name: Add machine - missing parameter
@@ -26,7 +26,7 @@
         pxe_mac_address: 00:00:00:00:00:01
         hostname: machine-test
         architecture: amd64/generic
-        domain: maas
+        domain: "{{ test_domain }}"
         pool: default
         zone: default
         min_hwe_kernel: hwe-20.04
@@ -47,7 +47,7 @@
         pxe_mac_address: 00:00:00:00:00:01
         hostname: machine-test
         architecture: amd64/generic
-        domain: maas
+        domain: "{{ test_domain }}"
         pool: default
         zone: default
         min_hwe_kernel: hwe-20.04
@@ -65,7 +65,7 @@
     - name: Update existing machine
       maas.maas.machine:
         state: present
-        fqdn: machine-test.maas
+        fqdn: "machine-test.{{ test_domain }}"
         power_type: virsh
         power_parameters:
           power_address: 172.16.117.70:8443
@@ -90,7 +90,7 @@
     - name: Update existing machine - idempotence
       maas.maas.machine:
         state: present
-        fqdn: updated-machine.maas
+        fqdn: "updated-machine.{{ test_domain }}"
         # updating power_type and power_parameters will never be idempoten because we can't read all the values
         architecture: amd64/generic
         hostname: updated-machine
@@ -109,7 +109,7 @@
 
     - name: Delete machine
       maas.maas.instance:
-        fqdn: updated-machine.maas
+        fqdn: "updated-machine.{{ test_domain }}"
         state: absent
       register: machine
     - ansible.builtin.assert:
@@ -118,7 +118,7 @@
 
     - name: Delete machine - idempotence
       maas.maas.instance:
-        fqdn: updated-machine.maas
+        fqdn: "updated-machine.{{ test_domain }}"
         state: absent
       register: machine
     - ansible.builtin.assert:

@@ -37,7 +37,7 @@ options:
     type: bool
     default: False
   state:
-    description: Prefered state of the user.
+    description: Preferred state of the user.
     choices: [ present, absent ]
     type: str
     required: True

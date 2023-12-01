@@ -49,19 +49,19 @@ options:
 """
 
 EXAMPLES = r"""
-- name: Create newtork fabric
+- name: Create network fabric
   maas.maas.fabric:
     state: present
     name: fabric-name
     class_type: class_type
-    description: My new newtork fabric
+    description: My new network fabric
 
 - name: Update network fabric
   maas.maas.fabric:
     state: present
     name: fabric-name
     new_name: updated-fabric
-    description: My new newtork fabric updated
+    description: My new network fabric updated
 
 - name: Remove network fabric
   maas.maas.fabric:

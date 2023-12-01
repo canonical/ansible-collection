@@ -90,7 +90,6 @@ EXAMPLES = r"""
 
 - debug:
     var: nic_info
-
 """
 
 RETURN = r"""

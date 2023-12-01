@@ -244,7 +244,6 @@ class TestDeploy:
                 fqdn=None,
                 state="ready",
                 deploy_params={
-                    "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
                     "hwe_kernel": "my_kernel",
@@ -268,7 +267,6 @@ class TestDeploy:
             "/api/2.0/machines/123456/",
             query={"op": "deploy"},
             data={
-                "osystem": "ubuntu",
                 "distro_series": "jammy",
                 "hwe_kernel": "my_kernel",
                 "user_data": "my_data",
@@ -289,7 +287,6 @@ class TestDeploy:
                 fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
-                    "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
                     "min_hwe_kernel": "my_kernel",
@@ -319,7 +316,6 @@ class TestDeploy:
                 fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
-                    "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
                     "hwe_kernel": "my_kernel",
@@ -343,7 +339,6 @@ class TestDeploy:
             "/api/2.0/machines/123456/",
             query={"op": "deploy"},
             data={
-                "osystem": "ubuntu",
                 "distro_series": "jammy",
                 "hwe_kernel": "my_kernel",
                 "user_data": "my_data",
@@ -367,7 +362,6 @@ class TestDeploy:
                 fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
-                    "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
                     "hwe_kernel": "my_kernel",
@@ -393,7 +387,6 @@ class TestDeploy:
             "/api/2.0/machines/123456/",
             query={"op": "deploy"},
             data={
-                "osystem": "ubuntu",
                 "distro_series": "jammy",
                 "hwe_kernel": "my_kernel",
                 "user_data": "my_data",
@@ -414,7 +407,6 @@ class TestDeploy:
                 fqdn="my_instance.maas",
                 state="ready",
                 deploy_params={
-                    "osystem": "ubuntu",
                     "distro_series": "jammy",
                     "timeout": 30,
                     "hwe_kernel": "my_kernel",
@@ -438,7 +430,6 @@ class TestDeploy:
             "/api/2.0/machines/123456/",
             query={"op": "deploy"},
             data={
-                "osystem": "ubuntu",
                 "distro_series": "jammy",
                 "hwe_kernel": "my_kernel",
                 "user_data": "my_data",
@@ -473,7 +464,6 @@ class TestMain:
                 "ip_address": "10.10.10.190",
             },
             deploy_params={
-                "osystem": "ubuntu",
                 "distro_series": "jammy",
                 "timeout": 30,
                 "hwe_kernel": "my_kernel",

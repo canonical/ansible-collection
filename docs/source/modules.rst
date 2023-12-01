@@ -16,7 +16,7 @@ the resource that we are operating on.
 Authentication parameters
 -------------------------
 
-Descrcription about instance parameter.
+Description about instance parameter.
 
 Module reference
 ----------------

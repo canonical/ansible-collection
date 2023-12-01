@@ -51,7 +51,6 @@ class TestGet:
                     "cpu": 1,
                 },
                 deploy_params={
-                    "osystem": "ubuntu",
                     "distro_series": "jammy",
                 },
             ),
@@ -118,7 +117,6 @@ class TestGet:
                     "cpu": 1,
                 },
                 deploy_params={
-                    "osystem": "ubuntu",
                     "distro_series": "jammy",
                 },
             ),
@@ -325,7 +323,7 @@ class TestDeploy:
             hostname="my_instance",
             id=123,
         )
-        payload = {"osystem": "ubuntu"}
+        payload = {"distro_series": "jammy"}
         timeout = 20
 
         machine.deploy(client, payload, timeout)
@@ -333,7 +331,7 @@ class TestDeploy:
         client.post.assert_called_with(
             "/api/2.0/machines/123/",
             query={"op": "deploy"},
-            data={"osystem": "ubuntu"},
+            data={"distro_series": "jammy"},
             timeout=20,
         )
 

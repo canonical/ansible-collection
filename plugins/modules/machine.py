@@ -180,6 +180,7 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.cluster_instance import get_oauth1_client
 from ..module_utils.machine import Machine
+from ..module_utils.state import MachineTaskState
 
 
 def data_for_add_machine(module):
@@ -216,10 +217,13 @@ def data_for_add_machine(module):
 def add_machine(module, client: Client):
     data = data_for_add_machine(module)
     machine = Machine.create(client, data)
+    updated_machine = Machine.wait_for_state(
+        machine.id, client, False, MachineTaskState.ready
+    )
     return (
         True,
-        machine.to_ansible(),
-        dict(before={}, after=machine.to_ansible()),
+        updated_machine.to_ansible(),
+        dict(before={}, after=updated_machine.to_ansible()),
     )
 
 

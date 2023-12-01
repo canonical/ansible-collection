@@ -50,8 +50,6 @@ EXAMPLES = r"""
   register: user
 - ansible.builtin.debug:
     var: user
-
-
 """
 
 RETURN = r"""

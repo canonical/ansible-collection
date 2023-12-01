@@ -13,22 +13,19 @@
         vm_host_name: "{{ item }}"
         state: absent
       loop:
-        - lxd-test
         - lxd-test-updated
-        - new-virsh
-        - vm-host-from-machine
 
     - name: Machine cleanup
       maas.maas.machine: &delete-machine
-        fqdn: machine.maas
+        fqdn: "machine.{{ test_domain }}"
         state: absent
 
     # -----------------------------------Info------------------------------------
-    - name: List vm hosts
+    - name: List VM hosts
       maas.maas.vm_host_info:
       register: vm_hosts
 
-    - name: List specific vm host
+    - name: List specific VM host
       maas.maas.vm_host_info:
         name: "{{ vm_hosts.records.0.name }}"
       register: vm_host
@@ -37,46 +34,18 @@
           - vm_host.records.0.name == vm_hosts.records.0.name
 
     # ------------------------------------Job------------------------------------
-    - name: Register LXD VM host
-      maas.maas.vm_host:
-        state: present
-        vm_host_name: lxd-test
-        timeout: 180
-        power_parameters:
-          power_type: lxd
-          power_address: "{{ test_lxd_address }}"
-        cpu_over_commit_ratio: 3
-        memory_over_commit_ratio: 4
-        default_macvlan_mode: bridge
-        zone: default
-        pool: default
-        tags: my-tag
-      register: vm_host
-    - ansible.builtin.assert:
-        that:
-          - vm_host is changed
-          - vm_host.record.name == "lxd-test"
-          - vm_host.record.type == "lxd"
-          - vm_host.record.cpu_over_commit_ratio == 3.0
-          - vm_host.record.memory_over_commit_ratio == 4.0
-          - vm_host.record.default_macvlan_mode == "bridge"
-          - vm_host.record.zone.name == "default"
-          - vm_host.record.pool.name == "default"
-          - vm_host.record.tags == ["my-tag", "pod-console-logging"]
-
     - name: Update LXD VM host
       maas.maas.vm_host:
         state: present
-        vm_host_name: lxd-test
+        vm_host_name: "{{ test_lxd_host.hostname }}"
         timeout: 180
-        power_parameters:
-          power_address: "{{ test_lxd_address }}"
         new_vm_host_name: lxd-test-updated
         cpu_over_commit_ratio: 2
         memory_over_commit_ratio: 3
         default_macvlan_mode: passthru
         tags: new-tag, new-tag2
       register: vm_host
+      when: test_lxd_host is defined
     - ansible.builtin.assert:
         that:
           - vm_host is changed
@@ -86,6 +55,7 @@
           - vm_host.record.memory_over_commit_ratio == 3.0
           - vm_host.record.default_macvlan_mode == "passthru"
           # - vm_host.record.tags == ["new-tag", "new-tag2", "my-tag", "pod-console-logging"] this will work after tag bug is resolved
+      when: test_lxd_host is defined
 
     - name: Update LXD VM host - idempotence
       maas.maas.vm_host:
@@ -96,61 +66,16 @@
         memory_over_commit_ratio: 3
         default_macvlan_mode: passthru
       register: vm_host
+      when: test_lxd_host is defined
     - ansible.builtin.assert:
         that:
           - vm_host is not changed
+      when: test_lxd_host is defined
 
-    - name: Delete LXD host
-      maas.maas.vm_host:
-        vm_host_name: lxd-test-updated
-        state: absent
-      register: vm_host
-    - ansible.builtin.assert:
-        that:
-          - vm_host is changed
-
-    - name: Register VIRSH host
-      maas.maas.vm_host:
-        state: present
-        vm_host_name: new-virsh
-        timeout: 180
-        power_parameters:
-          power_type: virsh
-          power_address: "qemu+ssh://{{ test_virsh_host }}/system"
-          power_user: user
-          power_pass: pass
-        cpu_over_commit_ratio: 1
-        memory_over_commit_ratio: 2
-        default_macvlan_mode: bridge
-        zone: default
-        pool: default
-        tags: my-tag
-      register: vm_host
-    - ansible.builtin.assert:
-        that:
-          - vm_host is changed
-          - vm_host.record.name == "new-virsh"
-          - vm_host.record.type == "virsh"
-          - vm_host.record.cpu_over_commit_ratio == 1.0
-          - vm_host.record.memory_over_commit_ratio == 2.0
-          - vm_host.record.default_macvlan_mode == "bridge"
-          - vm_host.record.zone.name == "default"
-          - vm_host.record.pool.name == "default"
-          - vm_host.record.tags == ["my-tag", "pod-console-logging"]
-
-    - name: Delete VIRSH host
-      maas.maas.vm_host:
-        vm_host_name: new-virsh
-        state: absent
-      register: vm_host
-    - ansible.builtin.assert:
-        that:
-          - vm_host is changed
-
-    - name: Create virtual machine with two disks and a network interface.
+    - name: Create virtual machine with two disks and a network interface
       maas.maas.vm_host_machine:
         hostname: machine
-        vm_host: "{{ test_vm_host }}"
+        vm_host: "{% if test_existing_vm_host is defined %}{{ test_existing_vm_host }}{% else %}lxd-test-updated{% endif %}"
         cores: 4
         memory: 8192
         network_interfaces:
@@ -163,19 +88,17 @@
         that:
           - machine is changed
           - machine.record.hostname == "machine"
-          - machine.record.fqdn == "machine.maas"
+          - machine.record.fqdn == "machine.{{ test_domain }}"
           - machine.record.memory == 8192
           - machine.record.cores == 4
     # TODO: update vm_host_machine to wait for ready state (otherwise task after will fail)
 
-    - name: Register known allready allocated machine as lxd VM host
+    - name: Register known already allocated machine as LXD VM host
       maas.maas.vm_host:
         state: present
         vm_host_name: machine
-        machine_fqdn: machine.maas
+        machine_fqdn: "machine.{{ test_domain }}"
         timeout: 3600
-        power_parameters:
-          power_type: lxd
         cpu_over_commit_ratio: 1
         memory_over_commit_ratio: 2
         default_macvlan_mode: bridge
@@ -189,9 +112,33 @@
           - vm_host.record.memory_over_commit_ratio == 2.0
           - vm_host.record.default_macvlan_mode == "bridge"
 
+    - name: Delete VIRSH host
+      maas.maas.vm_host:
+        vm_host_name: "{{ test_virsh_host.hostname }}"
+        state: absent
+      register: vm_host
+      when: test_virsh_host is defined
+    - ansible.builtin.assert:
+        that:
+          - vm_host is changed
+      when: test_virsh_host is defined
+
+    - name: Delete LXD host
+      maas.maas.vm_host:
+        vm_host_name: lxd-test-updated
+        state: absent
+      register: vm_host
+      when: test_lxd_host is defined
+    - ansible.builtin.assert:
+        that:
+          - vm_host is changed
+      when: test_lxd_host is defined
+
     # ----------------------------------Cleanup------------------------------------
     - name: Remove VM host
       maas.maas.vm_host: *delete-vm-hosts
+      loop:
+        - lxd-test-updated
 
     - name: Delete machine
       maas.maas.machine: *delete-machine

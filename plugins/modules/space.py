@@ -45,18 +45,18 @@ options:
 """
 
 EXAMPLES = r"""
-- name: Create newtork space
+- name: Create network space
   maas.maas.space:
     state: present
     name: space-name
-    description: My new newtork space
+    description: My new network space
 
 - name: Update network space
   maas.maas.space:
     state: present
     name: space-name
     new_name: updated-space
-    description: My new newtork space updated
+    description: My new network space updated
 
 - name: Remove network space
   maas.maas.space:

@@ -14,5 +14,5 @@
         fqdn: "{{ item }}"
         state: absent
       loop:
-        - inventory-test-1.maas
-        - inventory-test-2.maas
+        - "inventory-test-1.{{ test_domain }}"
+        - "inventory-test-2.{{ test_domain }}"

@@ -4,6 +4,8 @@
     MAAS_TOKEN_KEY: "{{ token_key }}"
     MAAS_TOKEN_SECRET: "{{ token_secret }}"
     MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+  vars:
+    vm_host: "{% if test_existing_vm_host is defined %}{{ test_existing_vm_host }}{% else %}{{ test_lxd_host.hostname }}{% endif %}"
 
 
   block:
@@ -17,9 +19,9 @@
         - "integration-test-tag-2.{{ test_domain }}"
 
 # ----------------------------------Setup------------------------------------------------------------------------------
-    - name: Create virtual machine integration-test-tag.maas
+    - name: Create virtual machine integration-test-tag
       maas.maas.vm_host_machine:
-        vm_host: "{{ test_vm_host }}"
+        vm_host: "{{ vm_host }}"
         hostname: integration-test-tag
         cores: 1
         memory: 2048
@@ -35,9 +37,9 @@
           - machine is succeeded
           - machine is changed
 
-    - name: Create virtual machine integration-test-tag-2.maas
+    - name: Create virtual machine integration-test-tag-2
       maas.maas.vm_host_machine:
-        vm_host: "{{ test_vm_host }}"
+        vm_host: "{{ vm_host }}"
         hostname: integration-test-tag-2
         cores: 1
         memory: 2048
@@ -120,12 +122,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
     - name: Get info from integration-test-tag-2 after create.
       maas.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -140,8 +142,8 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
 # ----------------------------------Idempotence check------------------------------------------------------------------
     - name: Create new tag 'test1' and place it on VMs - (idempotence)
@@ -149,8 +151,8 @@
         state: present
         name: test1
         machines:
-          - integration-test-tag.maas
-          - integration-test-tag-2.maas
+          - "integration-test-tag.{{ test_domain }}"
+          - "integration-test-tag-2.{{ test_domain }}"
       register: tag
     - ansible.builtin.assert:
         that:
@@ -159,7 +161,7 @@
 
     - name: Get info from integration-test-tag after create - (idempotence).
       maas.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -174,12 +176,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
     - name: Get info from integration-test-tag-2 after create - (idempotence).
       maas.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -194,8 +196,8 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
 # ----------------------------------Job--------------------------------------------------------------------------------
     - name: Delete tag 'test1' from VMs
@@ -203,8 +205,8 @@
         state: absent
         name: test1
         machines:
-          - integration-test-tag.maas
-          - integration-test-tag-2.maas
+          - "integration-test-tag.{{ test_domain }}"
+          - "integration-test-tag-2.{{ test_domain }}"
       register: tag
     - ansible.builtin.assert:
         that:
@@ -213,7 +215,7 @@
 
     - name: Get info from integration-test-tag after delete.
       maas.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -228,13 +230,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 2
-          - machine_info.records.0.tag_names.0 != "test1"
-          - machine_info.records.0.tag_names.1 != "test1"
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names is not contains('test1')
 
     - name: Get info from integration-test-tag-2 after delete.
       maas.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -249,9 +250,8 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 2
-          - machine_info.records.0.tag_names.0 != "test1"
-          - machine_info.records.0.tag_names.1 != "test1"
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names is not contains('test1')
 
 # ----------------------------------Idempotence check------------------------------------------------------------------
     - name: Delete tag 'test1' from VMs - (Idempotence)
@@ -259,8 +259,8 @@
         state: absent
         name: test1
         machines:
-          - integration-test-tag.maas
-          - integration-test-tag-2.maas
+          - "integration-test-tag.{{ test_domain }}"
+          - "integration-test-tag-2.{{ test_domain }}"
       register: tag
     - ansible.builtin.assert:
         that:
@@ -269,7 +269,7 @@
 
     - name: Get info from integration-test-tag after delete. - (Idempotence)
       maas.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -284,13 +284,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 2
-          - machine_info.records.0.tag_names.0 != "test1"
-          - machine_info.records.0.tag_names.1 != "test1"
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names is not contains('test1')
 
     - name: Get info from integration-test-tag-2 after delete. - (Idempotence)
       maas.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -305,9 +304,8 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 2
-          - machine_info.records.0.tag_names.0 != "test1"
-          - machine_info.records.0.tag_names.1 != "test1"
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names is not contains('test1')
 
 # ----------------------------------Job--------------------------------------------------------------------------------
     - name: Set tag 'test1' to VMs
@@ -315,8 +313,8 @@
         state: set
         name: test1
         machines:
-          - integration-test-tag.maas
-          - integration-test-tag-2.maas
+          - "integration-test-tag.{{ test_domain }}"
+          - "integration-test-tag-2.{{ test_domain }}"
       register: tag
     - ansible.builtin.assert:
         that:
@@ -325,7 +323,7 @@
 
     - name: Get info from integration-test-tag after set.
       maas.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -340,12 +338,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
     - name: Get info from integration-test-tag-2 after set.
       maas.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -360,8 +358,8 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
 # ----------------------------------Idempotence check------------------------------------------------------------------
     - name: Set tag 'test1' to VMs - (idempotence)
@@ -369,8 +367,8 @@
         state: set
         name: test1
         machines:
-          - integration-test-tag.maas
-          - integration-test-tag-2.maas
+          - "integration-test-tag.{{ test_domain }}"
+          - "integration-test-tag-2.{{ test_domain }}"
       register: tag
     - ansible.builtin.assert:
         that:
@@ -379,7 +377,7 @@
 
     - name: Get info from integration-test-tag after set - (idempotence).
       maas.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -394,12 +392,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
     - name: Get info from integration-test-tag-2 after set - (idempotence).
       maas.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -414,8 +412,8 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
 # ----------------------------------Job--------------------------------------------------------------------------------
     - name: Set tag 'test1' on first VM
@@ -423,7 +421,7 @@
         state: set
         name: test1
         machines:
-          - integration-test-tag.maas
+          - "integration-test-tag.{{ test_domain }}"
       register: tag
     - ansible.builtin.assert:
         that:
@@ -432,7 +430,7 @@
 
     - name: Get info from integration-test-tag after set first.
       maas.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -447,12 +445,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
     - name: Get info from integration-test-tag-2 after set first.
       maas.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -467,9 +465,8 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 2
-          - machine_info.records.0.tag_names.0 != "test1"
-          - machine_info.records.0.tag_names.1 != "test1"
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names is not contains('test1')
 
 # ----------------------------------Idempotence check------------------------------------------------------------------
     - name: Set tag 'test1' on first VM - idempotence.
@@ -477,7 +474,7 @@
         state: set
         name: test1
         machines:
-          - integration-test-tag.maas
+          - "integration-test-tag.{{ test_domain }}"
       register: tag
     - ansible.builtin.assert:
         that:
@@ -486,7 +483,7 @@
 
     - name: Get info from integration-test-tag after set first - idempotence.
       maas.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -501,12 +498,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
     - name: Get info from integration-test-tag-2 after set first - idempotence.
       maas.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -521,9 +518,8 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 2
-          - machine_info.records.0.tag_names.0 != "test1"
-          - machine_info.records.0.tag_names.1 != "test1"
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names is not contains('test1')
 
 # ----------------------------------Job--------------------------------------------------------------------------------
     - name: Set tag 'test1' on second VM
@@ -531,7 +527,7 @@
         state: set
         name: test1
         machines:
-          - integration-test-tag-2.maas
+          - "integration-test-tag-2.{{ test_domain }}"
       register: tag
     - ansible.builtin.assert:
         that:
@@ -540,7 +536,7 @@
 
     - name: Get info from integration-test-tag after set second.
       maas.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -555,13 +551,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 2
-          - machine_info.records.0.tag_names.0 != "test1"
-          - machine_info.records.0.tag_names.1 != "test1"
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names is not contains('test1')
 
     - name: Get info from integration-test-tag-2 after set second.
       maas.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -576,8 +571,8 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
 # ----------------------------------Idempotence check------------------------------------------------------------------
     - name: Set tag 'test1' on second VM - idempotence
@@ -585,7 +580,7 @@
         state: set
         name: test1
         machines:
-          - integration-test-tag-2.maas
+          - "integration-test-tag-2.{{ test_domain }}"
       register: tag
     - ansible.builtin.assert:
         that:
@@ -594,7 +589,7 @@
 
     - name: Get info from integration-test-tag after set second - idempotence.
       maas.maas.machine_info:
-        fqdn: integration-test-tag.maas
+        fqdn: "integration-test-tag.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -609,13 +604,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 2
-          - machine_info.records.0.tag_names.0 != "test1"
-          - machine_info.records.0.tag_names.1 != "test1"
+          - machine_info.records.0.tag_names | length == 3
+          - machine_info.records.0.tag_names is not contains('test1')
 
     - name: Get info from integration-test-tag-2 after set second - idempotence.
       maas.maas.machine_info:
-        fqdn: integration-test-tag-2.maas
+        fqdn: "integration-test-tag-2.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:
@@ -630,12 +624,12 @@
           - machine_info.records.0.interface_set.0.name == "my_first"
           - machine_info.records.0.interface_set.0.links.0.subnet.cidr == "{{ test_subnet }}"
           - machine_info.records.0.memory == 2048
-          - machine_info.records.0.tag_names | length == 3
-          - machine_info.records.0.tag_names.2 == "test1"
+          - machine_info.records.0.tag_names | length == 4
+          - machine_info.records.0.tag_names is contains('test1')
 
 # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machines
       maas.maas.instance: *delete-machines
       loop:
-        - integration-test-tag.maas
-        - integration-test-tag-2.maas
+        - "integration-test-tag.{{ test_domain }}"
+        - "integration-test-tag-2.{{ test_domain }}"

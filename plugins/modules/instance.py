@@ -74,9 +74,6 @@ options:
       - If machine is already in deployed state, I(deploy_params) will be ignored. Machine needs to be released first for I(deploy_params) to apply
     type: dict
     suboptions:
-      osystem:
-        description: The OS the machine will use.
-        type: str
       distro_series:
         description: The OS release the machine will use.
         type: str
@@ -134,7 +131,6 @@ EXAMPLES = r"""
     fqdn: my_instance.maas
     state: deployed
     deploy_params:
-      osystem: ubuntu
       distro_series: focal
       hwe_kernel: my_kernel
       user_data: my_user_data
@@ -157,7 +153,6 @@ EXAMPLES = r"""
       subnet_cidr: 10.10.10.0/24
       ip_address: 10.10.10.190
     deploy_params:
-      osystem: ubuntu
       distro_series: jammy
       hwe_kernel: my_kernel
       user_data: my_user_data
@@ -329,8 +324,6 @@ def deploy(module, client: Client):
     data = {}
     timeout = 60  # seconds
     if module.params["deploy_params"]:
-        if module.params["deploy_params"]["osystem"]:
-            data["osystem"] = module.params["deploy_params"]["osystem"]
         if module.params["deploy_params"]["distro_series"]:
             data["distro_series"] = module.params["deploy_params"][
                 "distro_series"
@@ -377,7 +370,6 @@ def main():
             deploy_params=dict(
                 type="dict",
                 options=dict(
-                    osystem=dict(type="str"),
                     distro_series=dict(type="str"),
                     timeout=dict(type="int"),
                     hwe_kernel=dict(type="str"),
