@@ -4,20 +4,22 @@
     MAAS_TOKEN_KEY: "{{ token_key }}"
     MAAS_TOKEN_SECRET: "{{ token_secret }}"
     MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+  vars:
+    vm_host: "{% if test_existing_vm_host is defined %}{{ test_existing_vm_host }}{% else %}{{ test_lxd_host.hostname }}{% endif %}"
 
 
   block:
 # ----------------------------------Cleanup----------------------------------------------------------------------------
     - name: Delete machine
       maas.maas.instance:
-        fqdn: integration-test-nic-link.maas
+        fqdn: "integration-test-nic-link.{{ test_domain }}"
         state: absent
 
 # ----------------------------------Setup----------------------------------------------------------------------------
     - name: Create virtual machine with name integration-test-nic-link.
       maas.maas.vm_host_machine:
         hostname: integration-test-nic-link
-        vm_host: "{{ test_vm_host }}"
+        vm_host: "{{ vm_host }}"
         cores: 2
         memory: 2000
         network_interfaces:
@@ -49,7 +51,7 @@
     - name: Create virtual machine with name integration-test-nic-link. (Idempotence)
       maas.maas.vm_host_machine:
         hostname: integration-test-nic-link
-        vm_host: "{{ test_vm_host }}"
+        vm_host: "{{ vm_host }}"
         cores: 2
         memory: 2000
         network_interfaces:
@@ -80,7 +82,7 @@
 # ----------------------------------Job----------------------------------------------------------------------------
     - name: Create new alias on machine with name integration-test-nic-link.
       maas.maas.network_interface_link:
-        machine: integration-test-nic-link.maas
+        machine: "integration-test-nic-link.{{ test_domain }}"
         state: present
         network_interface: my_first
         subnet: "{{ test_subnet }}"
@@ -93,7 +95,7 @@
 
     - name: Get info from created machine.
       maas.maas.machine_info:
-        fqdn: integration-test-nic-link.maas
+        fqdn: "integration-test-nic-link.{{ test_domain }}"
       register: machine_info
     - ansible.builtin.assert:
         that:

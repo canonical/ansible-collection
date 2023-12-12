@@ -11,7 +11,6 @@ import sys
 
 import pytest
 
-from ansible_collections.maas.maas.plugins.module_utils.machine import Machine
 from ansible_collections.maas.maas.plugins.module_utils.vmhost import VMHost
 
 # from ansible_collections.maas.maas.plugins.module_utils import errors
@@ -174,18 +173,60 @@ class TestDataForUpdateVMHost:
 
 
 class TestDataForDeployMachine:
-    def test_for_deploy_machine_as_lxd_vm_host(self):
-        machine = Machine(power_type="lxd")
-        data = vm_host.data_for_deploy_machine_as_vm_host(machine)
+    def test_for_deploy_machine_as_lxd_vm_host(self, create_module):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    customer_key="nzW4EBWjyDe",
+                ),
+                vm_host_name="my-vm-host",
+                machine=None,
+                state="present",
+                power_parameters=dict(
+                    power_type="lxd",
+                ),
+                cpu_over_commit_ratio=1,
+                memory_over_commit_ratio=2,
+                default_macvlan_mode="bridge",
+                new_vm_host_name=None,
+                pool="my-pool",
+                zone="my-zone",
+                tags="my-tag, my-tag2",
+            ),
+        )
+        data = vm_host.data_for_deploy_machine_as_vm_host(module)
         assert data == {
-            "install_kwm": False,
             "register_vmhost": True,
         }
 
-    def test_for_deploy_machine_as_virsh_vm_host(self):
-        machine = Machine(power_type="virsh")
-        data = vm_host.data_for_deploy_machine_as_vm_host(machine)
+    def test_for_deploy_machine_as_virsh_vm_host(self, create_module):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    token_key="URCfn6EhdZ",
+                    token_secret="PhXz3ncACvkcK",
+                    customer_key="nzW4EBWjyDe",
+                ),
+                vm_host_name="my-vm-host",
+                machine=None,
+                state="present",
+                power_parameters=dict(
+                    power_type="virsh",
+                ),
+                cpu_over_commit_ratio=1,
+                memory_over_commit_ratio=2,
+                default_macvlan_mode="bridge",
+                new_vm_host_name=None,
+                pool="my-pool",
+                zone="my-zone",
+                tags="my-tag, my-tag2",
+            ),
+        )
+        data = vm_host.data_for_deploy_machine_as_vm_host(module)
         assert data == {
-            "install_kwm": True,
-            "register_vmhost": False,
+            "install_kvm": True,
         }

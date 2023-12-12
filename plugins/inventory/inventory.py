@@ -40,7 +40,7 @@ EXAMPLES = r"""
 plugin: maas.maas.inventory
 
 # `ansible-inventory -i examples/maas_inventory.yaml --graph` output:
-#@all:
+# @all:
 #  |--@maas:
 #  |  |--first.maas
 #  |--@test:
@@ -48,7 +48,7 @@ plugin: maas.maas.inventory
 #  |--@ungrouped:
 
 # `ansible-inventory -i maas_inventory.yaml --list` output:
-#{
+# {
 #    "_meta": {
 #        "hostvars": {}
 #    },
@@ -69,24 +69,22 @@ plugin: maas.maas.inventory
 #            "second.test"
 #        ]
 #    }
-#}
+# }
 
 # Example with all available parameters and how to set them.
 # A group "test" is created based on the domain name "test".
 # Only VMs with status "ready", are added to the group.
 
-plugin: maas.maas.inventory
-
 status: ready
 
 # `ansible-inventory -i examples/maas_inventory.yaml --graph` output:
-#@all:
+# @all:
 #  |--@test:
 #  |  |--second.test
 #  |--@ungrouped:
 
 # `ansible-inventory -i maas_inventory.yaml --list` output:
-#{
+# {
 #    "_meta": {
 #        "hostvars": {}
 #    },
@@ -101,9 +99,9 @@ status: ready
 #            "second.test"
 #        ]
 #    }
-#}
-
+# }
 """
+
 import logging
 import os
 

@@ -42,7 +42,7 @@ options:
     type: bool
     description:
      - Boolean value indicating if the new DNS domain will be set as the default in the MAAS environment.
-     - One is not allow to set it to false. It can be achived bz setting other a defualt
+     - One is not allowed to set it to false. It can be achieved by setting to a value other than the default
     choices: [True]
 """
 

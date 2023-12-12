@@ -1,0 +1,110 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+    # ----------------------------------Cleanup------------------------------------
+    - name: VM host cleanup
+      maas.maas.vm_host:
+        vm_host_name: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ test_lxd_host.hostname }}"
+        - "{{ test_virsh_host.hostname }}"
+
+    # ------------------------------------Job------------------------------------
+    - name: Add machine for LXD host.
+      maas.maas.machine:
+        state: present
+        power_type: "{{ test_lxd_host.power_type }}"
+        power_parameters:
+          power_address: "{{ test_lxd_host.power_address }}"
+          power_user: "{{ test_lxd_host.power_user }}"
+          power_pass: "{{ test_lxd_host.power_pass }}"
+          power_driver: "{{ test_lxd_host.power_driver }}"
+        pxe_mac_address: "{{ test_lxd_host.mac_address }}"
+        hostname: "{{ test_lxd_host.hostname }}"
+        architecture: "{{ test_lxd_host.architecture }}"
+        domain: "{{ test_domain }}"
+        pool: default
+        zone: default
+      when: test_lxd_host is defined
+
+    - name: Add machine for VIRSH host.
+      maas.maas.machine:
+        state: present
+        power_type: "{{ test_virsh_host.power_type }}"
+        power_parameters:
+          power_address: "{{ test_virsh_host.power_address }}"
+          power_user: "{{ test_virsh_host.power_user }}"
+          power_pass: "{{ test_virsh_host.power_pass }}"
+          power_driver: "{{ test_virsh_host.power_driver }}"
+        pxe_mac_address: "{{ test_virsh_host.mac_address }}"
+        hostname: "{{ test_virsh_host.hostname }}"
+        architecture: "{{ test_virsh_host.architecture }}"
+        domain: "{{ test_domain }}"
+        pool: default
+        zone: default
+      when: test_virsh_host is defined
+
+    - name: Register LXD VM host
+      maas.maas.vm_host:
+        state: present
+        vm_host_name: "{{ test_lxd_host.hostname }}"
+        machine_fqdn: "{{ test_lxd_host.hostname }}.{{ test_domain }}"
+        power_parameters:
+          power_type: lxd
+        timeout: 3600
+        cpu_over_commit_ratio: 3
+        memory_over_commit_ratio: 4
+        default_macvlan_mode: bridge
+        zone: default
+        pool: default
+        tags: my-tag
+      register: vm_host
+      when: test_lxd_host is defined
+    - ansible.builtin.assert:
+        that:
+          - vm_host is changed
+          - vm_host.record.name == "{{ test_lxd_host.hostname }}"
+          - vm_host.record.type == "lxd"
+          - vm_host.record.cpu_over_commit_ratio == 3.0
+          - vm_host.record.memory_over_commit_ratio == 4.0
+          - vm_host.record.default_macvlan_mode == "bridge"
+          - vm_host.record.zone.name == "default"
+          - vm_host.record.pool.name == "default"
+          # - vm_host.record.tags == ["my-tag", "pod-console-logging"] this will work after tag bug is resolved
+      when: test_lxd_host is defined
+
+    - name: Register VIRSH host
+      maas.maas.vm_host:
+        state: present
+        vm_host_name: "{{ test_virsh_host.hostname }}"
+        machine_fqdn: "{{ test_virsh_host.hostname }}.{{ test_domain }}"
+        power_parameters:
+          power_type: virsh
+        timeout: 3600
+        cpu_over_commit_ratio: 1
+        memory_over_commit_ratio: 2
+        default_macvlan_mode: bridge
+        zone: default
+        pool: default
+        tags: my-tag
+      register: vm_host
+      when: test_virsh_host is defined
+    - ansible.builtin.assert:
+        that:
+          - vm_host is changed
+          - vm_host.record.name == "{{ test_virsh_host.hostname }}"
+          - vm_host.record.type == "virsh"
+          - vm_host.record.cpu_over_commit_ratio == 1.0
+          - vm_host.record.memory_over_commit_ratio == 2.0
+          - vm_host.record.default_macvlan_mode == "bridge"
+          - vm_host.record.zone.name == "default"
+          - vm_host.record.pool.name == "default"
+          # - vm_host.record.tags == ["my-tag", "virtual", "pod-console-logging"] this will work after tag bug is resolved
+      when: test_virsh_host is defined

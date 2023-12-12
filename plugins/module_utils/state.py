@@ -46,6 +46,7 @@ class MachineTaskState(str, enum.Enum):
     testing = "Testing"
     failed_comissioning = "Failed commissioning"
     failed_deployment = "Failed deployment"
+    failed_testing = "Failed testing"
 
 
 class UserState(str, enum.Enum):

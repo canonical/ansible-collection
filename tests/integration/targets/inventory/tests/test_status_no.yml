@@ -6,17 +6,17 @@
   ansible.builtin.assert:
     that:
       - "{{ 'localhost' in hostvars }}"
-      - "{{ 'inventory-test-1.maas' in hostvars }}"
-      - "{{ 'inventory-test-2.maas' in hostvars }}"
+      - "{{ ('inventory-test-1.' + test_domain) in hostvars }}"
+      - "{{ ('inventory-test-2.' + test_domain) in hostvars }}"
 
 - name: Check Host in inventory from machineX - No status
   ansible.builtin.assert:
     that:
-      - "{{ hostvars['inventory-test-1.maas']['ansible_host'] == 'inventory-test-1.maas' }}"
-      - "{{ hostvars['inventory-test-2.maas']['ansible_host'] == 'inventory-test-2.maas' }}"
+      - "{{ hostvars['inventory-test-1.' + test_domain]['ansible_host'] == 'inventory-test-1.' + test_domain }}"
+      - "{{ hostvars['inventory-test-2.' + test_domain]['ansible_host'] == 'inventory-test-2.' + test_domain }}"
 
 - name: Check Group in inventory from machineX - No status
   ansible.builtin.assert:
     that:
-      - "{{ hostvars['inventory-test-1.maas']['ansible_group'] == 'maas' }}"
-      - "{{ hostvars['inventory-test-2.maas']['ansible_group'] == 'maas' }}"
+      - "{{ hostvars['inventory-test-1.' + test_domain]['ansible_group'] == test_domain }}"
+      - "{{ hostvars['inventory-test-2.' + test_domain]['ansible_group'] == test_domain }}"

@@ -65,6 +65,7 @@ options:
           - This option is used only when creating new VM host. To change the I(power_type), the VM host must be deleted and re-added.
         choices: [ lxd, virsh ]
         type: str
+        default: lxd
       power_address:
         description:
           - Address that gives MAAS access to the VM host power control.
@@ -152,7 +153,7 @@ EXAMPLES = r"""
     pool: my-pool
     tags: my-tag, my-tag2
 
-- name: Register known allready allocated machine
+- name: Register known already allocated machine
   maas.maas.vm_host:
     state: present
     vm_host_name: new-vm-host-name
@@ -242,7 +243,6 @@ record:
         resource_uri: /MAAS/api/2.0/zones/default/
 """
 
-
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
@@ -322,21 +322,18 @@ def data_for_update_vm_host(module, vm_host_obj):
     return data
 
 
-def data_for_deploy_machine_as_vm_host(machine):
-    data = {
-        "install_kwm": machine.power_type
-        == "virsh",  # True for virsh, False for lxd
-        "register_vmhost": machine.power_type
-        == "lxd",  # True for lxd, False for virsh
-    }
-    return data
+def data_for_deploy_machine_as_vm_host(module):
+    if module.params["power_parameters"]["power_type"] == "virsh":
+        return {"install_kvm": True}
+    else:
+        return {"register_vmhost": True}
 
 
 def deploy_machine_as_vm_host(module, client, timeout):
     machine = Machine.get_by_fqdn(
         module, client, must_exist=True, name_field_ansible="machine_fqdn"
     )
-    data = data_for_deploy_machine_as_vm_host(machine)
+    data = data_for_deploy_machine_as_vm_host(module)
     machine.deploy(client, data, timeout)
     try:
         Machine.wait_for_state(
@@ -344,6 +341,7 @@ def deploy_machine_as_vm_host(module, client, timeout):
         )
     except errors.MachineNotFound:  # when machine is deployed, machine is gone
         pass
+
     vm_host_obj = VMHost.get_by_name(
         module, client, must_exist=True, name_field_ansible="vm_host_name"
     )
@@ -432,7 +430,9 @@ def main():
             power_parameters=dict(
                 type="dict",
                 options=dict(
-                    power_type=dict(type="str", choices=["lxd", "virsh"]),
+                    power_type=dict(
+                        type="str", choices=["lxd", "virsh"], default="lxd"
+                    ),
                     power_address=dict(type="str"),
                     power_user=dict(type="str"),
                     power_pass=dict(type="str", no_log=True),

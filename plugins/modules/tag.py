@@ -34,7 +34,7 @@ options:
     elements: str
     required: True
   state:
-    description: Prefered tag state.
+    description: Preferred tag state.
     choices: [ present, absent, set ]
     type: str
     required: True

@@ -8,12 +8,14 @@
     MAAS_TOKEN_KEY: "{{ token_key }}"
     MAAS_TOKEN_SECRET: "{{ token_secret }}"
     MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+  vars:
+    vm_host: "{% if test_existing_vm_host is defined %}{{ test_existing_vm_host }}{% else %}{{ test_lxd_host.hostname }}{% endif %}"
 
   tasks:
     - name: Create VM inventory-test-1.
       maas.maas.vm_host_machine:
         hostname: inventory-test-1
-        vm_host: "{{ test_vm_host }}"
+        vm_host: "{{ vm_host }}"
         cores: 2
         memory: 2048
         network_interfaces:
@@ -45,7 +47,7 @@
     - name: Create VM inventory-test-2.
       maas.maas.vm_host_machine:
         hostname: inventory-test-2
-        vm_host: "{{ test_vm_host }}"
+        vm_host: "{{ vm_host }}"
         cores: 2
         memory: 2048
         network_interfaces:

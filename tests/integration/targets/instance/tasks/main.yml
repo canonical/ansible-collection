@@ -4,18 +4,20 @@
     MAAS_TOKEN_KEY: "{{ token_key }}"
     MAAS_TOKEN_SECRET: "{{ token_secret }}"
     MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+  vars:
+    vm_host: "{% if test_existing_vm_host is defined %}{{ test_existing_vm_host }}{% else %}{{ test_lxd_host.hostname }}{% endif %}"
 
 
   block:
     - name: Delete machine
       maas.maas.instance: &delete
-        fqdn: instance-test.maas
+        fqdn: "instance-test.{{ test_domain }}"
         state: absent
 
     - name: Create virtual machine with two disks and a network interface.
       maas.maas.vm_host_machine:
         hostname: instance-test
-        vm_host: "{{ test_vm_host }}"
+        vm_host: "{{ vm_host }}"
         cores: 4
         memory: 8192
         network_interfaces:
@@ -33,7 +35,7 @@
 
     - name: Deploy machine
       maas.maas.instance: &deploy
-        fqdn: instance-test.maas
+        fqdn: "instance-test.{{ test_domain }}"
         state: deployed
         deploy_params:
           timeout: 360
@@ -41,7 +43,7 @@
     - ansible.builtin.assert:
         that:
           - machine is changed
-          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.fqdn == "instance-test.{{ test_domain }}"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 8192
           - machine.record.cores == 4
@@ -55,7 +57,7 @@
     - ansible.builtin.assert:
         that:
           - machine is not changed
-          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.fqdn == "instance-test.{{ test_domain }}"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 8192
           - machine.record.cores == 4
@@ -65,13 +67,13 @@
 
     - name: Release machine
       maas.maas.instance: &release
-        fqdn: instance-test.maas
+        fqdn: "instance-test.{{ test_domain }}"
         state: ready
       register: machine
     - ansible.builtin.assert:
         that:
           - machine is changed
-          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.fqdn == "instance-test.{{ test_domain }}"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 8192
           - machine.record.cores == 4
@@ -83,7 +85,7 @@
     - ansible.builtin.assert:
         that:
           - machine is not changed
-          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.fqdn == "instance-test.{{ test_domain }}"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 8192
           - machine.record.cores == 4
@@ -91,17 +93,16 @@
 
     - name: Deploy machine with another OS
       maas.maas.instance:
-        fqdn: instance-test.maas
+        fqdn: "instance-test.{{ test_domain }}"
         state: deployed
         deploy_params:
-          osystem: ubuntu
           distro_series: jammy
           timeout: 360
       register: machine
     - ansible.builtin.assert:
         that:
           - machine is changed
-          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.fqdn == "instance-test.{{ test_domain }}"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 8192
           - machine.record.cores == 4
@@ -115,7 +116,7 @@
     - ansible.builtin.assert:
         that:
           - machine is changed
-          - machine.record.fqdn == "instance-test.maas"
+          - machine.record.fqdn == "instance-test.{{ test_domain }}"
           - machine.record.hostname == "instance-test"
           - machine.record.memory == 8192
           - machine.record.cores == 4
@@ -173,7 +174,6 @@
     #     #   subnet_cidr: 10.10.10.0/24
     #     #   ip_address: 10.10.10.190
     #     deploy_params:
-    #       osystem: ubuntu
     #       distro_series: jammy
     #       # hwe_kernel: my_kernel
     #       # user_data: my_user_data
