@@ -102,6 +102,7 @@
         cpu_over_commit_ratio: 1
         memory_over_commit_ratio: 2
         default_macvlan_mode: bridge
+        power_parameters: {}
       register: vm_host
     - ansible.builtin.assert:
         that:
@@ -111,6 +112,15 @@
           - vm_host.record.cpu_over_commit_ratio == 1.0
           - vm_host.record.memory_over_commit_ratio == 2.0
           - vm_host.record.default_macvlan_mode == "bridge"
+
+    - name: Delete VM host from already allocated machine
+      maas.maas.vm_host:
+        vm_host_name: machine
+        state: absent
+      register: vm_host
+    - ansible.builtin.assert:
+        that:
+          - vm_host is changed
 
     - name: Delete VIRSH host
       maas.maas.vm_host:
