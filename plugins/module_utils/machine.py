@@ -282,9 +282,9 @@ class Machine(MaasValueMapper):
                     payload_string_list.append(f"vlan={net_interface['vlan']}")
                 if net_interface.get("name"):
                     payload_string_list.append(f"name={net_interface['name']}")
-                payload[
-                    "interfaces"
-                ] = f"{net_interface['label_name']}:{','.join(payload_string_list)}"
+                payload["interfaces"] = (
+                    f"{net_interface['label_name']}:{','.join(payload_string_list)}"
+                )
                 break  # Right now, compose only allows for one network interface.
         if "storage" in payload:
             tmp = payload.pop("storage")
