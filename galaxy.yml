@@ -41,16 +41,16 @@ tags:
 dependencies: {}
 
 # The URL of the originating SCM repository
-repository: https://github.com/maas/ansible-collection
+repository: https://github.com/canonical/ansible-collection
 
 # The URL to any online docs
-documentation: https://github.com/maas/ansible-collection
+documentation: https://github.com/canonical/ansible-collection
 
 # The URL to the homepage of the collection/project
 homepage: https://maas.io
 
 # The URL to the collection issue tracker
-issues: https://github.com/maas/ansible-collection/issues
+issues: https://github.com/canonical/ansible-collection/issues
 
 # A list of file glob-like patterns used to filter any files or directories that should not be included in the build
 # artifact. A pattern is matched from the relative path of the file or directory of the collection directory. This

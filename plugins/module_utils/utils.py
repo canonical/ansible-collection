@@ -13,7 +13,6 @@ __metaclass__ = type
 
 
 class MaasValueMapper:
-
     """
     Represent abstract class.
     """
