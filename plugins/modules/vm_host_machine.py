@@ -186,6 +186,7 @@ def prepare_network_data(module):
 def ensure_ready(module, client, vm_host_obj):
     before = None
     after = None
+    vm_host_obj.send_refresh_request(module, client, payload)
     if module.params["hostname"]:
         vm_obj = Machine.get_by_name_and_host(module, client)
         if vm_obj:
