@@ -92,7 +92,7 @@ class VMHost(MaasValueMapper):
         results = client.post(
             f"/api/2.0/vm-hosts/{self.id}/",
             query={"op": "refresh"},
-            # data=payload,
+            data={},
         ).json
         return results
 
