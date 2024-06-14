@@ -5,7 +5,6 @@
     MAAS_TOKEN_SECRET: "{{ token_secret }}"
     MAAS_CUSTOMER_KEY: "{{ customer_key }}"
 
-
   block:
     # ----------------------------------Cleanup------------------------------------
     - name: VM host cleanup
@@ -26,6 +25,7 @@
           power_user: "{{ test_lxd_host.power_user }}"
           power_pass: "{{ test_lxd_host.power_pass }}"
           power_driver: "{{ test_lxd_host.power_driver }}"
+          power_boot_type: "{{ test_lxd_host.power_boot_type }}"
         pxe_mac_address: "{{ test_lxd_host.mac_address }}"
         hostname: "{{ test_lxd_host.hostname }}"
         architecture: "{{ test_lxd_host.architecture }}"
@@ -43,6 +43,7 @@
           power_user: "{{ test_virsh_host.power_user }}"
           power_pass: "{{ test_virsh_host.power_pass }}"
           power_driver: "{{ test_virsh_host.power_driver }}"
+          power_boot_type: "{{ test_virsh_host.power_boot_type }}"
         pxe_mac_address: "{{ test_virsh_host.mac_address }}"
         hostname: "{{ test_virsh_host.hostname }}"
         architecture: "{{ test_virsh_host.architecture }}"
