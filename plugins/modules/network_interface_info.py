@@ -133,7 +133,9 @@ from ..module_utils.machine import Machine
 
 
 def run(module, client):
-    machine_obj = Machine.get_by_fqdn(module, client, must_exist=True)
+    machine_obj = Machine.get_by_fqdn(
+        module, client, must_exist=True, name_field_ansible="machine"
+    )
     if module.params["mac_address"]:
         nic_obj = machine_obj.find_nic_by_mac(module.params["mac_address"])
         if nic_obj:
