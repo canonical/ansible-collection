@@ -36,5 +36,5 @@ class Multipart:
             content += f'Content-Disposition: form-data; name="{k}"{rn}{rn}'
             content += str(v)
             content += rn
-        content += f"--{ boundary }--"
+        content += f"--{boundary}--"
         return boundary, content.encode("utf-8")

@@ -128,7 +128,7 @@ def ensure_present(module, client: Client):
     if not subnet:
         available_subnets = ", ".join(x["name"] for x in subnets)
         raise errors.MaasError(
-            f"Can not find matching subnet. Options are [{ available_subnets }]"
+            f"Can not find matching subnet. Options are [{available_subnets}]"
         )
 
     compound_key = {

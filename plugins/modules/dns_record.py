@@ -107,7 +107,7 @@ def get_match_or_fail(items, key, value, attribute_name):
 
     available_items = ", ".join(x[key] for x in items)
     raise errors.MaasError(
-        f"Can not find matching { attribute_name }. Options are [{ available_items }]"
+        f"Can not find matching {attribute_name}. Options are [{available_items}]"
     )
 
 

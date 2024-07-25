@@ -88,6 +88,14 @@ class VMHost(MaasValueMapper):
         ).json
         return results
 
+    def send_refresh_request(self, module, client, payload={}):
+        results = client.post(
+            f"/api/2.0/vm-hosts/{self.id}/",
+            query={"op": "refresh"},
+            data={},
+        ).json
+        return results
+
     def delete(self, client):
         client.delete(f"/api/2.0/vm-hosts/{self.id}/")
 
