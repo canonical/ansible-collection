@@ -1,0 +1,129 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+    - name: Delete package repository
+      canonical.maas.package_repository:
+        name: "Test 1"
+        url: "https://test.integration/test1"
+        state: absent
+
+    - name: Delete package repository
+      canonical.maas.package_repository:
+        name: "Test 2"
+        url: "https://test.integration/test2"
+        state: absent
+
+    - name: Add package repository - missing parameter
+      canonical.maas.package_repository:
+      ignore_errors: true
+      register: package_repository
+
+    - name: Add package repository - missing parameter
+      ansible.builtin.assert:
+        that:
+          - package_repository is failed
+          - "'missing required arguments: name, state, url' in package_repository.msg"
+
+    - name: Add package repository - with disable_sources
+      canonical.maas.package_repository:
+        state: present
+        name: "Test 1"
+        url: "https://test.integration/test1"
+        disable_sources: true
+      register: package_repository
+
+    - name: Add package repository - with disable_sources
+      ansible.builtin.assert:
+        that:
+          - package_repository is changed
+          - package_repository.record.name == "Test 1"
+          - package_repository.record.url == "https://test.integration/test1"
+          - package_repository.record.disable_sources == true
+
+    - name: Delete package repository
+      canonical.maas.package_repository:
+        state: absent
+        name: "Test 1"
+        url: "https://test.integration/test1"
+      register: package_repository
+
+    - name: Delete package repository
+      ansible.builtin.assert:
+        that:
+          - package_repository is changed
+
+    - name: Add package repository with arches
+      canonical.maas.package_repository:
+        state: present
+        name: "Test 2"
+        url: "https://test.integration/test2"
+        disable_sources: true
+        arches:
+          - amd64
+          - i386
+      register: package_repository
+
+    - name: Add package repository with arches
+      ansible.builtin.assert:
+        that:
+          - package_repository is changed
+          - package_repository.record.name == "Test 2"
+          - package_repository.record.url == "https://test.integration/test2"
+          - package_repository.record.disable_sources == true
+          - package_repository.record.arches == ["amd64", "i386"]
+
+    - name: Update package repository
+      canonical.maas.package_repository:
+        state: present
+        name: "Test 2"
+        url: "https://test.integration/test2"
+        disable_sources: true
+        arches:
+          - amd64
+          - i386
+        enabled: false
+      register: package_repository
+
+    - name: Update package repository
+      ansible.builtin.assert:
+        that:
+          - package_repository is changed
+          - package_repository.record.name == "Test 2"
+          - package_repository.record.url == "https://test.integration/test2"
+          - package_repository.record.disable_sources == true
+          - package_repository.record.arches == ["amd64", "i386"]
+          - package_repository.record.enabled == false
+
+    - name: Update package repository - idempotence
+      canonical.maas.package_repository:
+        state: present
+        name: "Test 2"
+        url: "https://test.integration/test2"
+        disable_sources: true
+        arches:
+          - amd64
+          - i386
+        enabled: false
+      register: package_repository
+
+    - name: Update package repository - idempotence
+      ansible.builtin.assert:
+        that:
+          - package_repository is not changed
+          - package_repository.record.name == "Test 2"
+          - package_repository.record.url == "https://test.integration/test2"
+          - package_repository.record.disable_sources == true
+          - package_repository.record.arches == ["amd64", "i386"]
+          - package_repository.record.enabled == false
+
+    - name: Delete package repository
+      canonical.maas.package_repository:
+        name: "Test 2"
+        url: "https://test.integration/test2"
+        state: absent
