@@ -77,7 +77,7 @@ class RestClient:
         if check_mode:
             return
         try:
-            response = self.client.delete(endpoint, timeout=timeout).json
+            response = self.client.delete(endpoint, timeout=timeout)
         except TimeoutError as e:
             raise errors.MaasError(f"Request timed out: {e}")
         return response
