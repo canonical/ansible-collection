@@ -1,0 +1,82 @@
+---
+- environment:
+    MAAS_HOST: "{{ host }}"
+    MAAS_TOKEN_KEY: "{{ token_key }}"
+    MAAS_TOKEN_SECRET: "{{ token_secret }}"
+    MAAS_CUSTOMER_KEY: "{{ customer_key }}"
+
+
+  block:
+  # ----------------------------------Cleanup---------------------------------------------------------------------------------
+    - name: Delete zone
+      canonical.maas.zone:
+        state: absent
+        name: test-zone
+
+  # ----------------------------------Test-------------------------------------------------------------------------------------
+    - name: Create new zone
+      canonical.maas.zone:
+        state: present
+        name: test-zone
+      register: zone
+    - ansible.builtin.assert:
+        that:
+          - zone is succeeded
+          - zone is changed
+
+    - name: Try to create zone which is already exists
+      canonical.maas.zone:
+        state: present
+        name: test-zone
+      register: zone
+    - ansible.builtin.assert:
+        that:
+          - zone is succeeded
+          - zone is not changed
+    
+    - name: Update zone's description
+      canonical.maas.zone:
+        state: present
+        name: test-zone
+        description: test-description
+      register: zone
+    - ansible.builtin.assert:
+        that:
+          - zone is succeeded
+          - zone is changed
+          - zone.record.description == 'test-description'
+
+    - name: Update zone's name
+      canonical.maas.zone:
+        state: present
+        name: test-zone
+        new_name: updated-test-zone
+        description: test-description
+      register: zone
+    - ansible.builtin.assert:
+        that:
+          - zone is succeeded
+          - zone is changed
+          - zone.record.description ==  "test-description"
+          - zone.record.name == "updated-test-zone"
+
+    - name: Delete zone
+      canonical.maas.zone:
+        state: absent
+        name: updated-test-zone
+      register: deleted_zone
+    - ansible.builtin.assert:
+        that:
+          - deleted_zone is succeeded
+          - deleted_zone is changed
+
+    - name: Try to delete zone which is already absent
+      canonical.maas.zone:
+        state: absent
+        name: updated-test-zone
+      register: deleted_zone
+    - ansible.builtin.assert:
+        that:
+          - deleted_zone is succeeded
+          - deleted_zone is not changed
+
