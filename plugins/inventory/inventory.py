@@ -156,10 +156,10 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         # Try getting variables from env
         try:
-            host = os.getenv("MAAS_HOST")
-            token_key = os.getenv("MAAS_TOKEN_KEY")
-            token_secret = os.getenv("MAAS_TOKEN_SECRET")
-            customer_key = os.getenv("MAAS_CUSTOMER_KEY")
+            host = self.get_option("maas_host")
+            token_key = self.get_option("maas_token_key")
+            token_secret = self.get_option("maas_token_secret")
+            customer_key = self.get_option("maas_customer_key")
         except KeyError:
             raise errors.MaasError(
                 "Missing parameters: MAAS_HOST, MAAS_TOKEN_KEY, MAAS_TOKEN_SECRET, MAAS_CUSTOMER_KEY."
