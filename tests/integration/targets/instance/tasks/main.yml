@@ -7,7 +7,6 @@
   vars:
     vm_host: "{% if test_existing_vm_host is defined %}{{ test_existing_vm_host }}{% else %}{{ test_lxd_host.hostname }}{% endif %}"
 
-
   block:
     - name: Delete machine
       maas.maas.instance: &delete
@@ -48,7 +47,7 @@
           - machine.record.memory == 8192
           - machine.record.cores == 4
           - machine.record.osystem == "ubuntu"
-          - machine.record.distro_series == "focal"
+          - machine.record.distro_series == "{{ test_distro_series }}"
           - machine.record.status == "Deployed"
 
     - name: Deploy machine - idempotence
@@ -62,7 +61,7 @@
           - machine.record.memory == 8192
           - machine.record.cores == 4
           - machine.record.osystem == "ubuntu"
-          - machine.record.distro_series == "focal"
+          - machine.record.distro_series == "{{ test_distro_series }}"
           - machine.record.status == "Deployed"
 
     - name: Release machine
@@ -147,7 +146,7 @@
     #       - machine.record.memory == 8192
     #       - machine.record.cores == 4
     #       - machine.record.osystem == "ubuntu"
-    #       - machine.record.distro_series == "focal"
+    #       - machine.record.distro_series == "{{ test_distro_series }}"
     #       - machine.record.status == "Deployed"
 
     # - name: Release machine (ephemeral machine is deleted)
