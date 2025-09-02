@@ -18,7 +18,7 @@ jobs:
           env -C "$GITHUB_WORKSPACE/$REPO_DIR" -- tox -e docs
 
   sanity-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
