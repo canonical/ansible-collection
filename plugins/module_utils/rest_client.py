@@ -20,7 +20,7 @@ class RestClient:
     def __init__(self, client):
         self.client = client
 
-    def list_records(self, endpoint, query=None, timeout=None):
+    def list_records(self, endpoint, query=None, timeout=120):
         """Results are obtained so that first off, all records are obtained and
         then filtered manually"""
         try:
@@ -29,7 +29,7 @@ class RestClient:
             raise errors.MaasError(f"Request timed out: {e}")
         return utils.filter_results(records, query)
 
-    def get_record(self, endpoint, query=None, must_exist=False, timeout=None):
+    def get_record(self, endpoint, query=None, must_exist=False, timeout=120):
         records = self.list_records(
             endpoint=endpoint, query=query, timeout=timeout
         )
@@ -47,7 +47,7 @@ class RestClient:
             )
         return records[0] if records else None
 
-    def create_record(self, endpoint, payload, check_mode, timeout=None):
+    def create_record(self, endpoint, payload, check_mode, timeout=120):
         if check_mode:
             return payload
         try:
@@ -59,7 +59,7 @@ class RestClient:
         return response
 
     def update_record(
-        self, endpoint, payload, check_mode, record=None, timeout=None
+        self, endpoint, payload, check_mode, record=None, timeout=120
     ):
         # No action is possible when updating a record
         if check_mode:
@@ -72,7 +72,7 @@ class RestClient:
             raise errors.MaasError(f"Request timed out: {e}")
         return response
 
-    def delete_record(self, endpoint, check_mode, timeout=None):
+    def delete_record(self, endpoint, check_mode, timeout=120):
         # No action is possible when deleting a record
         if check_mode:
             return
@@ -87,7 +87,7 @@ class RestClient:
         endpoint,
         payload,
         check_mode,
-        timeout=None,
+        timeout=120,
         binary_data=None,
         headers=None,
     ):
