@@ -162,8 +162,10 @@ class TestDataForAddMachine:
             machine.data_for_add_machine(module)
 
         assert (
-            "Missing value - power_type, power_parameters or pxe_mac_address"
-            in str(exc.value)
+            "Missing value - power_type, power_parameters" in str(exc.value)
+        ) or (
+            "pxe_mac_address must be supplied with "
+            f"power type: {power_type}" in str(exc.value)
         )
 
 

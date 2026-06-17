@@ -35,7 +35,7 @@
     - ansible.builtin.assert:
         that:
           - machine is failed
-          - "'Missing value - power_type, power_parameters or pxe_mac_address' in machine.msg"
+          - "'Missing value - power_type, power_parameters' in machine.msg"
 
     - name: Add machine.
       maas.maas.machine:
