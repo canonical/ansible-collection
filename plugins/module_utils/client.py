@@ -100,7 +100,7 @@ class Client:
         except URLError as e:
             raise MaasError(e.reason)
         except TimeoutError:
-            raise MaasError("The action - timed out.")
+            raise MaasError("The action timed out.")
         return Response(raw_resp.status, raw_resp.read(), raw_resp.headers)
 
     def request(
