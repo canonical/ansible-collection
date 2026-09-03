@@ -13,7 +13,7 @@ module: subnet_ip_range
 
 author:
   - Jure Medvesek (@juremedvesek)
-short_description: Edit subnets IP range.
+short_description: Edit subnet IP ranges.
 description:
   - Plugin provides a resource to manage MAAS IP ranges.
 version_added: 1.0.0
@@ -29,7 +29,7 @@ options:
       - absent
     required: true
   subnet:
-    description: The name of subnet that we attach IP range to.
+    description: The name of the subnet that we attach the IP range to.
     type: str
     required: true
   type:
@@ -42,7 +42,7 @@ options:
     required: true
   end_ip:
     type: str
-    description: End of IP range
+    description: End of IP range.
     required: true
   comment:
     type: str
@@ -51,7 +51,7 @@ options:
 
 EXAMPLES = r"""
 - name: Add subnet IP range
-  maas.maas.dns_domain_info:
+  maas.maas.subnet_ip_range:
     cluster_instance:
       host: ...
       token_key: ...
@@ -67,7 +67,7 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Added domain.
+    - Added IP range.
   returned: success
   type: dict
   sample:
@@ -128,7 +128,7 @@ def ensure_present(module, client: Client):
     if not subnet:
         available_subnets = ", ".join(x["name"] for x in subnets)
         raise errors.MaasError(
-            f"Can not find matching subnet. Options are [{available_subnets}]"
+            f"Cannot find matching subnet. Options are [{available_subnets}]"
         )
 
     compound_key = {

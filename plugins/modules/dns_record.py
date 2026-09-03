@@ -107,7 +107,7 @@ def get_match_or_fail(items, key, value, attribute_name):
 
     available_items = ", ".join(x[key] for x in items)
     raise errors.MaasError(
-        f"Can not find matching {attribute_name}. Options are [{available_items}]"
+        f"Cannot find matching {attribute_name}. Options are [{available_items}]"
     )
 
 
@@ -154,7 +154,7 @@ def ensure_present(module, client: Client):
     )
     cleaned_data = clean_data(data)
 
-    # check if domain exist so we can print nicer errors - better than 404 Not found.
+    # check if domain exists so we can print nicer errors - better than 404 Not found.
     items = client.get("/api/2.0/domains/").json
     item = get_match_or_fail(items, "name", domain, "domain " + domain)
 

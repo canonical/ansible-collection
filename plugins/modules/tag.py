@@ -13,7 +13,7 @@ module: tag
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Manages tags on a machines.
+short_description: Manages tags on machines.
 description: Add or remove tags from machines.
 version_added: 1.0.0
 extends_documentation_fragment:
@@ -57,7 +57,7 @@ EXAMPLES = r"""
 - ansible.builtin.debug:
     var: tag_list
 
-- name: Delete new tag 'one' and place it on VMs
+- name: Delete tag 'one' from VMs
   maas.maas.tag:
     cluster_instance:
       host: host-ip

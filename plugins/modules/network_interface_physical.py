@@ -15,7 +15,7 @@ author:
   - Domen Dobnikar (@domen_dobnikar)
 short_description: Creates a network interface on a specified virtual machine.
 description:
-  - Create VM on a specified host.
+  - Create a network interface on a specified machine.
 version_added: 1.0.0
 extends_documentation_fragment:
   - maas.maas.cluster_instance
@@ -95,7 +95,7 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Crated or deleted network interface.
+    - Created or deleted network interface.
   returned: success
   type: dict
   sample:
