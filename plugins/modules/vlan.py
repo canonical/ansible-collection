@@ -73,8 +73,18 @@ options:
     type: str
   relay_vlan:
     description:
-      - Relay VLAN ID.
+      - Relay VLAN ID like 5001.
     type: int
+  relay_vid:
+    description:
+      - Relay VLAN ID like 107.
+    type: int
+  relay_fabric:
+    description:
+      - Name of the fabric where the DHCP Relay VLAN is.
+      - Serves as unique identifier of the fabric.
+      - If fabric is not found the task will FAIL.
+    type: str
 """
 
 EXAMPLES = r"""
@@ -252,6 +262,15 @@ def run(module, client: Client):
         module, client, must_exist=True, name_field_ansible="fabric_name"
     )
     if module.params["state"] == "present":
+        if module.params["relay_vid"] and not module.params["relay_vlan"]:
+            # If a user has defined the vid but not the relay_vlan, which is the MAAS provided ID, ie 5001, this will fetch it.
+            relay_fabric_id: Fabric = Fabric.get_by_name(
+                module, client, must_exist=True, name_field_ansible="relay_fabric"
+            )
+            relay_vlan_id: Vlan = Vlan.get_by_vid(
+                module.params["relay_vid"], client, relay_fabric_id.id, must_exist=True
+            )
+            module.params["relay_vlan"] = relay_vlan_id.id
         if not module.params["vid"]:
             vlan = Vlan.get_by_name(module, client, fabric.id, must_exist=True)
             return update_vlan(module, client, vlan)
@@ -283,9 +302,17 @@ def main():
             dhcp_on=dict(type="bool"),
             space=dict(type="str"),
             relay_vlan=dict(type="int"),
+            relay_fabric=dict(type="str"),
+            relay_vid=dict(type="int"),
         ),
         required_one_of=[
             ("vid", "vlan_name"),
+        ],
+        required_together=[
+            ("relay_vid", "relay_fabric"),
+        ],
+        mutually_exclusive=[
+            ("relay_vid", "relay_vlan"),
         ],
     )
 
